@@ -1,0 +1,42 @@
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/ScrollView01"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:scrollbars="vertical"
+    android:layout_gravity="center_horizontal">
+
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:orientation="vertical"
+        tools:context="com.mycompany.CMSBHelpdesk.Settings"
+        android:layout_margin="50dp">
+
+        <TextView
+            android:text="@string/action_settings"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="30sp"
+            android:textStyle="bold"
+            android:layout_margin="10dp"/>
+
+        <Button
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/title_activity_general"
+            android:id="@+id/general"
+            android:textSize="20sp"
+            android:layout_margin="10dp"/>
+
+        <Button
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/title_activity_users"
+            android:id="@+id/users"
+            android:textSize="20sp"
+            android:layout_margin="10dp"/>
+
+    </LinearLayout>
+</ScrollView>

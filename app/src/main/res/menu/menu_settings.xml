@@ -1,0 +1,21 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="com.mycompany.CMSBHelpdesk.Settings">
+
+    <item android:id="@+id/action_settings"
+        android:title="@string/action_settings"
+        android:orderInCategory="100"
+        app:showAsAction="ifRoom" />
+
+    <item android:id="@+id/backBtn"
+        android:title="Back"
+        android:orderInCategory="1"
+        app:showAsAction="always"/>
+
+    <item android:id="@+id/mainMenu"
+        android:title="Main"
+        android:orderInCategory="2"
+        app:showAsAction="ifRoom"/>
+
+</menu>

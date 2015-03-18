@@ -1,0 +1,78 @@
+<resources>
+    <string name="app_name">CMSB Helpdesk</string>
+
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+    <string name="submit">Submit</string>
+    <string name="title_activity_login">Login</string>
+    <string name="title_activity_add_case">Add Case</string>
+    <string name="title_activity_logout">Logout</string>
+
+    <!--Contact Info -->
+    <string name="contact_info">Contact Information</string>
+    <string name="action_taken">Action Taken</string>
+    <string name="add_contact">Add New Contact</string>
+    <string name="company">Company:</string>
+    <string name="name">Name:</string>
+    <string name="company_name">CMS</string>
+    <string name="email">Email:</string>
+    <string name="emailAdd">u@asdf.com</string>
+    <string name="tel">Tel:</string>
+    <string name="telNum">12345678</string>
+    <string name="type">Choose Name:</string>
+    <string name="title_activity_add_new_user">Add New User</string>
+    <string name="cms">CMS</string>
+    <string name="cms_road">CMS Road</string>
+    <string name="cms_works">CMS Works</string>
+
+    <string name="close">Close</string>
+    <string name="addUser">Add User</string>
+
+    <string name="type1">abel</string>
+    <string name="type2">josh</string>
+    <string name="type3">beth</string>
+    <string name="type4">fern</string>
+
+    <!--IT DEPT REF-->
+    <string name="it_dept_ref">IT Dept. Ref.</string>
+    <string name="owner">Owner:</string>
+    <string name="reqSource">Request Source:</string>
+    <string name="assignee">Assignee:</string>
+    <string name="status">Status:</string>
+    <string name="att">Actual Time Taken:</string>
+
+    <string name="ian">Ian</string>
+    <string name="vero">Veronica</string>
+
+    <string name="hp">Helpdesk Phone</string>
+    <string name="he">Helpdesk Email</string>
+    <string name="mp">Meet Person</string>
+    <string name="iba">Informed by Assignee</string>
+
+    <string name="abel">Abel</string>
+    <string name="mat">Mathias</string>
+
+    <string name="not_started">Not Started</string>
+    <string name="in_progress">In Progress</string>
+
+
+    <!--Case Particulars-->
+    <string name="case_particulars">Case Particulars</string>
+    <string name="severity">Severity:</string>
+    <string name="tos">Type of Service:</string>
+    <string name="category">Category:</string>
+    <string name="sub_cat">Sub Category:</string>
+    <string name="title_activity_settings">Settings</string>
+
+
+    <!--Settings-->
+    <!--General-->
+    <string name="title_activity_general">General</string>
+    <string name="update">Update</string>
+    <string name="cancel">Cancel</string>
+    <string name="chngPass">Change Password</string>
+
+    <!--Users-->
+    <string name="title_activity_users">Users</string>
+    <string name="title_activity_main">MainActivity</string>
+</resources>

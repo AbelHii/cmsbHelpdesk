@@ -1,0 +1,322 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/ScrollView01"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:scrollbars="vertical"
+    android:layout_gravity="center_horizontal">
+
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context=".AddCase"
+        android:orientation="vertical">
+
+        <TabHost
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:id="@+id/tabHost">
+
+            <LinearLayout
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:orientation="vertical">
+
+                <TabWidget
+                    android:id="@android:id/tabs"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"></TabWidget>
+
+                <FrameLayout
+                    android:id="@android:id/tabcontent"
+                    android:layout_width="fill_parent"
+                    android:layout_height="fill_parent">
+
+                    <LinearLayout
+                        android:id="@+id/contactInfo"
+                        android:layout_width="fill_parent"
+                        android:layout_height="fill_parent"
+                        android:orientation="vertical"
+                        android:layout_margin="20dp">
+
+                        <TextView
+                        android:text="@string/contact_info"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="30sp"
+                        android:textStyle="bold"/>
+
+                        <!--Name:-->
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/name"
+                            android:textSize="20sp"
+                            android:textStyle="bold"/>
+                        <Spinner
+                            android:layout_width="fill_parent"
+                            android:layout_height="wrap_content"
+                            android:id="@+id/spinnerNames"
+                            android:prompt="@string/type"
+                            android:entries="@array/nameList"
+                            android:textSize="15sp"
+                            android:layout_margin="5dp"/>
+
+                        <!--Company:-->
+                        <TextView
+                            android:text="@string/company"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="20sp"
+                            android:textStyle="bold"
+                            android:layout_marginTop="5dp"
+                            />
+
+                        <TextView
+                            android:text="@string/company_name"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="15sp"
+                            android:layout_margin="5dp"/>
+
+                        <!--Email:-->
+                        <TextView
+                            android:text="@string/email"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="20sp"
+                            android:textStyle="bold"
+                            android:layout_marginTop="5dp"
+                            /><TextView
+                            android:text="@string/emailAdd"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="15sp"
+                            android:layout_margin="5dp"/>
+
+                        <!--Tel:-->
+                        <TextView
+                            android:text="@string/tel"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="20sp"
+                            android:textStyle="bold"
+                            android:layout_marginTop="5dp"
+                            /><TextView
+                            android:text="@string/telNum"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="15sp"
+                            android:layout_margin="5dp"/>
+
+                        <!--Add New Contact Button:-->
+                        <Button
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:id="@+id/addContactBtn"
+                            android:text="@string/add_contact"
+                            android:textSize="15sp"
+                            android:onClick="addContact"
+                            android:layout_margin="5dp"/>
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/itDeptRef"
+                        android:layout_width="fill_parent"
+                        android:layout_height="fill_parent"
+                        android:orientation="vertical"
+                        android:layout_margin="20dp">
+
+                        <TextView
+                            android:text="@string/it_dept_ref"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="30sp"
+                            android:textStyle="bold"/>
+
+                        <TextView
+                            android:text="@string/owner"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="20sp"
+                            android:textStyle="bold"/>
+                        <Spinner
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:entries="@array/nameList2"
+                            android:textSize="15sp"
+                            android:layout_margin="10dp"
+                            />
+
+                        <TextView
+                            android:text="@string/reqSource"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="20sp"
+                            android:textStyle="bold"/>
+                        <Spinner
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:entries="@array/requestSource"
+                            android:textSize="15sp"
+                            android:layout_margin="10dp"
+                            />
+
+                        <TextView
+                            android:text="@string/assignee"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="20sp"
+                            android:textStyle="bold"/>
+                        <Spinner
+                            android:id = "@+id/spinnerAssignee"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:entries="@array/assignee"
+                            android:textSize="15sp"
+                            android:layout_margin="10dp"
+                            />
+
+                        <TextView
+                            android:text="@string/status"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="20sp"
+                            android:textStyle="bold"/>
+                        <Spinner
+                            android:id ="@+id/spinnerStatus"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:entries="@array/status"
+                            android:textSize="15sp"
+                            android:layout_margin="10dp"
+                            />
+                        </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/caseParticulars"
+                        android:layout_width="fill_parent"
+                        android:layout_height="fill_parent"
+                        android:orientation="vertical"
+                        android:layout_margin="20dp">
+
+                        <TextView
+                            android:text="@string/case_particulars"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="30sp"
+                            android:textStyle="bold"/>
+
+                        <!--Severity-->
+                        <TextView
+                            android:text="@string/severity"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="20sp"
+                            android:textStyle="bold"/>
+                        <Spinner
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:entries="@array/severity"
+                            android:textSize="15sp"
+                            android:layout_margin="10dp"
+                            />
+
+                        <!--Type of Service-->
+                        <TextView
+                            android:text="@string/tos"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="20sp"
+                            android:textStyle="bold"/>
+                        <Spinner
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:entries="@array/tos"
+                            android:textSize="15sp"
+                            android:layout_margin="10dp"
+                            />
+
+                        <!--Category-->
+                        <TextView
+                            android:text="@string/category"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="20sp"
+                            android:textStyle="bold"/>
+                        <Spinner
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:entries="@array/category"
+                            android:textSize="15sp"
+                            android:layout_margin="10dp"
+                            />
+
+                        <!--Sub-category-->
+                        <TextView
+                            android:text="@string/sub_cat"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="20sp"
+                            android:textStyle="bold"/>
+                        <Spinner
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:entries="@array/sub_cat"
+                            android:textSize="15sp"
+                            android:layout_margin="10dp"
+                            />
+
+                        <!--Action Taken-->
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/action_taken"
+                            android:textSize="20sp"
+                            android:layout_marginTop="10dp"
+                            android:textStyle="bold"/>
+                        <ScrollView
+                            android:layout_width="fill_parent"
+                            android:layout_height="wrap_content">
+                            <EditText
+                                android:id="@+id/actionTaken"
+                                android:layout_height="wrap_content"
+                                android:layout_width="match_parent"
+                                android:inputType="textMultiLine"
+                                android:lines="6"
+                                android:maxLines="6"
+                                android:maxLength="200"
+                                android:background="@drawable/back"
+                                android:gravity="start"/>
+                        </ScrollView>
+
+                        </LinearLayout>
+
+                </FrameLayout>
+            </LinearLayout>
+        </TabHost>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:paddingLeft="@dimen/activity_horizontal_margin"
+            android:paddingRight="@dimen/activity_horizontal_margin"
+            android:paddingTop="@dimen/activity_vertical_margin"
+            android:paddingBottom="@dimen/activity_vertical_margin"
+            tools:context=".MainActivity"
+            android:orientation="vertical"
+            android:layout_margin="20dp"
+            android:gravity="center_horizontal">
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/submit"
+                android:textSize="20sp"
+                android:id ="@+id/submitBtn" />
+
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>

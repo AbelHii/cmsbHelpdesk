@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="nameList">
+        <item>@string/type1</item>
+        <item>@string/type2</item>
+        <item>@string/type3</item>
+        <item>@string/type4</item>
+    </string-array>
+
+    <string-array name="nameList2">
+        <item>@string/ian</item>
+        <item>@string/vero</item>
+    </string-array>
+
+    <string-array name="requestSource">
+        <item>@string/hp</item>
+        <item>@string/he</item>
+        <item>@string/mp</item>
+        <item>@string/iba</item>
+    </string-array>
+
+    <string-array name="assignee">
+        <item>@string/abel</item>
+        <item>@string/mat</item>
+    </string-array>
+
+    <string-array name="status">
+        <item>@string/not_started</item>
+        <item>@string/in_progress</item>
+    </string-array>
+
+    <string-array name="companies">
+        <item>@string/cms</item>
+        <item>@string/cms_road</item>
+        <item>@string/cms_works</item>
+    </string-array>
+    
+    <string-array name="severity">
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+    </string-array>
+
+    <string-array name="tos">
+        <item>Service Request</item>
+        <item>Inquiry</item>
+        <item>Problem Reporting</item>
+    </string-array>
+
+    <string-array name="category">
+        <item></item>
+        <item>User Application</item>
+        <item>Hardware</item>
+        <item>Office Application</item>
+        <item>Network</item>
+        <item>Telecommunications</item>
+        <item>Website</item>
+        <item>Other</item>
+    </string-array>
+
+    <string-array name="sub_cat">
+        <item>Internet</item>
+        <item>Intranet</item>
+    </string-array>
+</resources>
