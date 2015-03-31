@@ -3,10 +3,8 @@ package com.mycompany.CMSBHelpdesk;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -14,15 +12,6 @@ import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.Toast;
-
-import org.apache.http.NameValuePair;
-import org.apache.http.message.BasicNameValuePair;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class LoginActivity extends ActionBarActivity { //implements View.OnClickListener {
 
@@ -31,7 +20,7 @@ public class LoginActivity extends ActionBarActivity { //implements View.OnClick
 
     //Login stuff from mrbool.com
     private EditText user, pass;
-    //private Button bLogin,
+    sharedPreference sp = new sharedPreference();
     // Progress Dialog
     private ProgressDialog pDialog;
     // JSON parser class
@@ -49,7 +38,7 @@ public class LoginActivity extends ActionBarActivity { //implements View.OnClick
         user = (EditText) findViewById(R.id.username);
         pass = (EditText) findViewById(R.id.password);
         mLoginBtn = (Button)findViewById(R.id.loginBtn);
-        //mLoginBtn.setOnClickListener(this);
+        mCreateAccountBtn = (Button) findViewById(R.id.createAccountLogin);
 
         //test just to connect login button to the main activity
         addListenerOnButton();
@@ -69,12 +58,10 @@ public class LoginActivity extends ActionBarActivity { //implements View.OnClick
                 break;
         }
     }
-
+/**
     class AttemptLogin extends AsyncTask<String, String, String> {
-        /*
-         * Before starting background thread Show Progress Dialog
 
-
+        //Before starting background thread Show Progress Dialog
         boolean failure = false;
 
         @Override
@@ -113,7 +100,7 @@ public class LoginActivity extends ActionBarActivity { //implements View.OnClick
                 if (success == 1) {
                     Log.d("Successfully Login!", json.toString());
 
-                    Intent ii = new Intent(LoginActivity.this,AddCase.class);
+                    Intent ii = new Intent(LoginActivity.this, MainActivity.class);
                     finish();
                     // this finish() method is used to tell android os that we are done with current //activity now! Moving to other activity
                     startActivity(ii);
@@ -129,8 +116,8 @@ public class LoginActivity extends ActionBarActivity { //implements View.OnClick
 
             return null;
         }
-        /*
-         * Once the background process is done we need to  Dismiss the progress dialog asap
+
+        //Once the background process is done we need to  Dismiss the progress dialog asap
 
         protected void onPostExecute(String message) {
 
@@ -140,7 +127,9 @@ public class LoginActivity extends ActionBarActivity { //implements View.OnClick
             }
         }
     }
-*/
+
+
+    */
 
     //to connect login activity with main activity
     public void addListenerOnButton() {
@@ -162,10 +151,9 @@ public class LoginActivity extends ActionBarActivity { //implements View.OnClick
         {
             @Override
             public void onClick(View arg0) {
-
+                sharedPreference.setString(context ,"login" ,user.getText().toString());
                 Intent intent = new Intent(context, MainActivity.class);
                 startActivity(intent);
-
             }
         });
     }

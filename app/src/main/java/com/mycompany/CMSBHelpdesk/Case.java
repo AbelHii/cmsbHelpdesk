@@ -11,8 +11,8 @@ public class Case implements Parcelable{
     private String _user, _assignee, _desc, _status;
     private int _id;
 
-    public Case (String desc, String user, String assignee, String status){
-        //_id = id;
+    public Case (int id, String desc, String user, String assignee, String status){
+        _id = id;
         _desc = desc;
         _user = user;
         _assignee = assignee;
@@ -20,7 +20,7 @@ public class Case implements Parcelable{
     }
 
     public Case(Parcel p){
-        //this._id = p.readInt();
+        this._id = p.readInt();
         this._desc = p.readString();
         this._user = p.readString();
         this._assignee = p.readString();
@@ -59,7 +59,7 @@ public class Case implements Parcelable{
     }
     @Override
     public void writeToParcel(Parcel parcel, int flag){
-        //parcel.writeInt(_id);
+        parcel.writeInt(_id);
         parcel.writeString(_desc);
         parcel.writeString(_user);
         parcel.writeString(_assignee);

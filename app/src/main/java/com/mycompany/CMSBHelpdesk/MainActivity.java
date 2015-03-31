@@ -2,7 +2,6 @@ package com.mycompany.CMSBHelpdesk;
 
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
@@ -10,10 +9,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,40 +22,48 @@ public class MainActivity extends ActionBarActivity {
     ListView mCasesLV;
     TextView stat;
     String getDesc, getUser, getAssignees, getStatus;
-
-
+    int getId;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        initialise();
-        retrieve();
+        //check if user was logged in before:
+        //if not go to login page, else continue.
 
-        addingCase(getDesc, getUser, getAssignees, getStatus);
+        String checkIntent = sharedPreference.getString(this, "login");
+        if(checkIntent.equals("")){
+            Intent intent = new Intent(this, LoginActivity.class);
+            startActivity(intent);
+        }
+        else{
+            initialise();
+            retrieve();
+
+            addingCase(getId, getDesc, getUser, getAssignees, getStatus);
+        }
+
     }
 
     public void retrieve(){
-        String getD = this.getIntent().getStringExtra("key");
-        getDesc = getD;
-        String getU = this.getIntent().getStringExtra("key1");
-        getUser = getU;
-        String getA = this.getIntent().getStringExtra("key2");
-        getAssignees = getA;
-        String getS = this.getIntent().getStringExtra("key3");
-        getStatus = getS;
-
+        getId = sharedPreference.getInt(this,"ke");
+        //String getD = getIntent().getStringExtra("key");
+        getDesc = sharedPreference.getString(this,"key");
+        //String getU = getIntent().getStringExtra("key1");
+        getUser = sharedPreference.getString(this,"key1");
+        //String getA = getIntent().getStringExtra("key2");
+        getAssignees = sharedPreference.getString(this,"key2");
+        //String getS = getIntent().getStringExtra("key3");
+        getStatus = sharedPreference.getString(this,"key3");
     }
 
-    public void addingCase(String gD, String gU, String gA, String gS){
-        casesArray.add(new Case(gD, gU, gA, gS));
+    public void addingCase(int gId, String gD, String gU, String gA, String gS){
+        casesArray.add(new Case(gId, gD, gU, gA, gS));
         populateList();
     }
-
     private void initialise(){
         mCasesLV = (ListView) findViewById(R.id.listView1);
     }
-
     //Dynamically update list
     public void populateList(){
         ArrayAdapter<Case> adapter = new CaseListAdapter();
@@ -120,6 +125,7 @@ public class MainActivity extends ActionBarActivity {
             return true;
         }
         else if(id == R.id.log_out) {
+            sharedPreference.delete(this);
             Intent intent = new Intent(context, LoginActivity.class);
             startActivity(intent);
             return true;

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <string-array name="nameList">
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+    <string-array name="nameList" android:id="@+id/nameListt">
         <item>@string/type1</item>
         <item>@string/type2</item>
         <item>@string/type3</item>
@@ -62,4 +62,5 @@
         <item>Internet</item>
         <item>Intranet</item>
     </string-array>
+
 </resources>

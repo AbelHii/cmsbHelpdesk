@@ -59,7 +59,7 @@
                             android:layout_width="fill_parent"
                             android:layout_height="wrap_content"
                             android:id="@+id/spinnerNames"
-                            android:prompt="@string/type"
+                            android:prompt="@string/spinner_title"
                             android:entries="@array/nameList"
                             android:textSize="15sp"
                             android:layout_margin="5dp"/>
@@ -75,7 +75,7 @@
                             />
 
                         <TextView
-                            android:text="@string/company_name"
+                            android:id="@+id/company"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:textSize="15sp"
@@ -90,7 +90,7 @@
                             android:textStyle="bold"
                             android:layout_marginTop="5dp"
                             /><TextView
-                            android:text="@string/emailAdd"
+                            android:id="@+id/email"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:textSize="15sp"
@@ -105,7 +105,7 @@
                             android:textStyle="bold"
                             android:layout_marginTop="5dp"
                             /><TextView
-                            android:text="@string/telNum"
+                            android:id="@+id/tel"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:textSize="15sp"

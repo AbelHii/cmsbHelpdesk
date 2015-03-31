@@ -75,4 +75,5 @@
     <!--Users-->
     <string name="title_activity_users">Users</string>
     <string name="title_activity_main">MainActivity</string>
+    <string name="spinner_title">Choose Name:</string>
 </resources>

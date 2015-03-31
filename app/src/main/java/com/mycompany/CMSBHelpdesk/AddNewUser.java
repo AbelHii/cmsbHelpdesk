@@ -9,23 +9,36 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Spinner;
 import android.widget.Toast;
+
+import java.util.ArrayList;
 
 
 public class AddNewUser extends ActionBarActivity implements View.OnClickListener {
 
     Button mcancel, addUser;
+    EditText mNewName, mNewEmail, mNewTel;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_new_user);
 
+        initialise();
 
-        mcancel = (Button)findViewById(R.id.cancelBtn);
-        addUser = (Button)findViewById(R.id.addNewUser);
         backToMain(mcancel);
         backToMain(addUser);
+    }
+
+    public void initialise(){
+        mcancel = (Button)findViewById(R.id.cancelBtn);
+        addUser = (Button)findViewById(R.id.addNewUser);
+        mNewName = (EditText) findViewById(R.id.newName);
+        mNewEmail = (EditText) findViewById(R.id.newEmail);
+        mNewTel = (EditText) findViewById(R.id.newTel);
     }
 
     public void backToMain(View button){
@@ -39,18 +52,25 @@ public class AddNewUser extends ActionBarActivity implements View.OnClickListene
                         Toast.makeText(getApplicationContext(), "Goodbye", Toast.LENGTH_SHORT).show();
                         Intent intent = new Intent(context, AddCase.class);
                         startActivity(intent);
+                        finish();
                     }
                 });
             case R.id.addNewUser:
                 addUser.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        Toast.makeText(getApplicationContext(), "New User Added!", Toast.LENGTH_SHORT).show();
+                        addUser();
+                        //Toast.makeText(getApplicationContext(), "New User Added!", Toast.LENGTH_SHORT).show();
                         Intent intent = new Intent(context, AddCase.class);
                         startActivity(intent);
+                        finish();
                     }
                 });
         }
+    }
+
+    public void addUser(){
+        sharedPreference.setString(this, "newUse", mNewName.getText().toString());
     }
 
 

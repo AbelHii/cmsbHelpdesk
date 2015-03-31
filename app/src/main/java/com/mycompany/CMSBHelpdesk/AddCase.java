@@ -2,7 +2,7 @@ package com.mycompany.CMSBHelpdesk;
 
 import android.content.Context;
 import android.content.Intent;
-import android.support.v7.app.ActionBarActivity;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -11,21 +11,22 @@ import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.LinearLayout;
+import android.widget.SimpleCursorAdapter;
 import android.widget.Spinner;
 import android.widget.TabHost;
 import android.widget.TextView;
 import android.widget.Toast;
-import java.lang.reflect.Array;
 
+import java.util.ArrayList;
 
 public class AddCase extends MainActivity{
 
     private Spinner mUser, mAssignee, mStatus;
     private Button maddCBtn, mSubmit;
-    private TextView mId, mDesc;
-    int j = 0;
-
+    private TextView mId, mDesc, mCompany, mEmail, mTel;
+    private spinnerMethods sM = new spinnerMethods();
+    private String[] mNameList;
+    private int j=0;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -34,9 +35,19 @@ public class AddCase extends MainActivity{
         //Initialises the variables (just to make it look neater)
         initialise();
 
+        Intent intent = getIntent();
+
+        if(intent != null){
+            retrieve();
+        }
+        //for the spinners dynamic property
+        sM.onItemSelected(mUser, mCompany, mEmail, mTel);
+        sM.changeColor(mStatus);
+
         //This just listens for when a button is clicked.
         addListenerOnButton();
     }
+
 
     public void addListenerOnButton() {
 
@@ -47,22 +58,7 @@ public class AddCase extends MainActivity{
         mSubmit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(context, MainActivity.class);
-                //mId.setId(j++);
-
-                String descriptions = mDesc.getText().toString();
-                String users = mUser.getSelectedItem().toString();
-                String assignees = mAssignee.getSelectedItem().toString();
-                String statuses = mStatus.getSelectedItem().toString();
-
-                //intent.putExtra("keyId", mId.getText());
-                intent.putExtra("key", descriptions);
-                intent.putExtra("key1", users);
-                intent.putExtra("key2", assignees);
-                intent.putExtra("key3", statuses);
-
-                setResult(RESULT_OK, intent);
-                startActivity(intent);
+                addCase();
             }
         });
 
@@ -77,12 +73,60 @@ public class AddCase extends MainActivity{
         });
     }
 
+    public void addCase(){
+        //Intent intent = new Intent(this, MainActivity.class);
+        j= 1;
+        mId.setText(""+j);
+        int num = Integer.valueOf(mId.getText().toString());
+        String descriptions = mDesc.getText().toString();
+        String users = mUser.getSelectedItem().toString();
+        String assignees = mAssignee.getSelectedItem().toString();
+        String statuses = mStatus.getSelectedItem().toString();
+
+        sharedPreference.setInt(this, "ke", num);
+        sharedPreference.setString(this,"key" ,descriptions);
+        sharedPreference.setString(this,"key1" ,users);
+        sharedPreference.setString(this,"key2" ,assignees);
+        sharedPreference.setString(this,"key3" ,statuses);
+        /*
+        //intent.putExtra("keyId", mId.getText());
+        intent.putExtra("key", descriptions);
+        intent.putExtra("key1", users);
+        intent.putExtra("key2", assignees);
+        intent.putExtra("key3", statuses);
+        */
+        //setResult(RESULT_OK, intent);
+        //startActivity(intent);
+    }
+
+    //Adapter to input new user into the Users Spinner
+    public void nUser(Spinner spin, String nam){
+        //this.mNameList = new String[] {nam};
+
+        ArrayAdapter<CharSequence> spinnerAA = ArrayAdapter.createFromResource(this, R.array.nameList ,android.R.layout.simple_spinner_item);
+        //SimpleCursorAdapter spinnerAA = new SimpleCursorAdapter(this,android.R.layout.simple_spinner_item,c,from,to );
+        spinnerAA.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerAA.insert(nam, mNameList.length+1);
+        spin.setAdapter(spinnerAA);
+    }
+    public void retrieve(){
+        String getNewU = sharedPreference.getString(this, "newUse");
+        Toast.makeText(getApplicationContext(), getNewU, Toast.LENGTH_SHORT).show();
+        nUser(mUser, getNewU);
+    }
+
+
     private void initialise(){
+
+        mNameList = getResources().getStringArray(R.array.nameList);
 
         mDesc = (TextView)findViewById (R.id.actionTaken);
         mUser = (Spinner) findViewById(R.id.spinnerNames);
         mAssignee = (Spinner) findViewById(R.id.spinnerAssignee);
         mStatus = (Spinner) findViewById(R.id.spinnerStatus);
+        mCompany = (TextView)findViewById(R.id.company);
+        mEmail = (TextView) findViewById(R.id.email);
+        mTel = (TextView)findViewById(R.id.tel);
 
         TabHost tabHost = (TabHost) findViewById(R.id.tabHost);
         tabHost.setup();
@@ -102,7 +146,6 @@ public class AddCase extends MainActivity{
         tabSpec.setIndicator("Case Particulars");
         tabHost.addTab(tabSpec);
     }
-
 
     //This stuff is just the action bar for like settings and stuff
     @Override
