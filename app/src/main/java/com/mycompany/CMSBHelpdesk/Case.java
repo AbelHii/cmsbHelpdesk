@@ -9,9 +9,9 @@ import android.os.Parcelable;
 public class Case implements Parcelable{
 
     private String _user, _assignee, _desc, _status;
-    private int _id;
+    private String _id;
 
-    public Case (int id, String desc, String user, String assignee, String status){
+    public Case (String id, String desc, String user, String assignee, String status){
         _id = id;
         _desc = desc;
         _user = user;
@@ -20,7 +20,7 @@ public class Case implements Parcelable{
     }
 
     public Case(Parcel p){
-        this._id = p.readInt();
+        this._id = p.readString();
         this._desc = p.readString();
         this._user = p.readString();
         this._assignee = p.readString();
@@ -42,8 +42,8 @@ public class Case implements Parcelable{
         _desc = desc;
     }
 
-    public int getId(){return _id;}
-    public void setId(int id){
+    public String getId(){return _id;}
+    public void setId(String id){
         _id = id;
     }
 
@@ -59,7 +59,7 @@ public class Case implements Parcelable{
     }
     @Override
     public void writeToParcel(Parcel parcel, int flag){
-        parcel.writeInt(_id);
+        parcel.writeString(_id);
         parcel.writeString(_desc);
         parcel.writeString(_user);
         parcel.writeString(_assignee);

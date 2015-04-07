@@ -1,5 +1,9 @@
 package com.mycompany.CMSBHelpdesk;
 
+import android.app.Activity;
+import android.app.FragmentManager;
+import android.app.ListActivity;
+import android.app.ListFragment;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -15,14 +19,17 @@ import android.widget.TextView;
 import java.util.ArrayList;
 import java.util.List;
 
-
 public class MainActivity extends ActionBarActivity {
 
-    List<Case> casesArray = new ArrayList<Case>();
-    ListView mCasesLV;
-    TextView stat;
-    String getDesc, getUser, getAssignees, getStatus;
-    int getId;
+    private List<Case> casesArray = new ArrayList<Case>();
+    private ListView mCasesLV;
+    private TextView stat;
+    private String getDesc, getUser, getAssignees, getStatus, getId = "";
+    private FragmentManager fm;
+    //TODO: IMPLEMENT DBADAPTER!!!
+    private DbAdapter mDbHelper;
+    private int j = 0;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -31,22 +38,26 @@ public class MainActivity extends ActionBarActivity {
         //check if user was logged in before:
         //if not go to login page, else continue.
 
-        String checkIntent = sharedPreference.getString(this, "login");
-        if(checkIntent.equals("")){
+        String checkLog = sharedPreference.getString(this, "login");
+        String checkPass = sharedPreference.getString(this, "pass");
+        if(checkLog.equals("") || checkPass.equals("")){
             Intent intent = new Intent(this, LoginActivity.class);
             startActivity(intent);
         }
         else{
             initialise();
-            retrieve();
 
+            if(fm.findFragmentById(android.R.id.content) == null){
+                SListFragment list = new SListFragment();
+                //fm.beginTransaction().add(android.R.id.content, list).commit();
+            }
+            retrieve();
             addingCase(getId, getDesc, getUser, getAssignees, getStatus);
         }
 
     }
 
     public void retrieve(){
-        getId = sharedPreference.getInt(this,"ke");
         //String getD = getIntent().getStringExtra("key");
         getDesc = sharedPreference.getString(this,"key");
         //String getU = getIntent().getStringExtra("key1");
@@ -57,12 +68,13 @@ public class MainActivity extends ActionBarActivity {
         getStatus = sharedPreference.getString(this,"key3");
     }
 
-    public void addingCase(int gId, String gD, String gU, String gA, String gS){
+    public void addingCase(String gId, String gD, String gU, String gA, String gS){
         casesArray.add(new Case(gId, gD, gU, gA, gS));
         populateList();
     }
     private void initialise(){
         mCasesLV = (ListView) findViewById(R.id.listView1);
+        fm = getFragmentManager();
     }
     //Dynamically update list
     public void populateList(){
@@ -82,19 +94,25 @@ public class MainActivity extends ActionBarActivity {
 
             Case currentCase = casesArray.get(position);
 
-           // TextView ident = (TextView) view.findViewById(R.id.IDMain);
-           // ident.setText(currentCase.getId());
+            TextView ident = (TextView) view.findViewById(R.id.IDMain);
+            ident.setText(currentCase.getId() + j++);
             TextView descrip = (TextView)  view.findViewById(R.id.descMain);
             descrip.setText(currentCase.getDesc());
             TextView userr = (TextView)  view.findViewById(R.id.userMain);
             userr.setText(currentCase.getUser());
             TextView assigned = (TextView)  view.findViewById(R.id.assigneeMain);
             assigned.setText(currentCase.getAssignee());
-            stat = (TextView)  view.findViewById(R.id.statusMain);
+            stat = (TextView) view.findViewById(R.id.statusMain);
             stat.setText(currentCase.getStatus());
 
             return view;
         }
+    }
+
+
+    //This is where the database stuff and bundles and intents goes to connect with the listview!:
+    public static class SListFragment extends ListFragment {
+
     }
 
     //This stuff is just the action bar for like settings and stuff

@@ -3,8 +3,10 @@ package com.mycompany.CMSBHelpdesk;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -12,8 +14,17 @@ import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
 
-public class LoginActivity extends ActionBarActivity { //implements View.OnClickListener {
+import org.apache.http.NameValuePair;
+import org.apache.http.message.BasicNameValuePair;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class LoginActivity extends ActionBarActivity{ //implements View.OnClickListener {
 
     protected Button mLoginBtn;
     protected Button mCreateAccountBtn;
@@ -39,26 +50,33 @@ public class LoginActivity extends ActionBarActivity { //implements View.OnClick
         pass = (EditText) findViewById(R.id.password);
         mLoginBtn = (Button)findViewById(R.id.loginBtn);
         mCreateAccountBtn = (Button) findViewById(R.id.createAccountLogin);
-
+        //mLoginBtn.setOnClickListener(this);
+        //mCreateAccountBtn.setOnClickListener(this);
         //test just to connect login button to the main activity
         addListenerOnButton();
 
     }
 
-/**
+
     public void onClick(View v) {
         // TODO Auto-generated method stub
         switch (v.getId()) {
             case R.id.loginBtn:
+                sharedPreference.setString(this ,"login" ,user.getText().toString());
+                sharedPreference.setString(this ,"pass" ,pass.getText().toString());
                 new AttemptLogin().execute();
                 // here we have used, switch case, because on login activity you may
                 // also want to show registration button, so if the user is new ! we can go the
                 // registration activity , other than this we could also do this without switch case.
+            case R.id.createAccountLogin:
+                sharedPreference.setString(this ,"login" ,user.getText().toString());
+                sharedPreference.setString(this ,"pass" ,pass.getText().toString());
+                Intent intent = new Intent(this, AddCase.class);
+                startActivity(intent);
             default:
                 break;
         }
     }
-/**
     class AttemptLogin extends AsyncTask<String, String, String> {
 
         //Before starting background thread Show Progress Dialog
@@ -98,10 +116,10 @@ public class LoginActivity extends ActionBarActivity { //implements View.OnClick
                 // success tag for json
                 success = json.getInt(TAG_SUCCESS);
                 if (success == 1) {
-                    Log.d("Successfully Login!", json.toString());
+                    Log.d("Successfully Logged In!", json.toString());
 
                     Intent ii = new Intent(LoginActivity.this, MainActivity.class);
-                    finish();
+                    //finish();
                     // this finish() method is used to tell android os that we are done with current //activity now! Moving to other activity
                     startActivity(ii);
                     return json.getString(TAG_MESSAGE);
@@ -128,32 +146,31 @@ public class LoginActivity extends ActionBarActivity { //implements View.OnClick
         }
     }
 
-
-    */
-
     //to connect login activity with main activity
     public void addListenerOnButton() {
 
         final Context context = this;
 
-        Button mCreateAccountBtn = (Button) findViewById(R.id.createAccountLogin);
+        mCreateAccountBtn = (Button) findViewById(R.id.createAccountLogin);
         mCreateAccountBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                sharedPreference.setString(context ,"login" ,user.getText().toString());
+                sharedPreference.setString(context ,"pass" ,pass.getText().toString());
                 Intent intent = new Intent(context, AddCase.class);
-                startActivity(intent);
+                //startActivity(intent);
             }
         });
 
         mLoginBtn = (Button) findViewById(R.id.loginBtn);
-
         mLoginBtn.setOnClickListener(new View.OnClickListener()
         {
             @Override
             public void onClick(View arg0) {
                 sharedPreference.setString(context ,"login" ,user.getText().toString());
+                sharedPreference.setString(context ,"pass" ,pass.getText().toString());
                 Intent intent = new Intent(context, MainActivity.class);
-                startActivity(intent);
+                //startActivity(intent);
             }
         });
     }

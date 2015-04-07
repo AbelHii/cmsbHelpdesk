@@ -26,7 +26,6 @@ public class AddCase extends MainActivity{
     private TextView mId, mDesc, mCompany, mEmail, mTel;
     private spinnerMethods sM = new spinnerMethods();
     private String[] mNameList;
-    private int j=0;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -35,9 +34,9 @@ public class AddCase extends MainActivity{
         //Initialises the variables (just to make it look neater)
         initialise();
 
-        Intent intent = getIntent();
+        Intent intent = this.getIntent();
 
-        if(intent != null){
+        if(intent.equals(AddNewUser.class)){
             retrieve();
         }
         //for the spinners dynamic property
@@ -58,7 +57,9 @@ public class AddCase extends MainActivity{
         mSubmit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Intent intent = new Intent(context, MainActivity.class);
                 addCase();
+                startActivity(intent);
             }
         });
 
@@ -75,21 +76,16 @@ public class AddCase extends MainActivity{
 
     public void addCase(){
         //Intent intent = new Intent(this, MainActivity.class);
-        j= 1;
-        mId.setText(""+j);
-        int num = Integer.valueOf(mId.getText().toString());
         String descriptions = mDesc.getText().toString();
         String users = mUser.getSelectedItem().toString();
         String assignees = mAssignee.getSelectedItem().toString();
         String statuses = mStatus.getSelectedItem().toString();
 
-        sharedPreference.setInt(this, "ke", num);
         sharedPreference.setString(this,"key" ,descriptions);
         sharedPreference.setString(this,"key1" ,users);
         sharedPreference.setString(this,"key2" ,assignees);
         sharedPreference.setString(this,"key3" ,statuses);
         /*
-        //intent.putExtra("keyId", mId.getText());
         intent.putExtra("key", descriptions);
         intent.putExtra("key1", users);
         intent.putExtra("key2", assignees);
@@ -112,7 +108,7 @@ public class AddCase extends MainActivity{
     public void retrieve(){
         String getNewU = sharedPreference.getString(this, "newUse");
         Toast.makeText(getApplicationContext(), getNewU, Toast.LENGTH_SHORT).show();
-        nUser(mUser, getNewU);
+        //nUser(mUser, getNewU);
     }
 
 
