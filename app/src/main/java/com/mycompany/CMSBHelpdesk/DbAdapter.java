@@ -40,7 +40,7 @@ public class DbAdapter {
     public static final String KEY_DESC = "description";
     public static final String KEY_ROWID = "_id";
 
-    private static final String TAG = "NotesDbAdapter";
+    private static final String TAG = "DbAdapter";
     private DatabaseHelper mDbHelper;
     private SQLiteDatabase mDb;
 
@@ -48,8 +48,8 @@ public class DbAdapter {
      * Database creation sql statement
      */
     private static final String DATABASE_CREATE =
-            "create table notes (_id integer primary key autoincrement, "
-                    + "title text not null, body text not null);";
+            "create table user (_id integer primary key autoincrement, "
+                    + "user text not null, description text not null);";
 
     private static final String DATABASE_NAME = "chd";
     private static final String DATABASE_TABLE = "user";
@@ -65,7 +65,6 @@ public class DbAdapter {
 
         @Override
         public void onCreate(SQLiteDatabase db) {
-
             db.execSQL(DATABASE_CREATE);
         }
 
@@ -73,7 +72,7 @@ public class DbAdapter {
         public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
             Log.w(TAG, "Upgrading database from version " + oldVersion + " to "
                     + newVersion + ", which will destroy all old data");
-            db.execSQL("DROP TABLE IF EXISTS notes");
+            db.execSQL("DROP TABLE IF EXISTS user");
             onCreate(db);
         }
     }
@@ -113,14 +112,14 @@ public class DbAdapter {
      * successfully created return the new rowId for that note, otherwise return
      * a -1 to indicate failure.
      *
-     * @param title the title of the note
-     * @param body the body of the note
+     * @param user the username of the case
+     * @param desc the description of the case
      * @return rowId or -1 if failed
      */
-    public long createNote(String title, String body) {
+    public long createCase(String user, String desc) {
         ContentValues initialValues = new ContentValues();
-        initialValues.put(KEY_USER, title);
-        initialValues.put(KEY_DESC, body);
+        initialValues.put(KEY_USER, user);
+        initialValues.put(KEY_DESC, desc);
 
         return mDb.insert(DATABASE_TABLE, null, initialValues);
     }
@@ -141,10 +140,14 @@ public class DbAdapter {
      *
      * @return Cursor over all notes
      */
-    public Cursor fetchAllNotes() {
+    public Cursor fetchAllCases() {
 
-        return mDb.query(DATABASE_TABLE, new String[] {KEY_ROWID, KEY_USER,
-                KEY_DESC}, null, null, null, null, null);
+        return mDb.query(DATABASE_TABLE,
+                new String[] {
+                        KEY_ROWID,
+                        KEY_USER,
+                        KEY_DESC },
+                null, null, null, null, null);
     }
 
     /**

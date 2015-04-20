@@ -35,7 +35,7 @@ public class spinnerMethods{
 
                 setTextV(selItem, "abel", comp, email, tel, "CMS", "abelhii@gmail.com", "12345");
                 setTextV(selItem, "josh", comp, email, tel, "CMS Roads", "joshy@gmail.com", "54321");
-                setTextV(selItem, "beth", comp, email, tel, "MCD", "bethany@gmail.com", "00001234");
+                setTextV(selItem, "art", comp, email, tel, "MCD", "arty@gmail.com", "00001234");
             }
             @Override
             public void onNothingSelected(AdapterView<?> adapterViewCompat) {

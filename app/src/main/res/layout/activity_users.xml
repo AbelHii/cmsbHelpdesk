@@ -22,7 +22,7 @@
             android:textStyle="bold"/>
 
         <TextView
-            android:text="List Users by Company:"
+            android:text="@string/listUsersByCompany"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textSize="20sp"

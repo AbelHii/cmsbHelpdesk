@@ -24,19 +24,19 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
-public class LoginActivity extends ActionBarActivity{ //implements View.OnClickListener {
+public class LoginActivity extends ActionBarActivity {
 
     protected Button mLoginBtn;
     protected Button mCreateAccountBtn;
 
-    //Login stuff from mrbool.com
+    //Login class "AttemptLogin" and "JSONParser" is from mrbool.com
     private EditText user, pass;
     sharedPreference sp = new sharedPreference();
     // Progress Dialog
     private ProgressDialog pDialog;
     // JSON parser class
     JSONParser jsonParser = new JSONParser();
-    private static final String LOGIN_URL = "http://abelhii.comli.com/login.php";
+    private static final String LOGIN_URL = "http://abelhii.freeoda.com/login.php";
     private static final String TAG_SUCCESS = "success";
     private static final String TAG_MESSAGE = "message";
 
@@ -50,7 +50,7 @@ public class LoginActivity extends ActionBarActivity{ //implements View.OnClickL
         pass = (EditText) findViewById(R.id.password);
         mLoginBtn = (Button)findViewById(R.id.loginBtn);
         mCreateAccountBtn = (Button) findViewById(R.id.createAccountLogin);
-        //mLoginBtn.setOnClickListener(this);
+       //mLoginBtn.setOnClickListener(this);
         //mCreateAccountBtn.setOnClickListener(this);
         //test just to connect login button to the main activity
         addListenerOnButton();
@@ -58,25 +58,6 @@ public class LoginActivity extends ActionBarActivity{ //implements View.OnClickL
     }
 
 
-    public void onClick(View v) {
-        // TODO Auto-generated method stub
-        switch (v.getId()) {
-            case R.id.loginBtn:
-                sharedPreference.setString(this ,"login" ,user.getText().toString());
-                sharedPreference.setString(this ,"pass" ,pass.getText().toString());
-                new AttemptLogin().execute();
-                // here we have used, switch case, because on login activity you may
-                // also want to show registration button, so if the user is new ! we can go the
-                // registration activity , other than this we could also do this without switch case.
-            case R.id.createAccountLogin:
-                sharedPreference.setString(this ,"login" ,user.getText().toString());
-                sharedPreference.setString(this ,"pass" ,pass.getText().toString());
-                Intent intent = new Intent(this, AddCase.class);
-                startActivity(intent);
-            default:
-                break;
-        }
-    }
     class AttemptLogin extends AsyncTask<String, String, String> {
 
         //Before starting background thread Show Progress Dialog
@@ -113,14 +94,19 @@ public class LoginActivity extends ActionBarActivity{ //implements View.OnClickL
                 // checking  log for json response
                 Log.d("Login attempt", json.toString());
 
+
                 // success tag for json
                 success = json.getInt(TAG_SUCCESS);
                 if (success == 1) {
-                    Log.d("Successfully Logged In!", json.toString());
+                    Log.d("Successful Login!", json.toString());
+
+                    //sending shared preference to keep user logged in even if they close the app
+                    sharedPreference.setString(LoginActivity.this, "login", user.getText().toString());
+                    sharedPreference.setString(LoginActivity.this, "pass", pass.getText().toString());
 
                     Intent ii = new Intent(LoginActivity.this, MainActivity.class);
-                    //finish();
-                    // this finish() method is used to tell android os that we are done with current //activity now! Moving to other activity
+                    finish();
+                    //this finish() method is used to tell android os that we are done with current //activity now! Moving to other activity
                     startActivity(ii);
                     return json.getString(TAG_MESSAGE);
                 }else{
@@ -146,7 +132,7 @@ public class LoginActivity extends ActionBarActivity{ //implements View.OnClickL
         }
     }
 
-    //to connect login activity with main activity
+
     public void addListenerOnButton() {
 
         final Context context = this;
@@ -157,8 +143,8 @@ public class LoginActivity extends ActionBarActivity{ //implements View.OnClickL
             public void onClick(View v) {
                 sharedPreference.setString(context ,"login" ,user.getText().toString());
                 sharedPreference.setString(context ,"pass" ,pass.getText().toString());
-                Intent intent = new Intent(context, AddCase.class);
-                //startActivity(intent);
+                Intent intent = new Intent(context, MainActivity.class);
+                startActivity(intent);
             }
         });
 
@@ -167,10 +153,7 @@ public class LoginActivity extends ActionBarActivity{ //implements View.OnClickL
         {
             @Override
             public void onClick(View arg0) {
-                sharedPreference.setString(context ,"login" ,user.getText().toString());
-                sharedPreference.setString(context ,"pass" ,pass.getText().toString());
-                Intent intent = new Intent(context, MainActivity.class);
-                //startActivity(intent);
+                new AttemptLogin().execute();
             }
         });
     }

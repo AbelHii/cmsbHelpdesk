@@ -2,8 +2,10 @@ package com.mycompany.CMSBHelpdesk;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -24,18 +26,23 @@ public class AddCase extends MainActivity{
     private Spinner mUser, mAssignee, mStatus;
     private Button maddCBtn, mSubmit;
     private TextView mId, mDesc, mCompany, mEmail, mTel;
+    private DbAdapter mDbHelper;
+    private Long mRowId;
     private spinnerMethods sM = new spinnerMethods();
     private String[] mNameList;
+    private SharedPreferences sp;
+    private SharedPreferences.Editor e;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_case);
-
+        setTitle("Add Case");
         //Initialises the variables (just to make it look neater)
         initialise();
+        //mDbHelper.open();
 
         Intent intent = this.getIntent();
-
         if(intent.equals(AddNewUser.class)){
             retrieve();
         }
@@ -69,11 +76,34 @@ public class AddCase extends MainActivity{
             public void onClick(View arg0) {
                 Toast.makeText(getApplicationContext(), "Add New User", Toast.LENGTH_SHORT).show();
                 Intent intent = new Intent(context, AddNewUser.class);
+                finish();
                 startActivity(intent);
             }
         });
     }
 
+
+    /**
+     Bundle bundle = new Bundle();
+
+     bundle.putString(DbAdapter.KEY_USER, users);
+     bundle.putString(DbAdapter.KEY_DESC, descriptions);
+     if (mRowId != null) {
+     bundle.putLong(DbAdapter.KEY_ROWID, mRowId);
+     }
+
+     Intent mIntent = new Intent();
+     mIntent.putExtras(bundle);
+     setResult(RESULT_OK, mIntent);
+     finish();
+
+     intent.putExtra("key", descriptions);
+     intent.putExtra("key1", users);
+     intent.putExtra("key2", assignees);
+     intent.putExtra("key3", statuses);
+     */
+    //setResult(RESULT_OK, intent);
+    //startActivity(intent);
     public void addCase(){
         //Intent intent = new Intent(this, MainActivity.class);
         String descriptions = mDesc.getText().toString();
@@ -81,21 +111,16 @@ public class AddCase extends MainActivity{
         String assignees = mAssignee.getSelectedItem().toString();
         String statuses = mStatus.getSelectedItem().toString();
 
-        sharedPreference.setString(this,"key" ,descriptions);
-        sharedPreference.setString(this,"key1" ,users);
-        sharedPreference.setString(this,"key2" ,assignees);
-        sharedPreference.setString(this,"key3" ,statuses);
-        /*
-        intent.putExtra("key", descriptions);
-        intent.putExtra("key1", users);
-        intent.putExtra("key2", assignees);
-        intent.putExtra("key3", statuses);
-        */
-        //setResult(RESULT_OK, intent);
-        //startActivity(intent);
+        e.putString("desc", descriptions);
+        e.putString("user", users);
+        e.putString("assign", assignees);
+        e.putString("stat", statuses);
+        e.commit();
     }
 
+
     //Adapter to input new user into the Users Spinner
+
     public void nUser(Spinner spin, String nam){
         //this.mNameList = new String[] {nam};
 
@@ -114,6 +139,10 @@ public class AddCase extends MainActivity{
 
     private void initialise(){
 
+        //SharedPreference initialisation to save things:
+        sp = PreferenceManager.getDefaultSharedPreferences(this);
+        e = sp.edit();
+
         mNameList = getResources().getStringArray(R.array.nameList);
 
         mDesc = (TextView)findViewById (R.id.actionTaken);
@@ -123,6 +152,7 @@ public class AddCase extends MainActivity{
         mCompany = (TextView)findViewById(R.id.company);
         mEmail = (TextView) findViewById(R.id.email);
         mTel = (TextView)findViewById(R.id.tel);
+        mDbHelper = new DbAdapter(this);
 
         TabHost tabHost = (TabHost) findViewById(R.id.tabHost);
         tabHost.setup();
@@ -142,6 +172,8 @@ public class AddCase extends MainActivity{
         tabSpec.setIndicator("Case Particulars");
         tabHost.addTab(tabSpec);
     }
+
+
 
     //This stuff is just the action bar for like settings and stuff
     @Override
@@ -171,13 +203,14 @@ public class AddCase extends MainActivity{
         }
         if(id==R.id.mainMenu){
             Intent intent = new Intent(context, MainActivity.class);
+            this.finish();
             startActivity(intent);
             return true;
         }
         return super.onOptionsItemSelected(item);
     }
 
-    //Closes the keyboard of you tap anywhere else on the screen!!
+    //Closes the keyboard if you tap anywhere else on the screen!!
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         InputMethodManager imm = (InputMethodManager)getSystemService(Context.

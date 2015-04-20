@@ -35,6 +35,106 @@
                     android:layout_height="fill_parent">
 
                     <LinearLayout
+                        android:id="@+id/caseParticulars"
+                        android:layout_width="fill_parent"
+                        android:layout_height="fill_parent"
+                        android:orientation="vertical"
+                        android:layout_margin="20dp">
+
+                        <TextView
+                            android:text="@string/case_particulars"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="30sp"
+                            android:textStyle="bold"/>
+
+                        <!--Severity-->
+                        <TextView
+                            android:text="@string/severity"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="20sp"
+                            android:textStyle="bold"/>
+                        <Spinner
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:entries="@array/severity"
+                            android:textSize="15sp"
+                            android:layout_margin="10dp"
+                            />
+
+                        <!--Type of Service-->
+                        <TextView
+                            android:text="@string/tos"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="20sp"
+                            android:textStyle="bold"/>
+                        <Spinner
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:entries="@array/tos"
+                            android:textSize="15sp"
+                            android:layout_margin="10dp"
+                            />
+
+                        <!--Category-->
+                        <TextView
+                            android:text="@string/category"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="20sp"
+                            android:textStyle="bold"/>
+                        <Spinner
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:entries="@array/category"
+                            android:textSize="15sp"
+                            android:layout_margin="10dp"
+                            />
+
+                        <!--Sub-category-->
+                        <TextView
+                            android:text="@string/sub_cat"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="20sp"
+                            android:textStyle="bold"/>
+                        <Spinner
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:entries="@array/sub_cat"
+                            android:textSize="15sp"
+                            android:layout_margin="10dp"
+                            />
+
+                        <!--Action Taken-->
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/action_taken"
+                            android:textSize="20sp"
+                            android:layout_marginTop="10dp"
+                            android:textStyle="bold"/>
+
+                        <ScrollView
+                            android:layout_width="fill_parent"
+                            android:layout_height="wrap_content">
+                        <EditText
+                            android:id="@+id/actionTaken"
+                            android:gravity="top|left"
+                            android:layout_height="wrap_content"
+                            android:layout_width="match_parent"
+                            android:inputType="textMultiLine"
+                            android:lines="3"
+                            android:maxLines="3"
+                            android:maxLength="200"
+                            android:background="@drawable/back"/>
+                        </ScrollView>
+
+                    </LinearLayout>
+
+                    <LinearLayout
                         android:id="@+id/contactInfo"
                         android:layout_width="fill_parent"
                         android:layout_height="fill_parent"
@@ -118,7 +218,6 @@
                             android:id="@+id/addContactBtn"
                             android:text="@string/add_contact"
                             android:textSize="15sp"
-                            android:onClick="addContact"
                             android:layout_margin="5dp"/>
                     </LinearLayout>
 
@@ -195,105 +294,6 @@
                             />
                         </LinearLayout>
 
-                    <LinearLayout
-                        android:id="@+id/caseParticulars"
-                        android:layout_width="fill_parent"
-                        android:layout_height="fill_parent"
-                        android:orientation="vertical"
-                        android:layout_margin="20dp">
-
-                        <TextView
-                            android:text="@string/case_particulars"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:textSize="30sp"
-                            android:textStyle="bold"/>
-
-                        <!--Severity-->
-                        <TextView
-                            android:text="@string/severity"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:textSize="20sp"
-                            android:textStyle="bold"/>
-                        <Spinner
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:entries="@array/severity"
-                            android:textSize="15sp"
-                            android:layout_margin="10dp"
-                            />
-
-                        <!--Type of Service-->
-                        <TextView
-                            android:text="@string/tos"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:textSize="20sp"
-                            android:textStyle="bold"/>
-                        <Spinner
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:entries="@array/tos"
-                            android:textSize="15sp"
-                            android:layout_margin="10dp"
-                            />
-
-                        <!--Category-->
-                        <TextView
-                            android:text="@string/category"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:textSize="20sp"
-                            android:textStyle="bold"/>
-                        <Spinner
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:entries="@array/category"
-                            android:textSize="15sp"
-                            android:layout_margin="10dp"
-                            />
-
-                        <!--Sub-category-->
-                        <TextView
-                            android:text="@string/sub_cat"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:textSize="20sp"
-                            android:textStyle="bold"/>
-                        <Spinner
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:entries="@array/sub_cat"
-                            android:textSize="15sp"
-                            android:layout_margin="10dp"
-                            />
-
-                        <!--Action Taken-->
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/action_taken"
-                            android:textSize="20sp"
-                            android:layout_marginTop="10dp"
-                            android:textStyle="bold"/>
-                        <ScrollView
-                            android:layout_width="fill_parent"
-                            android:layout_height="wrap_content">
-                            <EditText
-                                android:id="@+id/actionTaken"
-                                android:layout_height="wrap_content"
-                                android:layout_width="match_parent"
-                                android:inputType="textMultiLine"
-                                android:lines="6"
-                                android:maxLines="6"
-                                android:maxLength="200"
-                                android:background="@drawable/back"
-                                android:gravity="start"/>
-                        </ScrollView>
-
-                        </LinearLayout>
-
                 </FrameLayout>
             </LinearLayout>
         </TabHost>
@@ -301,13 +301,13 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:paddingLeft="@dimen/activity_horizontal_margin"
-            android:paddingRight="@dimen/activity_horizontal_margin"
-            android:paddingTop="@dimen/activity_vertical_margin"
-            android:paddingBottom="@dimen/activity_vertical_margin"
+            android:paddingLeft="14dp"
+            android:paddingRight="14dp"
+            android:paddingTop="14dp"
+            android:paddingBottom="14dp"
             tools:context=".MainActivity"
             android:orientation="vertical"
-            android:layout_margin="20dp"
+            android:layout_margin="15dp"
             android:gravity="center_horizontal">
 
             <Button

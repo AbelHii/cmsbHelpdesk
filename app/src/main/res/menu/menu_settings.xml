@@ -9,12 +9,12 @@
         app:showAsAction="ifRoom" />
 
     <item android:id="@+id/backBtn"
-        android:title="Back"
+        android:title="@string/back"
         android:orderInCategory="1"
         app:showAsAction="always"/>
 
     <item android:id="@+id/mainMenu"
-        android:title="Main"
+        android:title="@string/main"
         android:orderInCategory="2"
         app:showAsAction="ifRoom"/>
 

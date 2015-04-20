@@ -76,4 +76,20 @@
     <string name="title_activity_users">Users</string>
     <string name="title_activity_main">MainActivity</string>
     <string name="spinner_title">Choose Name:</string>
+    <string name="back">Back</string>
+    <string name="main">Main</string>
+    <string name="username">Username</string>
+    <string name="listUsersByCompany">List Users by Company:</string>
+    <string name="id">ID:</string>
+    <string name="numCloseCase">Number of closed cases to list on the main page:</string>
+    <string name="password">Password</string>
+    <string name="user">User:</string>
+    <string name="desc">Description</string>
+    <string name="login">Login</string>
+    <string name="highlight">Highlight assigned cases as:</string>
+    <string name="or">or</string>
+    <string name="createAcc">Create Account!</string>
+    <string name="showCaseOwner">Show case owner column for:</string>
+    <string name="openCases">OPEN cases</string>
+    <string name="closeCases">CLOSE cases</string>
 </resources>

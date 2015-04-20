@@ -25,7 +25,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Number of closed cases to list on the main page:"
+            android:text="@string/numCloseCase"
             android:textSize="16sp"
             android:textStyle="bold"
             android:layout_margin="5dp"/>
@@ -40,7 +40,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Highlight assigned cases as:"
+            android:text="@string/highlight"
             android:textSize="16sp"
             android:textStyle="bold"
             android:layout_margin="5dp"/>
@@ -55,7 +55,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Show case owner column for:"
+            android:text="@string/showCaseOwner"
             android:textSize="16sp"
             android:textStyle="bold"
             android:layout_margin="5dp"/>
@@ -63,14 +63,14 @@
         <CheckBox
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="OPEN cases"
+            android:text="@string/openCases"
             android:id="@+id/open"
             android:layout_gravity="fill_horizontal"
             android:layout_margin="10dp"/>
         <CheckBox
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="CLOSE cases"
+            android:text="@string/closeCases"
             android:id="@+id/close"
             android:layout_gravity="fill_horizontal"
             android:layout_margin="10dp"/>

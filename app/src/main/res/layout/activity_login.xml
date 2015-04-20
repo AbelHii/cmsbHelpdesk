@@ -19,7 +19,7 @@
     <EditText
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Username"
+        android:hint="@string/username"
         android:ems="10"
         android:id="@+id/username"
         android:imeOptions="actionNext"
@@ -27,7 +27,7 @@
     <EditText
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Password"
+        android:hint="@string/password"
         android:password="true"
         android:ems="10"
         android:id="@+id/password"
@@ -37,18 +37,18 @@
         android:id="@+id/loginBtn"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Login"/>
+        android:text="@string/login"/>
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="or"
+        android:text="@string/or"
         android:gravity="center"/>
 
     <Button
         android:id="@+id/createAccountLogin"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Create Account!"/>
+        android:text="@string/createAcc"/>
 
 </LinearLayout>

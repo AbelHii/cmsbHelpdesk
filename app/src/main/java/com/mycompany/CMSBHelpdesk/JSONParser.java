@@ -142,14 +142,14 @@ public class JSONParser {
             is.close();
             json = str.toString();
         } catch (Exception e) {
-
+            System.out.println("ERROR : " + e.getMessage());
         }
 
         // now will try to parse the string into JSON object
         try {
             jsonObj = new JSONObject(json);
         } catch (JSONException e) {
-
+            System.out.println("ERROR : " + e.getMessage());
         }
 
 
