@@ -13,6 +13,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListAdapter;
@@ -104,8 +105,8 @@ public class MainActivity extends ActionBarActivity{
   //          list.fillData();
     //        list.registerForContextMenu(list.getListView());
 
-            //retrieve();
-            //addingCase(getId, getDesc, getUser, getAssignees, getStatus);
+            retrieve();
+            addingCase(getId, getDesc, getUser, getAssignees, getStatus);
 
             }
 
@@ -131,7 +132,6 @@ public class MainActivity extends ActionBarActivity{
     }
 
 
-    /**
     public void retrieve(){
         getDesc = sp.getString("desc", null);
         getUser = sp.getString("user", null);
@@ -174,7 +174,7 @@ public class MainActivity extends ActionBarActivity{
 
             return view;
         }
-    }*/
+    }
 
     class getCases extends AsyncTask<String, String, String> {
 
