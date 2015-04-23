@@ -8,11 +8,11 @@
         android:targetSdkVersion="18" />
 
     <!-- To auto-complete the email text field in the login form with the user's emails -->
-    <uses-permission android:name="android.permission.GET_ACCOUNTS" />
+    <!--<uses-permission android:name="android.permission.GET_ACCOUNTS" />
     <uses-permission android:name="android.permission.READ_PROFILE" />
-    <uses-permission android:name="android.permission.READ_CONTACTS" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.READ_CONTACTS" />-->
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <application
         android:allowBackup="true"
@@ -22,7 +22,8 @@
         <activity
             android:name="com.mycompany.CMSBHelpdesk.MainActivity"
             android:label="@string/title_activity_main"
-            android:launchMode="singleTop">
+            android:launchMode="singleTop"
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -45,11 +46,13 @@
         </activity>
         <activity
             android:name=".General"
-            android:label="@string/title_activity_general" >
+            android:label="@string/title_activity_general"
+            android:screenOrientation="portrait" >
         </activity>
         <activity
             android:name=".Users"
-            android:label="@string/title_activity_users" >
+            android:label="@string/title_activity_users"
+            android:screenOrientation="portrait" >
         </activity>
         <activity
             android:name=".LoginActivity"

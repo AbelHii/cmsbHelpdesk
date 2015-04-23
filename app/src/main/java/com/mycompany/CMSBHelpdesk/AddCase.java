@@ -26,7 +26,6 @@ public class AddCase extends MainActivity{
     private Spinner mUser, mAssignee, mStatus;
     private Button maddCBtn, mSubmit;
     private TextView mId, mDesc, mCompany, mEmail, mTel;
-    private DbAdapter mDbHelper;
     private Long mRowId;
     private spinnerMethods sM = new spinnerMethods();
     private String[] mNameList;
@@ -40,7 +39,6 @@ public class AddCase extends MainActivity{
         setTitle("Add Case");
         //Initialises the variables (just to make it look neater)
         initialise();
-        //mDbHelper.open();
 
         Intent intent = this.getIntent();
         if(intent.equals(AddNewUser.class)){
@@ -82,30 +80,9 @@ public class AddCase extends MainActivity{
         });
     }
 
-
-    /**
-     Bundle bundle = new Bundle();
-
-     bundle.putString(DbAdapter.KEY_USER, users);
-     bundle.putString(DbAdapter.KEY_DESC, descriptions);
-     if (mRowId != null) {
-     bundle.putLong(DbAdapter.KEY_ROWID, mRowId);
-     }
-
-     Intent mIntent = new Intent();
-     mIntent.putExtras(bundle);
-     setResult(RESULT_OK, mIntent);
-     finish();
-
-     intent.putExtra("key", descriptions);
-     intent.putExtra("key1", users);
-     intent.putExtra("key2", assignees);
-     intent.putExtra("key3", statuses);
-     */
-    //setResult(RESULT_OK, intent);
-    //startActivity(intent);
     public void addCase(){
         //Intent intent = new Intent(this, MainActivity.class);
+
         String descriptions = mDesc.getText().toString();
         String users = mUser.getSelectedItem().toString();
         String assignees = mAssignee.getSelectedItem().toString();
@@ -120,7 +97,6 @@ public class AddCase extends MainActivity{
 
 
     //Adapter to input new user into the Users Spinner
-
     public void nUser(Spinner spin, String nam){
         //this.mNameList = new String[] {nam};
 
@@ -152,7 +128,6 @@ public class AddCase extends MainActivity{
         mCompany = (TextView)findViewById(R.id.company);
         mEmail = (TextView) findViewById(R.id.email);
         mTel = (TextView)findViewById(R.id.tel);
-        mDbHelper = new DbAdapter(this);
 
         TabHost tabHost = (TabHost) findViewById(R.id.tabHost);
         tabHost.setup();

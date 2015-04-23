@@ -1,64 +1,79 @@
 <?xml version="1.0" encoding="utf-8"?>
-
-<LinearLayout
+<android.support.v4.widget.SwipeRefreshLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/swipe_container"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context=".MainActivity"
-    android:orientation="vertical"
-    android:padding="5dp">
+    android:layout_height="match_parent">
 
     <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_marginBottom="10dp"
-        android:layout_marginLeft="15dp">
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context=".MainActivity"
+        android:orientation="vertical"
+        android:padding="5dp">
 
-        <TextView
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="20sp"
-            android:textColor="#000000"
-            android:text="@string/id"
-            android:layout_marginRight="15dp"/>
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="20sp"
-            android:textColor="#000000"
-            android:text="@string/user"
-            android:layout_marginRight="15dp"/>
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="20sp"
-            android:textColor="#000000"
-            android:text="@string/assignee"
-            android:layout_marginRight="15dp"/>
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="20sp"
-            android:textColor="#000000"
-            android:text="@string/status"
-            android:layout_marginRight="15dp"/>
+            android:orientation="horizontal"
+            android:layout_marginBottom="10dp"
+            android:layout_marginLeft="15dp">
 
+            <TextView
+                android:layout_width="35dp"
+                android:layout_height="wrap_content"
+                android:textSize="17sp"
+                android:textColor="#1f1f1f"
+                android:text="@string/id"
+                android:textStyle="bold"
+                android:layout_marginRight="15dp"/>
+            <TextView
+                android:layout_width="95dp"
+                android:layout_height="wrap_content"
+                android:text="@string/user"
+                android:textSize="16sp"
+                android:textColor="#1f1f1f"
+                android:singleLine="true"
+                android:textStyle="bold"
+                android:layout_marginRight="15dp"/>
+            <TextView
+                android:layout_width="80dp"
+                android:layout_height="wrap_content"
+                android:text="@string/assignee"
+                android:textSize="16sp"
+                android:textColor="#1f1f1f"
+                android:singleLine="true"
+                android:textStyle="bold"
+                android:layout_marginRight="15dp"/>
+            <TextView
+                android:layout_width="95dp"
+                android:layout_height="wrap_content"
+                android:text="@string/status"
+                android:textSize="16sp"
+                android:textColor="#1f1f1f"
+                android:singleLine="true"
+                android:textStyle="bold"
+                android:layout_marginRight="15dp"/>
+
+
+
+        </LinearLayout>
+
+            <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            xmlns:android="http://schemas.android.com/apk/res/android">
+
+                <ListView
+                        android:layout_width="fill_parent"
+                        android:layout_height="fill_parent"
+                        android:id="@android:id/list"
+                        android:layout_gravity="center_horizontal"/>
+
+                <!--android:id="@android:id/list"-->
+            </LinearLayout>
     </LinearLayout>
-
-    <LinearLayout
-    android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
-    android:orientation="vertical"
-    android:padding="5dp"
-    xmlns:android="http://schemas.android.com/apk/res/android">
-
-        <ListView
-                android:layout_width="fill_parent"
-                android:layout_height="fill_parent"
-                android:id="@android:id/list"
-                android:layout_gravity="center_horizontal"/>
-        <!--android:id="@android:id/list"-->
-    </LinearLayout>
-</LinearLayout>
+</android.support.v4.widget.SwipeRefreshLayout>

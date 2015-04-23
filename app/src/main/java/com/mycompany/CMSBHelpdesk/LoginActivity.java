@@ -1,8 +1,13 @@
 package com.mycompany.CMSBHelpdesk;
 
+import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
@@ -31,7 +36,7 @@ public class LoginActivity extends ActionBarActivity {
 
     //Login class "AttemptLogin" and "JSONParser" is from mrbool.com
     private EditText user, pass;
-    sharedPreference sp = new sharedPreference();
+
     // Progress Dialog
     private ProgressDialog pDialog;
     // JSON parser class
@@ -50,14 +55,38 @@ public class LoginActivity extends ActionBarActivity {
         pass = (EditText) findViewById(R.id.password);
         mLoginBtn = (Button)findViewById(R.id.loginBtn);
         mCreateAccountBtn = (Button) findViewById(R.id.createAccountLogin);
-       //mLoginBtn.setOnClickListener(this);
-        //mCreateAccountBtn.setOnClickListener(this);
-        //test just to connect login button to the main activity
-        addListenerOnButton();
+
+        //check Internet connection
+        if(isNetworkConnected() == true) {
+            addListenerOnButton();
+        }
+        else{
+            new AlertDialog.Builder(this)
+                    .setIcon(R.mipmap.nowifi)
+                    .setTitle("No internet connection")
+                    .setMessage("Please turn on mobile data or wifi")
+                    .setPositiveButton("OK", new DialogInterface.OnClickListener()
+                    {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            //code for exit
+                            Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                            intent.putExtra("EXIT", true);
+                            startActivity(intent);
+                        }
+
+                    })
+                    .show();
+        }
 
     }
 
-
+    public boolean isNetworkConnected(){
+        final ConnectivityManager conMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        final NetworkInfo activeNetwork = conMgr.getActiveNetworkInfo();
+        return activeNetwork != null && activeNetwork.getState() == NetworkInfo.State.CONNECTED;
+    }
     class AttemptLogin extends AsyncTask<String, String, String> {
 
         //Before starting background thread Show Progress Dialog
@@ -67,7 +96,7 @@ public class LoginActivity extends ActionBarActivity {
         protected void onPreExecute() {
             super.onPreExecute();
             pDialog = new ProgressDialog(LoginActivity.this);
-            pDialog.setMessage("Attempting for login...");
+            pDialog.setMessage("Attempting to login...");
             pDialog.setIndeterminate(false);
             pDialog.setCancelable(true);
             pDialog.show();
@@ -104,10 +133,10 @@ public class LoginActivity extends ActionBarActivity {
                     sharedPreference.setString(LoginActivity.this, "login", user.getText().toString());
                     sharedPreference.setString(LoginActivity.this, "pass", pass.getText().toString());
 
-                    Intent ii = new Intent(LoginActivity.this, MainActivity.class);
-                    finish();
+                    //Intent ii = new Intent(LoginActivity.this, MainActivity.class);
+                    LoginActivity.this.finish();
                     //this finish() method is used to tell android os that we are done with current //activity now! Moving to other activity
-                    startActivity(ii);
+                    //startActivity(ii);
                     return json.getString(TAG_MESSAGE);
                 }else{
 
