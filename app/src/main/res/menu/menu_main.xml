@@ -5,13 +5,13 @@
 
     <item android:id="@+id/log_out"
         android:title="@string/title_activity_logout"
-        android:orderInCategory="1"
-        app:showAsAction="ifRoom" />
+        android:orderInCategory="101"
+        app:showAsAction="never" />
 
     <item android:id="@+id/action_settings"
         android:title="@string/action_settings"
         android:orderInCategory="100"
-        app:showAsAction="ifRoom" />
+        app:showAsAction="never" />
 
     <item android:id="@+id/add_case"
         android:title="@string/title_activity_add_case"
