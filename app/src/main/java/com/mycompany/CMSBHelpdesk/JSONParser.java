@@ -92,6 +92,10 @@ public class JSONParser {
     }
 
 
+    public JSONObject makeHttpRequest(String url, String method){
+        return this.makeHttpRequest(url, method, null);
+    }
+
 
     public JSONObject makeHttpRequest(String url, String method,
                                       List<NameValuePair> params) {

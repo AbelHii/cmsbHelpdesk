@@ -70,10 +70,8 @@ public class LoginActivity extends ActionBarActivity {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             //code for exit
-                            Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-                            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                            intent.putExtra("EXIT", true);
-                            startActivity(intent);
+                            android.os.Process.killProcess(android.os.Process.myPid());
+                            System.exit(1);
                         }
 
                     })
@@ -133,10 +131,14 @@ public class LoginActivity extends ActionBarActivity {
                     sharedPreference.setString(LoginActivity.this, "login", user.getText().toString());
                     sharedPreference.setString(LoginActivity.this, "pass", pass.getText().toString());
 
-                    //Intent ii = new Intent(LoginActivity.this, MainActivity.class);
+                    MainActivity.checker = "false";
+                    sharedPreference.setString(LoginActivity.this, "checker", MainActivity.checker);
+
+                    Intent ii = new Intent(getApplicationContext(), MainActivity.class);
                     LoginActivity.this.finish();
-                    //this finish() method is used to tell android os that we are done with current //activity now! Moving to other activity
-                    //startActivity(ii);
+                    //this finish() method is used to tell android os that we are done with current
+                    // activity now! Moving to other activity
+                    startActivity(ii);
                     return json.getString(TAG_MESSAGE);
                 }else{
 
@@ -172,6 +174,8 @@ public class LoginActivity extends ActionBarActivity {
             public void onClick(View v) {
                 sharedPreference.setString(context ,"login" ,user.getText().toString());
                 sharedPreference.setString(context ,"pass" ,pass.getText().toString());
+                MainActivity.checker = "false";
+                sharedPreference.setString(LoginActivity.this, "checker", MainActivity.checker);
                 Intent intent = new Intent(context, MainActivity.class);
                 startActivity(intent);
             }
