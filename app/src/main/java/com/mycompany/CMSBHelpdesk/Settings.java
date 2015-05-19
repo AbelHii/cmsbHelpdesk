@@ -13,7 +13,7 @@ import android.widget.TabHost;
 import android.widget.Toast;
 
 
-public class Settings extends ActionBarActivity {
+public class Settings extends MainActivity {
 
     Button mGeneral, mUsers;
 
@@ -70,6 +70,15 @@ public class Settings extends ActionBarActivity {
         }
         if(id==R.id.mainMenu){
             Intent intent = new Intent(context, MainActivity.class);
+            this.finish();
+            startActivity(intent);
+            return true;
+        }
+        if(id == R.id.log_out) {
+            controller.refreshCases("cases");
+            sharedPreference.delete(this);
+            this.finish();
+            Intent intent = new Intent(context, LoginActivity.class);
             startActivity(intent);
             return true;
         }

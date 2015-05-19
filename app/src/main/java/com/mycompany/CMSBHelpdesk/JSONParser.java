@@ -79,11 +79,11 @@ public class JSONParser {
             Log.e("Error", " something wrong with converting result " + e.toString());
         }
 
-        // Try block used for pasrseing String to a json object
+        // Try block used for parsing String to a json object
         try {
             jsonObj = new JSONObject(json);
         } catch (JSONException e) {
-            Log.e("json Parsering", "" + e.toString());
+            Log.e("json Parsing", "" + e.toString());
         }
 
         // Returning json Object.

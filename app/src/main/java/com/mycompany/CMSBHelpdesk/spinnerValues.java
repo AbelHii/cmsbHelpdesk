@@ -10,12 +10,12 @@ import android.widget.TextView;
  */
 public class spinnerValues {
 
-    private int id, telephone, company;
-    private String name, email;
+    private int id;
+    private String name, email, telephone, company;
 
     public spinnerValues(){}
 
-    public spinnerValues(int id, int telephone, String name, String email, int company){
+    public spinnerValues(int id, String telephone, String name, String email, String company){
         this.id = id;
         this.telephone = telephone;
         this.name = name;
@@ -25,17 +25,17 @@ public class spinnerValues {
 
     //setters:
     public void setId(int id){this.id = id;}
-    public void setTelephone(int telephone){this.telephone = telephone;}
+    public void setTelephone(String telephone){this.telephone = telephone;}
     public void setName(String name){this.name = name;}
     public void setEmail(String email){this.email = email;}
-    public void setCompany(int company){this.company = company;}
+    public void setCompany(String company){this.company = company;}
 
     //getters:
     public int getId(){return this.id;}
-    public int getTelephone(){return this.telephone;}
+    public String getTelephone(){return this.telephone;}
     public String getName(){return this.name;}
     public String getEmail(){return this.email;}
-    public int getCompany(){return this.company;}
+    public String getCompany(){return this.company;}
 
     public void onItemSelected(final Spinner blu, final TextView comp, final TextView emaill, final TextView tel){
         blu.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -52,7 +52,7 @@ public class spinnerValues {
         });
     }
 
-    public void setTextV(String selectedItem, String name, TextView c,TextView e, TextView t, int valc, String vale, int valt){
+    public void setTextV(String selectedItem, String name, TextView c,TextView e, TextView t, String valc, String vale, String valt){
         if(selectedItem.equalsIgnoreCase(name)) {
             c.setText(valc);
             e.setText(vale);

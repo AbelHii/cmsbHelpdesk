@@ -8,7 +8,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 
 
-public class Users extends ActionBarActivity {
+public class Users extends Settings {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,6 +38,15 @@ public class Users extends ActionBarActivity {
         }
         if(id==R.id.mainMenu){
             Intent intent = new Intent(context, MainActivity.class);
+            this.finish();
+            startActivity(intent);
+            return true;
+        }
+        if(id == R.id.log_out) {
+            controller.refreshCases("cases");
+            sharedPreference.delete(this);
+            this.finish();
+            Intent intent = new Intent(context, LoginActivity.class);
             startActivity(intent);
             return true;
         }

@@ -1,11 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/ScrollView01"
-    android:layout_width="wrap_content"
+    android:layout_width="fill_parent"
     android:layout_height="wrap_content"
-    android:scrollbars="vertical"
-    android:layout_gravity="center_horizontal">
+    xmlns:android="http://schemas.android.com/apk/res/android">
 
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
@@ -26,7 +23,7 @@
 
                 <TabWidget
                     android:id="@android:id/tabs"
-                    android:layout_width="fill_parent"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"></TabWidget>
 
                 <FrameLayout
@@ -55,14 +52,20 @@
                             android:text="@string/name"
                             android:textSize="20sp"
                             android:textStyle="bold"/>
-                        <Spinner
+
+                        <AutoCompleteTextView
                             android:layout_width="fill_parent"
                             android:layout_height="wrap_content"
                             android:id="@+id/spinnerNames"
                             android:prompt="@string/spinner_title"
+                            android:hint="@string/spinner_title"
                             android:entries="@array/nameList"
-                            android:textSize="15sp"
-                            android:layout_margin="5dp"/>
+                            android:singleLine="true"
+                            android:textSize="17sp"
+                            android:layout_margin="5dp"
+                            android:completionThreshold="1"
+                            android:dropDownHeight="150dp"
+                            android:inputType="textAutoComplete"/>
 
                         <!--Company:-->
                         <TextView
@@ -121,7 +124,7 @@
                             android:layout_margin="5dp"/>
                     </LinearLayout>
 
-                    <LinearLayout
+                   <!-- <LinearLayout
                         android:id="@+id/itDeptRef"
                         android:layout_width="fill_parent"
                         android:layout_height="fill_parent"
@@ -163,36 +166,7 @@
                             android:layout_margin="10dp"
                             />
 
-                        <TextView
-                            android:text="@string/assignee"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:textSize="20sp"
-                            android:textStyle="bold"/>
-                        <Spinner
-                            android:id = "@+id/spinnerAssignee"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:entries="@array/assignee"
-                            android:textSize="15sp"
-                            android:layout_margin="10dp"
-                            />
-
-                        <TextView
-                            android:text="@string/status"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:textSize="20sp"
-                            android:textStyle="bold"/>
-                        <Spinner
-                            android:id ="@+id/spinnerStatus"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:entries="@array/status"
-                            android:textSize="15sp"
-                            android:layout_margin="10dp"
-                            />
-                        </LinearLayout>
+                        </LinearLayout>-->
 
                     <LinearLayout
                         android:id="@+id/caseParticulars"
@@ -208,7 +182,7 @@
                             android:textSize="30sp"
                             android:textStyle="bold"/>
 
-                        <!--Severity-->
+                        <!--Severity
                         <TextView
                             android:text="@string/severity"
                             android:layout_width="wrap_content"
@@ -223,7 +197,6 @@
                             android:layout_margin="10dp"
                             />
 
-                        <!--Type of Service-->
                         <TextView
                             android:text="@string/tos"
                             android:layout_width="wrap_content"
@@ -238,7 +211,6 @@
                             android:layout_margin="10dp"
                             />
 
-                        <!--Category-->
                         <TextView
                             android:text="@string/category"
                             android:layout_width="wrap_content"
@@ -253,7 +225,6 @@
                             android:layout_margin="10dp"
                             />
 
-                        <!--Sub-category-->
                         <TextView
                             android:text="@string/sub_cat"
                             android:layout_width="wrap_content"
@@ -267,6 +238,71 @@
                             android:textSize="15sp"
                             android:layout_margin="10dp"
                             />
+                            -->
+                        <!--Assignee-->
+                        <TextView
+                            android:text="@string/assignee"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="20sp"
+                            android:textStyle="bold"/>
+                        <TextView
+                            android:id = "@+id/assigneeName"
+                            android:text="@string/status"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="17sp"
+                            android:textColor="#444"
+                            android:padding="5dp"/>
+                        <!--<Spinner
+                            android:id = "@+id/spinnerAssignee"
+                            android:layout_width="fill_parent"
+                            android:layout_height="wrap_content"
+                            android:entries="@array/assignee"
+                            android:singleLine="true"
+                            android:textSize="15sp"
+                            android:layout_margin="10dp"
+                            />-->
+
+                        <!--Status-->
+                        <TextView
+                            android:text="@string/status"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="20sp"
+                            android:textStyle="bold"/>
+                        <Spinner
+                            android:id ="@+id/spinnerStatus"
+                            android:layout_width="fill_parent"
+                            android:layout_height="wrap_content"
+                            android:entries="@array/status"
+                            android:singleLine="true"
+                            android:textSize="15sp"
+                            android:layout_margin="10dp"
+                            />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/case_desc"
+                            android:textSize="20sp"
+                            android:layout_marginTop="10dp"
+                            android:textStyle="bold"/>
+
+                        <ScrollView
+                            android:layout_width="fill_parent"
+                            android:layout_height="wrap_content">
+                            <EditText
+                                android:id="@+id/caseDesc"
+                                android:gravity="top|left"
+                                android:layout_height="wrap_content"
+                                android:layout_width="match_parent"
+                                android:inputType="textMultiLine"
+                                android:lines="3"
+                                android:maxLines="3"
+                                android:maxLength="200"
+                                android:background="@drawable/back"/>
+                        </ScrollView>
 
                         <!--Action Taken-->
                         <TextView
@@ -301,13 +337,10 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:paddingLeft="14dp"
-            android:paddingRight="14dp"
-            android:paddingTop="14dp"
-            android:paddingBottom="14dp"
+            android:padding="5dp"
             tools:context=".MainActivity"
             android:orientation="vertical"
-            android:layout_margin="15dp"
+            android:layout_margin="10dp"
             android:gravity="center_horizontal">
 
             <Button

@@ -41,7 +41,7 @@ public class LoginActivity extends ActionBarActivity {
     private ProgressDialog pDialog;
     // JSON parser class
     JSONParser jsonParser = new JSONParser();
-    private static final String LOGIN_URL = "http://abelhii.freeoda.com/login.php";
+    private static final String LOGIN_URL = "http://abelhii.comli.com/login.php";
     private static final String TAG_SUCCESS = "success";
     private static final String TAG_MESSAGE = "message";
 
@@ -131,11 +131,11 @@ public class LoginActivity extends ActionBarActivity {
                     sharedPreference.setString(LoginActivity.this, "login", user.getText().toString());
                     sharedPreference.setString(LoginActivity.this, "pass", pass.getText().toString());
 
-                    MainActivity.checker = "false";
-                    sharedPreference.setString(LoginActivity.this, "checker", MainActivity.checker);
+                    MainActivity.checker = 0;
+                    sharedPreference.setInt(LoginActivity.this, "checker", MainActivity.checker);
 
                     Intent ii = new Intent(getApplicationContext(), MainActivity.class);
-                    LoginActivity.this.finish();
+                    //LoginActivity.this.finish();
                     //this finish() method is used to tell android os that we are done with current
                     // activity now! Moving to other activity
                     startActivity(ii);
@@ -153,7 +153,6 @@ public class LoginActivity extends ActionBarActivity {
         }
 
         //Once the background process is done we need to  Dismiss the progress dialog asap
-
         protected void onPostExecute(String message) {
 
             pDialog.dismiss();
@@ -174,8 +173,8 @@ public class LoginActivity extends ActionBarActivity {
             public void onClick(View v) {
                 sharedPreference.setString(context ,"login" ,user.getText().toString());
                 sharedPreference.setString(context ,"pass" ,pass.getText().toString());
-                MainActivity.checker = "false";
-                sharedPreference.setString(LoginActivity.this, "checker", MainActivity.checker);
+                MainActivity.checker = 0;
+                sharedPreference.setInt(LoginActivity.this, "checker", MainActivity.checker);
                 Intent intent = new Intent(context, MainActivity.class);
                 startActivity(intent);
             }

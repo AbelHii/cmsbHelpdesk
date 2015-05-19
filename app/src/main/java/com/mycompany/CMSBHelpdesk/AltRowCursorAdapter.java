@@ -5,29 +5,37 @@ import android.database.Cursor;
 import android.graphics.Color;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.SimpleCursorAdapter;
+import android.widget.TextView;
+
+import java.util.ArrayList;
+import java.util.HashMap;
 
 /**
  * @author C'dine
  * A simple cursor adapter. Only variation is that it displays alternate rows
  *  in alternate colors.
  */
-public class AltRowCursorAdapter extends SimpleCursorAdapter{
+public class AltRowCursorAdapter extends ArrayAdapter<HashMap<String, String>>{
+    private String[] list;
 
-    private int[] colors = new int[] { Color.parseColor("#F0F0F0"), Color.parseColor("#D2E4FC") };
-    //private int[] colors = new int[] { R., 0x30808080 };
-    public AltRowCursorAdapter(Context context, int layout, Cursor c,
-                                     String[] from, int[] to) {
-        super(context, layout, c, from, to);
+    public AltRowCursorAdapter(Context context, int textViewResourceId,
+                             ArrayList<HashMap<String, String>> objects) {
+        super(context, textViewResourceId, objects);
+        list = new String[objects.size()];
+        for (int i = 0; i < list.length; i++) {
+            list[i] = String.valueOf(objects.get(i));
+        }
     }
-    /**
-     * Display rows in alternating colors
-     */
+
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        View view = super.getView(position, convertView, parent);
-        int colorPos = position % colors.length;
-        view.setBackgroundColor(colors[colorPos]);
+        View view = (TextView)super.getView(position, convertView, parent);
+        if(position%2==0)
+        {
+            view.setBackgroundColor(Color.parseColor("#FFD700"));
+        }
         return view;
     }
 }

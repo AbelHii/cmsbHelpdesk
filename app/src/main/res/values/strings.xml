@@ -19,7 +19,6 @@
     <string name="emailAdd">u@asdf.com</string>
     <string name="tel">Tel:</string>
     <string name="telNum">12345678</string>
-    <string name="type">Choose Name:</string>
     <string name="title_activity_add_new_user">Add New User</string>
     <string name="cms">CMS</string>
     <string name="cms_road">CMS Road</string>
@@ -28,10 +27,11 @@
     <string name="close">Close</string>
     <string name="addUser">Add User</string>
 
+    <string name="type">Choose Name:</string>
     <string name="type1">abel</string>
     <string name="type2">josh</string>
     <string name="type3">beth</string>
-    <string name="type4">fern</string>
+    <string name="type4">tom</string>
 
     <!--IT DEPT REF-->
     <string name="it_dept_ref">IT Dept. Ref.</string>
@@ -92,4 +92,5 @@
     <string name="showCaseOwner">Show case owner column for:</string>
     <string name="openCases">OPEN cases</string>
     <string name="closeCases">CLOSE cases</string>
+    <string name="case_desc">Case Description</string>
 </resources>
