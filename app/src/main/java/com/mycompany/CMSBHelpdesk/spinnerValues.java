@@ -2,6 +2,7 @@ package com.mycompany.CMSBHelpdesk;
 
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.AutoCompleteTextView;
 import android.widget.Spinner;
 import android.widget.TextView;
 
@@ -37,11 +38,11 @@ public class spinnerValues {
     public String getEmail(){return this.email;}
     public String getCompany(){return this.company;}
 
-    public void onItemSelected(final Spinner blu, final TextView comp, final TextView emaill, final TextView tel){
+    public void onItemSelected(final AutoCompleteTextView blu, final TextView comp, final TextView emaill, final TextView tel){
         blu.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterViewCompat, View view, int i, long l) {
-                String selItem = blu.getItemAtPosition(i).toString();
+                String selItem = blu.getOnItemSelectedListener().toString();
 
                 setTextV(selItem, name, comp, emaill, tel, company, email, telephone);
             }

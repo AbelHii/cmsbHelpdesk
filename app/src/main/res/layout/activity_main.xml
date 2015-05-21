@@ -13,54 +13,6 @@
         tools:context=".MainActivity"
         android:orientation="vertical">
 
-       <!-- <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginBottom="10dp"
-            android:layout_marginLeft="15dp">
-
-            <TextView
-                android:layout_width="35dp"
-                android:layout_height="wrap_content"
-                android:textSize="17sp"
-                android:textColor="#1f1f1f"
-                android:text="@string/id"
-                android:textStyle="bold"
-                android:layout_marginRight="15dp"/>
-            <TextView
-                android:layout_width="95dp"
-                android:layout_height="wrap_content"
-                android:text="@string/user"
-                android:textSize="16sp"
-                android:textColor="#1f1f1f"
-                android:singleLine="true"
-                android:textStyle="bold"
-                android:layout_marginRight="15dp"/>
-            <TextView
-                android:layout_width="80dp"
-                android:layout_height="wrap_content"
-                android:text="@string/assignee"
-                android:textSize="16sp"
-                android:textColor="#1f1f1f"
-                android:singleLine="true"
-                android:textStyle="bold"
-                android:layout_marginRight="15dp"/>
-            <TextView
-                android:layout_width="95dp"
-                android:layout_height="wrap_content"
-                android:text="@string/status"
-                android:textSize="16sp"
-                android:textColor="#1f1f1f"
-                android:singleLine="true"
-                android:textStyle="bold"
-                android:layout_marginRight="15dp"/>
-
-
-
-
-        </LinearLayout>-->
-
             <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -71,9 +23,9 @@
                         android:layout_width="fill_parent"
                         android:layout_height="fill_parent"
                         android:id="@android:id/list"
-                        android:layout_gravity="center_horizontal"/>
+                        android:layout_gravity="center_horizontal"
+                        android:stackFromBottom="false"/>
 
-                <!--android:id="@android:id/list"-->
             </LinearLayout>
     </LinearLayout>
 </android.support.v4.widget.SwipeRefreshLayout>

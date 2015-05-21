@@ -49,10 +49,9 @@
                 android:id="@+id/newCompany"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:prompt="@string/cms"
                 android:entries="@array/companies"
                 android:textSize="15sp"
-                android:dropDownHeight="150dp"
+                android:dropDownHeight="wrap_content"
                 android:dropDownWidth="fill_parent"
                 android:completionThreshold="1"
                 android:layout_margin="5dp"/>

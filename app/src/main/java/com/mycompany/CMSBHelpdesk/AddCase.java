@@ -7,6 +7,7 @@ import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -17,12 +18,15 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.Switch;
 import android.widget.TabHost;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import org.apache.http.NameValuePair;
+import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -35,20 +39,24 @@ public class AddCase extends MainActivity{
 
     public AutoCompleteTextView mUser;
     private Spinner mStatus;
-    private String username, description, assignee, status, name, company, email, telephone;
+    private String id, username, description,actionT, assigneeID, statusID, caseID, company, email, telephone;
     private Button maddCBtn, mSubmit;
-    private TextView mAssignee, mId, mDesc, mCompany, mEmail, mTel;
+    private TextView mAssignee, mCompany, mEmail, mTel;
+    private EditText mActionTaken, mDesc;
     private spinnerMethods sM = new spinnerMethods();
     private spinnerValues sV = new spinnerValues();
     private SharedPreferences sp;
     private SharedPreferences.Editor e;
     public static int check = 0;
 
+    //To check whether its in addcase or editcase
+    String caller;
 
     // DB Class to perform DB related operations
     DBController userControl = new DBController(this);
 
     //Stores the values for AddCase and EditCase
+    public static ArrayList<String> userID;
     public static ArrayList<String> spinnerUsernames;
     public static ArrayList<String> companyV;
     public static ArrayList<String> emailV;
@@ -63,6 +71,8 @@ public class AddCase extends MainActivity{
 
     private ProgressDialog pDialog;
     private static final String USER_URL = "http://abelhii.comli.com/getUsers.php";
+    private static final String ADD_CASE_URL = "http://abelhii.comli.com/AddCase.php";
+    private static final String UPDATE_CASE_URL = "http://abelhii.comli.com/UpdateCase.php";
 
     /*----------------------------ON CREATE--------------------------------------------------------*/
     @Override
@@ -75,7 +85,7 @@ public class AddCase extends MainActivity{
         initialise();
 
         //Check to see if has to retrieve data or not (goes to Add Case or Edit Case)
-        String caller = getIntent().getStringExtra("caller");
+        caller = getIntent().getStringExtra("caller");
         if(caller != null) {
             switch (caller.toLowerCase()) {
                 case "editcase":
@@ -99,7 +109,7 @@ public class AddCase extends MainActivity{
                 Toast.makeText(this, "4", Toast.LENGTH_SHORT).show();
             }else {
                 //Retrieve previously saved data
-                Toast.makeText(this, "No Internet Connection!" +
+                Toast.makeText(this, "User List Empty and No Internet Connection!" +
                                 " \n Please Connect to the internet and restart the app",
                         Toast.LENGTH_LONG).show();
             }
@@ -128,7 +138,10 @@ public class AddCase extends MainActivity{
 
         //Populates the Spinners
         spinnerUsernames = userControl.getTableValues("users", 1);
+        //"users" is the table name and getTableValues is a method in DBController
         companyV = userControl.getTableValues("users", 2);
+        emailV = userControl.getTableValues("users", 3);
+        telephoneV = userControl.getTableValues("users", 4);
         populateAutoCompTV(mUser, spinnerUsernames);
 
         mUser.setOnClickListener(new View.OnClickListener() {
@@ -140,11 +153,6 @@ public class AddCase extends MainActivity{
         mUser.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int position, long l) {
-                //"users" is the table name and getTableValues is in DBController
-                companyV = userControl.getTableValues("users", 2);
-                emailV = userControl.getTableValues("users", 3);
-                telephoneV = userControl.getTableValues("users", 4);
-
                 //name = spinnerUsernames.get(position);
                 company = companyV.get(position);
                 email = emailV.get(position);
@@ -155,7 +163,7 @@ public class AddCase extends MainActivity{
                 sV.setTelephone(telephone);
                 //for the spinners dynamic property
                 //This sV.onItemSelected auto fills the email and stuff depending on the user selected
-                //sV.onItemSelected(mUser, mCompany, mEmail, mTel);
+                sV.onItemSelected(mUser, mCompany, mEmail, mTel);
                 Toast.makeText(getApplicationContext(), sV.getCompany(), Toast.LENGTH_SHORT).show();
             }
 
@@ -193,14 +201,18 @@ public class AddCase extends MainActivity{
         spinnersList = new ArrayList<spinnerValues>();
 
         mUser = (AutoCompleteTextView) findViewById(R.id.spinnerNames);
-        //mAssignee = (Spinner) findViewById(R.id.spinnerAssignee);
         mStatus = (Spinner) findViewById(R.id.spinnerStatus);
-        mDesc = (TextView)findViewById (R.id.actionTaken);
         mCompany = (TextView)findViewById(R.id.company);
         mEmail = (TextView) findViewById(R.id.email);
         mTel = (TextView)findViewById(R.id.tel);
-
         mAssignee = (TextView) findViewById((R.id.assigneeName));
+
+        mDesc = (EditText)findViewById (R.id.caseDesc);
+        mActionTaken = (EditText) findViewById (R.id.actionTaken);
+
+        //getting the case id and assignee id
+        id = sharedPreference.getString(AddCase.this, TAG_ID);
+        assigneeID = sharedPreference.getString(AddCase.this, TAG_LOGIN_ID);
 
         TabHost tabHost = (TabHost) findViewById(R.id.tabHost);
         tabHost.setup();
@@ -219,7 +231,6 @@ public class AddCase extends MainActivity{
 
     /*--------------------ADD LISTENER TO BUTTON CLICKS----------------------------------------------*/
     public void addListenerOnButton() {
-
         final Context context = this;
 
         //Submit button
@@ -227,10 +238,30 @@ public class AddCase extends MainActivity{
         mSubmit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(context, MainActivity.class);
-                //addCase();
-                Toast.makeText(AddCase.this, mUser.getText().toString(), Toast.LENGTH_LONG).show();
-                startActivity(intent);
+                if(caller.equalsIgnoreCase("addCase")) { //ADD
+                    if (isNetworkConnected()) {
+                        addCaseSQLite();
+                        new addCase().execute();
+                        Toast.makeText(AddCase.this, "ADDDDD CASAASSEE", Toast.LENGTH_LONG).show();
+                    } else if (!isNetworkConnected()) {
+                        Intent intent = new Intent(context, MainActivity.class);
+                        addCaseSQLite();
+                        Toast.makeText(AddCase.this, "CASAASSEE ADDDDD ", Toast.LENGTH_LONG).show();
+                        startActivity(intent);
+                    }
+                }else if(caller.equalsIgnoreCase("editCase")){ //EDIT
+                    if (isNetworkConnected()) {
+                        updateCaseSQLite();
+                        new updateCase().execute();
+                        Toast.makeText(AddCase.this, "UPDATE CASAASSEE", Toast.LENGTH_LONG).show();
+                    } else if (!isNetworkConnected()) {
+                        Intent intent = new Intent(context, MainActivity.class);
+                        updateCaseSQLite();
+                        Toast.makeText(AddCase.this, "CASAASSEE UPDATED ", Toast.LENGTH_LONG).show();
+                        startActivity(intent);
+                    }
+                }
+
             }
         });
 
@@ -246,23 +277,116 @@ public class AddCase extends MainActivity{
         });
 
     }
-    public void addCase(){
 
+    /*----------------------------------SQLITE EDITS-------------------------------*/
+    //Adds Case to SQLite:
+    public void addCaseSQLite(){
+        //insertOneCase(String assignee, String status, String user, String desc, String aT, String logID, String statID)
+        userControl.insertOneCase(String.valueOf(Integer.parseInt(id)+1),
+                mAssignee.getText().toString(),
+                mStatus.getSelectedItem().toString(),
+                mUser.getText().toString(),
+                mDesc.getText().toString(),
+                mActionTaken.getText().toString(),
+                assigneeID,
+                statusID);
+
+        userControl.close();
+    }
+    //Updates SQLite Cases
+    public void updateCaseSQLite(){
+        userControl.updateOneCase(caseID,
+                mAssignee.getText().toString(),
+                mStatus.getSelectedItem().toString(),
+                mUser.getText().toString(),
+                mDesc.getText().toString(),
+                mActionTaken.getText().toString(),
+                assigneeID,
+                statusID);
+
+        userControl.close();
     }
 
 
  /*-----------------------RETRIEVE VALUES FROM MAINACTIVITY AND SET THEM IN ADDCASE------------------*/
+    //For Edit Case:
     public void retrieve(){
         Bundle bund = getIntent().getExtras();
         //Retrieving details from when list item is clicked in main activity
+        caseID = bund.getString(MainActivity.TAG_ID);
+
         username = bund.getString(MainActivity.TAG_USERNAME);
         description = bund.getString(MainActivity.TAG_DESCRIPTION);
-        assignee = bund.getString(MainActivity.TAG_ASSIGNEE);
-        status = bund.getString(MainActivity.TAG_STATUS);
+        actionT = bund.getString(MainActivity.TAG_ACTION_TAKEN);
+        statusID = bund.getString(MainActivity.TAG_STATUS_ID);
+        assigneeID = bund.getString(MainActivity.TAG_LOGIN_ID);
 
         mUser.setText(username);
         mDesc.setText(description);
+        mActionTaken.setText(actionT);
+        if(isNetworkConnected())
+        mStatus.setSelection(Integer.parseInt(statusID)-1);
+        else
+        { //TODO: Bug where if you're offline and create a new case,
+            // mStatus is null when you try to edit that new case
+            mStatus.setSelection(1);
+        }
     }
+
+    //-----------------------------------IMPORTANT CODE!---------------------------------------------------
+    //This stuff is just the action bar for like settings and stuff
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_settings, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+        final Context context = this;
+
+        //noinspection SimplifiableIfStatement
+        if (id == R.id.action_settings) {
+            Intent intent = new Intent(context, Settings.class);
+            startActivity(intent);
+            return true;
+        }
+        if (id == R.id.backBtn) {
+            this.finish();
+            return true;
+        }
+        if(id==R.id.mainMenu){
+            Intent intent = new Intent(context, MainActivity.class);
+            this.finish();
+            startActivity(intent);
+            return true;
+        }
+        if(id == R.id.log_out) {
+            controller.refreshCases("cases");
+            sharedPreference.delete(this);
+            this.finish();
+            Intent intent = new Intent(context, LoginActivity.class);
+            startActivity(intent);
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    //Closes the keyboard if you tap anywhere else on the screen!!
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        InputMethodManager imm = (InputMethodManager)getSystemService(Context.
+                INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
+        return true;
+    }
+
+/*------------------------------------------ASYNC TASK to connect to MYSQL SB----------------------------------------------------------------------*/
 
     /*---------IMPORTANT CODE!----------------------------------------------------------------*/
     //gets Users from MySQL DB
@@ -340,6 +464,7 @@ public class AddCase extends MainActivity{
                     public void run() {
                         //get users for AddCase
                         userControl.getAllUsers();
+                        userID = userControl.getTableValues("users", 0);
                         spinnerUsernames = userControl.getTableValues("users", 1);
                         companyV = userControl.getTableValues("users", 2);
                         emailV = userControl.getTableValues("users", 3);
@@ -357,59 +482,148 @@ public class AddCase extends MainActivity{
         }
     }
 
+    /*---------IMPORTANT CODE!----------------------------------------------------------------------------------------------*/
+    //add New Case to MySQL DB
+    class addCase extends AsyncTask<String, String, String> {
+        //Before starting background thread Show Progress Dialog
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            pDialog = new ProgressDialog(AddCase.this);
+            pDialog.setMessage("Adding Case \nPlease Wait...");
+            pDialog.setCancelable(false);
+            pDialog.show();
+        }
 
+        @Override
+        protected String doInBackground(String... params) {
+            int success = 0;
 
-    //-----------------------------------IMPORTANT CODE!---------------------------------------------------
-    //This stuff is just the action bar for like settings and stuff
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_settings, menu);
-        return true;
+            //getID parameters: (tablename, idname, compare to string, columnName, columnNumber)
+            //everything can be found in the DBController.java
+            String name = userControl.getID("users", "userId", mUser.getText().toString(), TAG_NAME, 0);
+            String description = mDesc.getText().toString();
+            String actionTaken = mActionTaken.getText().toString();
+            String assignee = assigneeID;
+            String status = String.valueOf(mStatus.getSelectedItemPosition() + 1);
+
+            try {
+                //Building Parameters
+                List<NameValuePair> parameters = new ArrayList<NameValuePair>();
+                parameters.add(new BasicNameValuePair("name", name));
+                parameters.add(new BasicNameValuePair("description", description));
+                parameters.add(new BasicNameValuePair("actiontaken", actionTaken));
+                parameters.add(new BasicNameValuePair("assignee", assignee));
+                parameters.add(new BasicNameValuePair("status", status));
+
+                Log.d("request!", "starting");
+
+                JSONObject json = jsonParser.makeHttpRequest(
+                        ADD_CASE_URL, "GET", parameters);
+
+                //check log cat for JSON response
+                Log.d("Inserting... ", json.toString());
+
+                //Check for SUCCESS TAG
+                success = json.getInt(TAG_SUCCESS);
+                if (success == 1) {
+                    //check log cat for JSON response
+                    Log.d("Successfully Added Case: ", json.toString());
+
+                    Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                    startActivity(intent);
+
+                    finish();
+                    return json.getString(TAG_MESSAGE);
+                } else {
+                    return json.getString(TAG_MESSAGE);
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+            return null;
+        }
+
+        protected void onPostExecute(String message) {
+            // dismiss the dialog after adding the case
+            pDialog.dismiss();
+            if (message != null) {
+                Toast.makeText(AddCase.this, message, Toast.LENGTH_LONG).show();
+            }
+        }
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-        final Context context = this;
+    /*---------------------------IMPORTANT CODE!---------------------------------------------------------*/
+    //update Case to MySQL DB
+    class updateCase extends AsyncTask<String, String, String> {
+        //Before starting background thread Show Progress Dialog
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            pDialog = new ProgressDialog(AddCase.this);
+            pDialog.setMessage("Updating Case \nPlease Wait...");
+            pDialog.setCancelable(false);
+            pDialog.show();
+        }
 
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            Intent intent = new Intent(context, Settings.class);
-            startActivity(intent);
-            return true;
+        @Override
+        protected String doInBackground(String... params) {
+            int success = 0;
+
+            //getID parameters: (tablename, idname, compare to string, columnName, columnNumber)
+            //everything can be found in the DBController.java
+            String name = userControl.getID("users", "userId", mUser.getText().toString(), TAG_NAME, 0);
+            String description = mDesc.getText().toString();
+            String actionTaken = mActionTaken.getText().toString();
+            String status = String.valueOf(mStatus.getSelectedItemPosition() + 1);
+
+            try {
+                //Building Parameters
+                List<NameValuePair> parameters = new ArrayList<NameValuePair>();
+                parameters.add(new BasicNameValuePair("id", caseID));
+                parameters.add(new BasicNameValuePair("name", name));
+                parameters.add(new BasicNameValuePair("description", description));
+                parameters.add(new BasicNameValuePair("actiontaken", actionTaken));
+                parameters.add(new BasicNameValuePair("status", status));
+
+                Log.d("request!", "starting");
+
+                JSONObject json = jsonParser.makeHttpRequest(
+                        UPDATE_CASE_URL, "GET", parameters);
+
+                //check log cat for JSON response
+                Log.d("Inserting... ", json.toString());
+
+                //Check for SUCCESS TAG
+                success = json.getInt(TAG_SUCCESS);
+                if (success == 1) {
+                    //check log cat for JSON response
+                    Log.d("Successfully Updated Case: ", json.toString());
+
+                    Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                    startActivity(intent);
+
+                    finish();
+                    return json.getString(TAG_MESSAGE);
+                } else {
+                    return json.getString(TAG_MESSAGE);
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+            return null;
         }
-        if (id == R.id.backBtn) {
-            this.finish();
-            return true;
+
+        protected void onPostExecute(String message) {
+            // dismiss the dialog after getting all products
+            if (message != null) {
+                Toast.makeText(AddCase.this, message, Toast.LENGTH_LONG).show();
+            }
+            pDialog.dismiss();
         }
-        if(id==R.id.mainMenu){
-            Intent intent = new Intent(context, MainActivity.class);
-            this.finish();
-            startActivity(intent);
-            return true;
-        }
-        if(id == R.id.log_out) {
-            controller.refreshCases("cases");
-            sharedPreference.delete(this);
-            this.finish();
-            Intent intent = new Intent(context, LoginActivity.class);
-            startActivity(intent);
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
     }
-
-    //Closes the keyboard if you tap anywhere else on the screen!!
-    @Override
-    public boolean onTouchEvent(MotionEvent event) {
-        InputMethodManager imm = (InputMethodManager)getSystemService(Context.
-                INPUT_METHOD_SERVICE);
-        imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
-        return true;
-    }
-
 }
+
+

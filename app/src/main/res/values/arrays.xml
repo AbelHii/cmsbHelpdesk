@@ -28,6 +28,9 @@
     <string-array name="status">
         <item>@string/not_started</item>
         <item>@string/in_progress</item>
+        <item>Waiting On Vendor</item>
+        <item>Differed</item>
+        <item>Pending Close</item>
     </string-array>
 
     <string-array name="companies">

@@ -36,14 +36,15 @@
                         android:layout_width="fill_parent"
                         android:layout_height="fill_parent"
                         android:orientation="vertical"
-                        android:layout_margin="20dp">
+                        android:layout_margin="15dp">
 
                         <TextView
                         android:text="@string/contact_info"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:textSize="30sp"
-                        android:textStyle="bold"/>
+                        android:textSize="23sp"
+                        android:textStyle="bold"
+                        android:textColor="#333"/>
 
                         <!--Name:-->
                         <TextView
@@ -124,121 +125,21 @@
                             android:layout_margin="5dp"/>
                     </LinearLayout>
 
-                   <!-- <LinearLayout
-                        android:id="@+id/itDeptRef"
-                        android:layout_width="fill_parent"
-                        android:layout_height="fill_parent"
-                        android:orientation="vertical"
-                        android:layout_margin="20dp">
-
-                        <TextView
-                            android:text="@string/it_dept_ref"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:textSize="30sp"
-                            android:textStyle="bold"/>
-
-                        <TextView
-                            android:text="@string/owner"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:textSize="20sp"
-                            android:textStyle="bold"/>
-                        <Spinner
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:entries="@array/nameList2"
-                            android:textSize="15sp"
-                            android:layout_margin="10dp"
-                            />
-
-                        <TextView
-                            android:text="@string/reqSource"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:textSize="20sp"
-                            android:textStyle="bold"/>
-                        <Spinner
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:entries="@array/requestSource"
-                            android:textSize="15sp"
-                            android:layout_margin="10dp"
-                            />
-
-                        </LinearLayout>-->
-
                     <LinearLayout
                         android:id="@+id/caseParticulars"
                         android:layout_width="fill_parent"
                         android:layout_height="fill_parent"
                         android:orientation="vertical"
-                        android:layout_margin="20dp">
+                        android:layout_margin="15dp">
 
                         <TextView
                             android:text="@string/case_particulars"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:textSize="30sp"
-                            android:textStyle="bold"/>
+                            android:textSize="23sp"
+                            android:textStyle="bold"
+                            android:textColor="#333"/>
 
-                        <!--Severity
-                        <TextView
-                            android:text="@string/severity"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:textSize="20sp"
-                            android:textStyle="bold"/>
-                        <Spinner
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:entries="@array/severity"
-                            android:textSize="15sp"
-                            android:layout_margin="10dp"
-                            />
-
-                        <TextView
-                            android:text="@string/tos"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:textSize="20sp"
-                            android:textStyle="bold"/>
-                        <Spinner
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:entries="@array/tos"
-                            android:textSize="15sp"
-                            android:layout_margin="10dp"
-                            />
-
-                        <TextView
-                            android:text="@string/category"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:textSize="20sp"
-                            android:textStyle="bold"/>
-                        <Spinner
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:entries="@array/category"
-                            android:textSize="15sp"
-                            android:layout_margin="10dp"
-                            />
-
-                        <TextView
-                            android:text="@string/sub_cat"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:textSize="20sp"
-                            android:textStyle="bold"/>
-                        <Spinner
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:entries="@array/sub_cat"
-                            android:textSize="15sp"
-                            android:layout_margin="10dp"
-                            />
-                            -->
                         <!--Assignee-->
                         <TextView
                             android:text="@string/assignee"
@@ -254,16 +155,6 @@
                             android:textSize="17sp"
                             android:textColor="#444"
                             android:padding="5dp"/>
-                        <!--<Spinner
-                            android:id = "@+id/spinnerAssignee"
-                            android:layout_width="fill_parent"
-                            android:layout_height="wrap_content"
-                            android:entries="@array/assignee"
-                            android:singleLine="true"
-                            android:textSize="15sp"
-                            android:layout_margin="10dp"
-                            />-->
-
                         <!--Status-->
                         <TextView
                             android:text="@string/status"
@@ -285,48 +176,44 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="@string/case_desc"
-                            android:textSize="20sp"
+                            android:textSize="17sp"
                             android:layout_marginTop="10dp"
                             android:textStyle="bold"/>
 
-                        <ScrollView
-                            android:layout_width="fill_parent"
-                            android:layout_height="wrap_content">
                             <EditText
                                 android:id="@+id/caseDesc"
                                 android:gravity="top|left"
-                                android:layout_height="wrap_content"
                                 android:layout_width="match_parent"
-                                android:inputType="textMultiLine"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="100"
+                                android:inputType="textCapSentences|textMultiLine"
+                                android:hint="@string/case_desc"
                                 android:lines="3"
                                 android:maxLines="3"
-                                android:maxLength="200"
+                                android:maxLength="400"
                                 android:background="@drawable/back"/>
-                        </ScrollView>
 
                         <!--Action Taken-->
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="@string/action_taken"
-                            android:textSize="20sp"
+                            android:textSize="17sp"
                             android:layout_marginTop="10dp"
                             android:textStyle="bold"/>
 
-                        <ScrollView
-                            android:layout_width="fill_parent"
-                            android:layout_height="wrap_content">
-                        <EditText
-                            android:id="@+id/actionTaken"
-                            android:gravity="top|left"
-                            android:layout_height="wrap_content"
-                            android:layout_width="match_parent"
-                            android:inputType="textMultiLine"
-                            android:lines="3"
-                            android:maxLines="3"
-                            android:maxLength="200"
-                            android:background="@drawable/back"/>
-                        </ScrollView>
+                            <EditText
+                                android:id="@+id/actionTaken"
+                                android:gravity="top|left"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="100"
+                                android:inputType="textCapSentences|textMultiLine"
+                                android:hint="@string/action_taken"
+                                android:lines="3"
+                                android:maxLines="3"
+                                android:maxLength="400"
+                                android:background="@drawable/back"/>
 
                     </LinearLayout>
 

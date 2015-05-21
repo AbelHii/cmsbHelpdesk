@@ -93,4 +93,6 @@
     <string name="openCases">OPEN cases</string>
     <string name="closeCases">CLOSE cases</string>
     <string name="case_desc">Case Description</string>
+    <string name="select_company">Select Company:</string>
+    <string name="sync">Sync</string>
 </resources>

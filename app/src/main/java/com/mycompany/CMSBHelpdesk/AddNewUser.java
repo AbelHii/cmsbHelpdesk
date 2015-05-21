@@ -29,16 +29,18 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 
 public class AddNewUser extends AddCase implements View.OnClickListener {
 
     Button mcancel, addUser;
     EditText mNewName, mNewEmail, mNewTel;
-    Spinner mCompany;
+    Spinner mNewCompany;
 
-    ArrayList<String> companyList;
+    Set<String> companyList;
 
     ProgressDialog pDialog;
     JSONParser jsonParser = new JSONParser();
@@ -53,50 +55,36 @@ public class AddNewUser extends AddCase implements View.OnClickListener {
         getSQLiteUsers();
         initialise();
 
-        populateSpinner(mCompany, companyList);
+        populateSpinner(mNewCompany, companyList);
+        mNewCompany.setSelection(1);
 
         backToMain(mcancel);
         backToMain(addUser);
     }
 
     public void initialise(){
-        companyList = new ArrayList<String>();
-        companyList = companyV;
-        companyList = deleteDuplicates(companyList);
+        //converting companyV to Set because it doesn't allow duplicates:
+        companyList = new HashSet<>(companyV);
 
         mcancel = (Button)findViewById(R.id.cancelBtn);
         addUser = (Button)findViewById(R.id.addNewUser);
         mNewName = (EditText) findViewById(R.id.newName);
         mNewEmail = (EditText) findViewById(R.id.newEmail);
         mNewTel = (EditText) findViewById(R.id.newTel);
-        mCompany = (Spinner) findViewById(R.id.newCompany);
+        mNewCompany = (Spinner) findViewById(R.id.newCompany);
     }
 
-    //Deletes the duplicates in company
-    public ArrayList deleteDuplicates(ArrayList<String> list){
-        //This sorts it first to make deletion faster
+    //Sorts list
+    public List<String> sortList(List<String> list){
         Collections.sort(list, new Comparator<String>() {
             @Override
             public int compare(String s, String s2) {
                 return s.compareToIgnoreCase(s2);
             }
         });
-
-        //Deleting the duplicate names
-        for(int i= list.size()-2; i>0; i--){
-            for(int j= i-1; j>0; j--){
-                if(list.get(i).equalsIgnoreCase(list.get(j))){
-                    list.remove(list.get(j));
-                }
-                if(list.get(i).equalsIgnoreCase("null")){
-                    list.remove(list.get(i));
-                }
-            }
-        }
-        list.remove(list.get(0));
         return list;
     }
-    //Check if a name already exists
+    //Check if a name already exists or if nothing is selected for company
     public boolean nameExists(String name, ArrayList nameList){
         for(int i = 0; i < nameList.size(); i++){
             if(name.trim().equalsIgnoreCase(nameList.get(i).toString().trim())) {
@@ -106,6 +94,10 @@ public class AddNewUser extends AddCase implements View.OnClickListener {
             }else if(name.trim().equalsIgnoreCase("")){
                 Toast.makeText(getApplicationContext(),
                         "Name: is empty", Toast.LENGTH_SHORT).show();
+                return true;
+            }else if(mNewCompany.getSelectedItem() == null){
+                Toast.makeText(getApplicationContext(),
+                        "Company: is empty", Toast.LENGTH_SHORT).show();
                 return true;
             }
         }
@@ -137,8 +129,8 @@ public class AddNewUser extends AddCase implements View.OnClickListener {
                             } else {
                                 userControl.insertValue("users", "name", mNewName.getText().toString());
                                 Intent intent = new Intent(getApplicationContext(), AddCase.class);
-                                startActivity(intent);
                                 AddNewUser.this.finish();
+                                startActivity(intent);
                             }
                         }
                     }
@@ -156,7 +148,6 @@ public class AddNewUser extends AddCase implements View.OnClickListener {
             super.onPreExecute();
             pDialog = new ProgressDialog(AddNewUser.this);
             pDialog.setMessage("Adding New User \nPlease Wait...");
-            pDialog.setIndeterminate(false);
             pDialog.setCancelable(false);
             pDialog.show();
         }
@@ -166,7 +157,7 @@ public class AddNewUser extends AddCase implements View.OnClickListener {
             int success = 0;
 
             String name = mNewName.getText().toString();
-            String company = mCompany.getSelectedItem().toString();
+            String company = mNewCompany.getSelectedItem().toString();
             String email = mNewEmail.getText().toString();
             String telephone = mNewTel.getText().toString();
 
@@ -197,8 +188,9 @@ public class AddNewUser extends AddCase implements View.OnClickListener {
 
                     Intent intent = new Intent(getApplicationContext(), AddCase.class);
 
+                    userControl.openDB();
                     userControl.insertValue("users", "name", name);
-
+                    userControl.close();
                     startActivity(intent);
                     finish();
                     return json.getString(TAG_MESSAGE);
@@ -214,21 +206,20 @@ public class AddNewUser extends AddCase implements View.OnClickListener {
 
         protected void onPostExecute(String message){
             // dismiss the dialog after getting all products
+            pDialog.dismiss();
             if (message != null){
-
                 Toast.makeText(AddNewUser.this, message, Toast.LENGTH_LONG).show();
             }
-            pDialog.dismiss();
         }
     }
 
 
     //Populate Spinner
-    private void populateSpinner(Spinner spin, ArrayList<String> spinnerItems) {
-        ArrayList<String> sValues = spinnerItems;
+    private void populateSpinner(Spinner spin, Set<String> spinnerItems) {
+        ArrayList<String> sValues = new ArrayList<String>(spinnerItems);
         // Creating adapter for spinner
         ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<String>(this,
-                android.R.layout.simple_dropdown_item_1line, sValues);
+                android.R.layout.simple_spinner_item, sValues);
         // Drop down layout style
         spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         // attaching data adapter to spinner
@@ -259,11 +250,14 @@ public class AddNewUser extends AddCase implements View.OnClickListener {
             return true;
         }
         else if(id == R.id.backBtn){
-            this.finish();
+            Intent intent = new Intent(context, AddCase.class);
+            AddNewUser.this.finish();
+            startActivity(intent);
             return true;
         }
         if(id==R.id.mainMenu){
             Intent intent = new Intent(context, MainActivity.class);
+            AddNewUser.this.finish();
             startActivity(intent);
             return true;
         }
@@ -283,14 +277,6 @@ public class AddNewUser extends AddCase implements View.OnClickListener {
                 INPUT_METHOD_SERVICE);
         imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
         return true;
-    }
-
-
-    //Check if network is connected
-    public boolean isNetworkConnected(){
-        final ConnectivityManager conMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-        final NetworkInfo activeNetwork = conMgr.getActiveNetworkInfo();
-        return activeNetwork != null && activeNetwork.isConnectedOrConnecting();// && activeNetwork.getState() == NetworkInfo.State.CONNECTED;
     }
 
 }

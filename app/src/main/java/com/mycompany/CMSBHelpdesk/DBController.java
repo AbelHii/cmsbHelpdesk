@@ -5,15 +5,6 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.util.Log;
-
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -26,20 +17,27 @@ public class DBController extends SQLiteOpenHelper{
         super(applicationcontext, "androidsqlite.db", null, 1);
     }
 
+    public SQLiteDatabase openDB(){
+        return this.getWritableDatabase();
+    }
+
     //Creates Table
     @Override
     public void onCreate(SQLiteDatabase database) {
-        String cases, users;
+        String cases, users, company;
 
         //Cases
         cases = "CREATE TABLE cases (id INTEGER PRIMARY KEY AUTOINCREMENT, assignee TEXT, " +
-                "status TEXT, user TEXT, description TEXT)";
+                "status TEXT, user TEXT, description TEXT, actiontaken TEXT, login_id TEXT, status_id TEXT)";
         database.execSQL(cases);
 
         //Users
-        users = "CREATE TABLE users (userId INTEGER, name TEXT, company TEXT, " +
+        users = "CREATE TABLE users (userId INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, company TEXT, " +
                 "email TEXT, telephone TEXT)";
         database.execSQL(users);
+
+        //Companies
+        company = "CREATE TABLE company (id INTEGER, name TEXT, enabled TEXT)";
     }
 
     @Override
@@ -62,6 +60,9 @@ public class DBController extends SQLiteOpenHelper{
         values.put(MainActivity.TAG_DESCRIPTION, queryValues.get(MainActivity.TAG_DESCRIPTION));
         values.put(MainActivity.TAG_ASSIGNEE, queryValues.get(MainActivity.TAG_ASSIGNEE));
         values.put(MainActivity.TAG_STATUS, queryValues.get(MainActivity.TAG_STATUS));
+        values.put(MainActivity.TAG_ACTION_TAKEN, queryValues.get(MainActivity.TAG_ACTION_TAKEN));
+        values.put(MainActivity.TAG_LOGIN_ID, queryValues.get(MainActivity.TAG_LOGIN_ID));
+        values.put(MainActivity.TAG_STATUS_ID, queryValues.get(MainActivity.TAG_STATUS_ID));
 
         database.insert("cases", null, values);
         database.close();
@@ -93,9 +94,6 @@ public class DBController extends SQLiteOpenHelper{
         ArrayList<HashMap<String, String>> caseList;
         caseList = new ArrayList<HashMap<String, String>>();
 
-        ArrayList<String> spin;
-        spin = new ArrayList<>();
-
         String selectQuery = "SELECT * FROM cases ORDER BY id DESC";
         SQLiteDatabase database = this.getWritableDatabase();
         Cursor cursor = database.rawQuery(selectQuery, null);
@@ -106,11 +104,15 @@ public class DBController extends SQLiteOpenHelper{
 
                 //add each child node to HashMap Key => value
                 //case List
+                //Doing this for id to auto increment when i add a new case offline:
                 map.put(MainActivity.TAG_ID, cursor.getString(0));
                 map.put(MainActivity.TAG_ASSIGNEE, cursor.getString(1));
                 map.put(MainActivity.TAG_STATUS, cursor.getString(2));
                 map.put(MainActivity.TAG_USERNAME,cursor.getString(3));
                 map.put(MainActivity.TAG_DESCRIPTION, cursor.getString(4));
+                map.put(MainActivity.TAG_ACTION_TAKEN, cursor.getString(5));
+                map.put(MainActivity.TAG_LOGIN_ID, cursor.getString(6));
+                map.put(MainActivity.TAG_STATUS_ID, cursor.getString(7));
 
                 caseList.add(map);
 
@@ -132,7 +134,7 @@ public class DBController extends SQLiteOpenHelper{
         ArrayList<String> spin;
         spin = new ArrayList<>();
 
-        String selectQuery = "SELECT * FROM users ORDER BY userId";
+        String selectQuery = "SELECT * FROM users ORDER BY name";
         SQLiteDatabase database = this.getWritableDatabase();
         Cursor cursor = database.rawQuery(selectQuery, null);
 
@@ -165,11 +167,12 @@ public class DBController extends SQLiteOpenHelper{
         SQLiteDatabase database = this.getWritableDatabase();
         Cursor cursor = database.rawQuery(selectQuery, null);
 
-        if(cursor.moveToFirst()){
+        //Start from last id because of auto increment in cases table!
+        if(cursor.moveToLast()){
             do {
                 //Gets the string at the specified num:
                 spin.add(cursor.getString(num));
-            }while(cursor.moveToNext());
+            }while(cursor.moveToPrevious());
         }
 
         database.close();
@@ -177,19 +180,76 @@ public class DBController extends SQLiteOpenHelper{
     }
 
     //Insert String to table
-    public void insertValue(String table, String column, String name){
+    public void insertValue(String table, String column, String val){
+        SQLiteDatabase database = this.getWritableDatabase();
         ContentValues values = new ContentValues();
-        values.put(column, name);
+        values.put(column, val);
         //String query = "INSERT INTO "+table+" (name, company, email, telephone) "+
                 //"VALUES ('"+name+"', null, null, null)";
-        SQLiteDatabase database = this.getWritableDatabase();
 
         //database.execSQL(query);
         database.insert(table, column, values);
-
-        database.close();
     }
 
+    public void insertOneCase(String id, String assignee, String status, String user, String desc, String aT, String logID, String statID){
+        SQLiteDatabase database = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+
+        values.put(MainActivity.TAG_ID, id);
+        values.put(MainActivity.TAG_ASSIGNEE, assignee);
+        values.put(MainActivity.TAG_STATUS, status);
+        values.put(MainActivity.TAG_USERNAME, user);
+        values.put(MainActivity.TAG_DESCRIPTION, desc);
+        values.put(MainActivity.TAG_ACTION_TAKEN, aT);
+        values.put(MainActivity.TAG_LOGIN_ID, logID);
+        values.put(MainActivity.TAG_STATUS_ID, statID);
+
+        database.insert("cases", null, values);
+    }
+
+    public void updateOneCase(String id, String assignee, String status, String user, String desc, String aT, String logID, String statID){
+        SQLiteDatabase database = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+
+        values.put(MainActivity.TAG_ASSIGNEE, assignee);
+        values.put(MainActivity.TAG_STATUS, status);
+        values.put(MainActivity.TAG_USERNAME, user);
+        values.put(MainActivity.TAG_DESCRIPTION, desc);
+        values.put(MainActivity.TAG_ACTION_TAKEN, aT);
+        values.put(MainActivity.TAG_LOGIN_ID, logID);
+        values.put(MainActivity.TAG_STATUS_ID, statID);
+
+        database.update("cases", values, "id = "+id, null);
+
+    }
+
+    public String getID(String table, String id, String name, String columnName, int columnNum){
+        SQLiteDatabase database = this.getWritableDatabase();
+        String value = "";
+        String query = "SELECT "+id+" FROM "+table+" WHERE "+columnName+" = '"+name+"'";
+
+        Cursor cursor = database.rawQuery(query, null);
+        if(cursor.moveToFirst()){
+            value = cursor.getString(columnNum);
+        }
+
+        database.close();
+
+        return value;
+    }
+
+    //gets the most recent id:
+    public String getLastId(String table){
+        SQLiteDatabase database = this.getWritableDatabase();
+        String id = "";
+        String query = "SELECT MAX(id) AS id FROM "+table;
+        Cursor cursor = database.rawQuery(query, null);
+
+        if(cursor.moveToFirst())
+            id = cursor.getString(0);
+
+        return id;
+    }
 
     public void refreshCases(String table){
         SQLiteDatabase database = this.getWritableDatabase();
@@ -199,11 +259,11 @@ public class DBController extends SQLiteOpenHelper{
             case "cases":
                 dropQuery = "DROP TABLE IF EXISTS cases";
                 refreshQuery = "CREATE TABLE cases (id INTEGER PRIMARY KEY AUTOINCREMENT, assignee TEXT, " +
-                        "status TEXT, user TEXT, description TEXT)";
+                        "status TEXT, user TEXT, description TEXT, actiontaken TEXT, login_id TEXT, status_id TEXT)";
                 break;
             case "users":
                 dropQuery = "DROP TABLE IF EXISTS users";
-                refreshQuery = "CREATE TABLE users (userId INTEGER, name TEXT, company TEXT, " +
+                refreshQuery = "CREATE TABLE users (userId INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, company TEXT, " +
                         "email TEXT, telephone TEXT)";
                 break;
         }

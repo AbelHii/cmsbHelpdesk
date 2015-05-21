@@ -26,8 +26,12 @@ import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 public class LoginActivity extends ActionBarActivity {
 
@@ -45,6 +49,8 @@ public class LoginActivity extends ActionBarActivity {
     private static final String TAG_SUCCESS = "success";
     private static final String TAG_MESSAGE = "message";
 
+    public static final String LOG_TAG = "Requesting";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -56,35 +62,77 @@ public class LoginActivity extends ActionBarActivity {
         mLoginBtn = (Button)findViewById(R.id.loginBtn);
         mCreateAccountBtn = (Button) findViewById(R.id.createAccountLogin);
 
-        //check Internet connection
-        if(isNetworkConnected() == true) {
-            addListenerOnButton();
-        }
-        else{
-            new AlertDialog.Builder(this)
-                    .setIcon(R.mipmap.nowifi)
-                    .setTitle("No internet connection")
-                    .setMessage("Please turn on mobile data or wifi")
-                    .setPositiveButton("OK", new DialogInterface.OnClickListener()
-                    {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            //code for exit
-                            android.os.Process.killProcess(android.os.Process.myPid());
-                            System.exit(1);
-                        }
+        Context context = this;
 
-                    })
-                    .show();
+        //check Internet connection
+        try {
+            if(new checkConnection().execute(this).get()) {
+                addListenerOnButton();
+            }
+            else{
+                new AlertDialog.Builder(this)
+                        .setIcon(R.mipmap.nowifi)
+                        .setTitle("No internet connection")
+                        .setMessage("Please turn on mobile data or wifi")
+                        .setCancelable(false)
+                        .setPositiveButton("OK", new DialogInterface.OnClickListener()
+                        {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                //code for exit
+                                android.os.Process.killProcess(android.os.Process.myPid());
+                                System.exit(1);
+                                LoginActivity.this.finish();
+                            }
+
+                        })
+                        .show();
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
         }
 
     }
 
-    public boolean isNetworkConnected(){
-        final ConnectivityManager conMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+    //to disable the back button so they cant go into MainActivity
+    @Override
+    public void onBackPressed(){}
+
+    //To check if internet is actually connected
+    //Have to run it in AsyncTask or else you'll get a NetworkOnMain exception error
+    static class checkConnection extends AsyncTask<Context, Void, Boolean> {
+        @Override
+        protected Boolean doInBackground(Context... contexts) {
+
+            return hasInternetConnection(contexts[0]);
+        }
+    }
+    public static boolean isNetworkConnected(Context context) {
+        final ConnectivityManager conMgr = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         final NetworkInfo activeNetwork = conMgr.getActiveNetworkInfo();
         return activeNetwork != null && activeNetwork.getState() == NetworkInfo.State.CONNECTED;
     }
+    public static boolean hasInternetConnection(Context context) {
+        if (isNetworkConnected(context)) {
+            try {
+                HttpURLConnection urlc = (HttpURLConnection) (new URL("http://www.google.com").openConnection());
+                urlc.setRequestProperty("User-Agent", "Test");
+                urlc.setRequestProperty("Connection", "close");
+                urlc.setConnectTimeout(1500);
+                urlc.connect();
+                return (urlc.getResponseCode() == 200);
+            } catch (IOException e) {
+                Log.e(LOG_TAG, "Error checking internet connection", e);
+            }
+        } else {
+            Log.d(LOG_TAG, "No network available!");
+        }
+        return false;
+    }
+
+
     class AttemptLogin extends AsyncTask<String, String, String> {
 
         //Before starting background thread Show Progress Dialog

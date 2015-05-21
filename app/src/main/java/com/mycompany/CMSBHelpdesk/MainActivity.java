@@ -14,13 +14,11 @@ package com.mycompany.CMSBHelpdesk;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
-import android.preference.PreferenceManager;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
@@ -48,13 +46,9 @@ import java.util.List;
 
 public class MainActivity extends ActionBarActivity implements SwipeRefreshLayout.OnRefreshListener {
 
-    private List<Case> casesArray = new ArrayList<Case>();
     private ListView mCasesLV;
     private TextView stat;
-    private String getDesc, getUser, getAssignees, getStatus, getId = "";
-    private int j = 0;
     private SwipeRefreshLayout swipeLayout;
-    private SharedPreferences sp;
     private ListView lv;
     public static int checker = 0;
     public static String checkLog;
@@ -76,7 +70,7 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
 
     private ProgressDialog pDialog;
     private static final String CASE_URL = "http://abelhii.comli.com/getCases.php";//"http://abelhii.freeoda.com/getCases.php";
-    private static final String USER_URL = "http://abelhii.comli.com/getUsers.php";
+    private static final String SYNC_DB_URL = "";
     public static final String TAG_SUCCESS = "success";
     public static final String TAG_MESSAGE = "message";
     public static final String TAG_CASES = "caseslist";
@@ -85,9 +79,12 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
     //case stuff
     public static final String TAG_USERNAME = "user";
     public static final String TAG_DESCRIPTION = "description";
+    public static final String TAG_ACTION_TAKEN = "actiontaken";
     public static final String TAG_ASSIGNEE = "assignee";
     public static final String TAG_STATUS = "status";
     public static final String TAG_ID = "id";
+    public static final String TAG_LOGIN_ID = "login_id";
+    public static final String TAG_STATUS_ID = "status_id";
 
     //user stuff
     public static final String TAG_USERID = "userId";
@@ -96,14 +93,14 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
     public static final String TAG_EMAIL = "email";
     public static final String TAG_TELEPHONE = "telephone";
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         checkLog = sharedPreference.getString(this, "login");
-        if(checkLog != "") {
-            setTitle(checkLog.substring(0, 1).toUpperCase() + checkLog.substring(1));
-        }
+        String ending = "'s Cases";
+
         //To exit the app if no internet connection at login:
         if (getIntent().getBooleanExtra("EXIT", false)) {
             this.finish();
@@ -119,7 +116,14 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
         else {
             initialise();
             casesList = new ArrayList<HashMap<String, String>>();
+            //This just sets the title for MainActivity
+            if(checkLog.substring(checkLog.length() -1) == "s")
+                ending = "' Cases";
+            if(checkLog != "") {
+                setTitle(checkLog.substring(0, 1).toUpperCase() + checkLog.substring(1) +ending);
+            }
 
+            //this is how it chooses which list to load
             checker = controller.checkNumRows("cases");
             if (checker == 0 || checker < 0) {
                 //check if connected to internet or not
@@ -175,6 +179,13 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
 
         //To show that SQLite DB is not empty
         checker = controller.checkNumRows("cases");
+
+        //To get the assignee id for adding case
+        if(controller.getTableValues("cases", 6).size() != 0 && controller.getTableValues("cases", 0).size() != 0) {
+            //sharedPreference.setString(MainActivity.this, TAG_ID, controller.getTableValues("cases", 0).get(0));
+            sharedPreference.setString(MainActivity.this, TAG_ID, controller.getLastId("cases"));
+            sharedPreference.setString(MainActivity.this, TAG_LOGIN_ID, controller.getTableValues("cases", 6).get(0));
+        }
         controller.close();
     }
 
@@ -249,12 +260,15 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
             public void onItemClick(AdapterView<?> arg0, View view, int position,
                                     long arg3) {
                 Intent intent = new Intent(MainActivity.this, AddCase.class);
-                intent.putExtra("caller", "EditCase");
+                intent.putExtra("caller", "editCase");
                 Bundle bundle = new Bundle();
                 bundle.putString(TAG_ID, controller.getTableValues("cases", 0).get(position));
                 bundle.putString(TAG_STATUS, controller.getTableValues("cases", 2).get(position));
                 bundle.putString(TAG_USERNAME, controller.getTableValues("cases", 3).get(position));
                 bundle.putString(TAG_DESCRIPTION, controller.getTableValues("cases", 4).get(position));
+                bundle.putString(TAG_ACTION_TAKEN, controller.getTableValues("cases", 5).get(position));
+                bundle.putString(TAG_LOGIN_ID, controller.getTableValues("cases", 6).get(position));
+                bundle.putString(TAG_STATUS_ID, controller.getTableValues("cases", 7).get(position));
                 intent.putExtras(bundle);
 
                 startActivity(intent);
@@ -271,7 +285,6 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
     private void initialise(){
         stat = (TextView) findViewById(R.id.statusMain);
 
-        sp = PreferenceManager.getDefaultSharedPreferences(this);
         swipeLayout = (SwipeRefreshLayout) findViewById(R.id.swipe_container);
         swipeLayout.setOnRefreshListener(this);
         swipeLayout.setColorScheme(android.R.color.holo_orange_light,
@@ -306,6 +319,25 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
 
 
 
+
+    //CASE LIST ADAPTER
+    private class CaseListAdapter extends ArrayAdapter {
+        public CaseListAdapter() {
+            super (MainActivity.this, R.layout.listview_item, android.R.id.list);
+        }
+    }
+    public ListView getListView() {
+        if(mCasesLV == null){
+            mCasesLV = (ListView)findViewById(android.R.id.list);
+            ArrayAdapter<String> adapt = new CaseListAdapter();
+            mCasesLV.setAdapter(adapt);
+            return mCasesLV;
+        }
+        return mCasesLV;
+    }
+    public void setListAdapter(ListAdapter listAdapter) {
+        getListView().setAdapter(listAdapter);
+    }
 
 
 
@@ -354,6 +386,9 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
                         String desc = c.getString(TAG_DESCRIPTION);
                         String assignee = c.getString(TAG_ASSIGNEE);
                         String status = c.getString(TAG_STATUS);
+                        String actionTaken = c.getString(TAG_ACTION_TAKEN);
+                        String login_id = c.getString(TAG_LOGIN_ID);
+                        String status_id = c.getString(TAG_STATUS_ID);
                         //create a new HashMap
                         HashMap<String, String> map = new HashMap<String, String>();
 
@@ -363,6 +398,9 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
                         map.put(TAG_DESCRIPTION, desc);
                         map.put(TAG_ASSIGNEE, assignee);
                         map.put(TAG_STATUS, status);
+                        map.put(TAG_ACTION_TAKEN, actionTaken);
+                        map.put(TAG_LOGIN_ID, login_id);
+                        map.put(TAG_STATUS_ID, status_id);
                         //add HashList to ArrayList
                         casesList.add(map);
 
@@ -413,30 +451,76 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
 
     }
 
-    //CASE LIST ADAPTER
-    private class CaseListAdapter extends ArrayAdapter {
+    class syncDB extends AsyncTask<String,String,String>{
 
-        public CaseListAdapter() {
-            super (MainActivity.this, R.layout.listview_item, android.R.id.list);
+        //Before starting background thread Show Progress Dialog
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            pDialog = new ProgressDialog(MainActivity.this);
+            pDialog.setMessage("Synchronising List \nPlease Wait...");
+            pDialog.setCancelable(false);
+            pDialog.show();
+        }
+
+        @Override
+        protected String doInBackground(String... params) {
+            int success = 0;
+
+            //getID parameters: (tablename, idname, compare to string, columnName, columnNumber)
+            //everything can be found in the DBController.java
+            /*String name = userControl.getID("users", "userId", mUser.getText().toString(),TAG_NAME, 0);
+            String description = mDesc.getText().toString();
+            String actionTaken = mActionTaken.getText().toString();
+            String assignee = assigneeID;
+            String status = String.valueOf(mStatus.getSelectedItemPosition()+1);*/
+
+            try {
+                //Building Parameters
+                List<NameValuePair> parameters = new ArrayList<NameValuePair>();
+               /* parameters.add(new BasicNameValuePair("name", name));
+                parameters.add(new BasicNameValuePair("description", description));
+                parameters.add(new BasicNameValuePair("actiontaken", actionTaken));
+                parameters.add(new BasicNameValuePair("assignee", assignee));
+                parameters.add(new BasicNameValuePair("status", status));*/
+
+                Log.d("request!", "starting");
+
+                JSONObject json = jsonParser.makeHttpRequest(
+                        SYNC_DB_URL, "GET", parameters);
+
+                //check log cat for JSON response
+                Log.d("Inserting... ", json.toString());
+
+                //Check for SUCCESS TAG
+                success = json.getInt(TAG_SUCCESS);
+                if (success == 1) {
+                    //check log cat for JSON response
+                    Log.d("Successfully Synced Cases: ", json.toString());
+
+                    Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                    startActivity(intent);
+
+                    finish();
+                    return json.getString(TAG_MESSAGE);
+                } else {
+                    return json.getString(TAG_MESSAGE);
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+            return null;
+        }
+
+        protected void onPostExecute(String message){
+            // dismiss the dialog after getting all products
+            if (message != null){
+                Toast.makeText(MainActivity.this, message, Toast.LENGTH_LONG).show();
+            }
+            pDialog.dismiss();
         }
     }
-
-    public ListView getListView() {
-        if(mCasesLV == null){
-            mCasesLV = (ListView)findViewById(android.R.id.list);
-            ArrayAdapter<String> adapt = new CaseListAdapter();
-            mCasesLV.setAdapter(adapt);
-            return mCasesLV;
-        }
-        return mCasesLV;
-    }
-    public void setListAdapter(ListAdapter listAdapter) {
-        getListView().setAdapter(listAdapter);
-    }
-
-
-
-
 
     //--------------IMPORTANT CODE!-----------------------------------------------------------------------------
     //IMPORTANT NEEDED FOR ACTIVITY TO WORK PROPERLY
@@ -458,9 +542,16 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
         //noinspection SimplifiableIfStatement
         if(id == R.id.add_case){
             Intent intent = new Intent(context, AddCase.class);
-            intent.putExtra("caller", "AddCase");
+            intent.putExtra("caller", "addCase");
             startActivity(intent);
             return true;
+        }
+        else if(id == R.id.synchronise){
+            if(isNetworkConnected() && controller.getAllCases().size() > mCasesLV.getCount()){
+                Toast.makeText(context, "Databases Sync", Toast.LENGTH_SHORT).show();
+            }else{
+                Toast.makeText(context, "Databases are in Sync", Toast.LENGTH_SHORT).show();
+            }
         }
         else if(id == R.id.action_settings){
             Intent intent = new Intent(context, Settings.class);
@@ -478,25 +569,5 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
 
         return super.onOptionsItemSelected(item);
     }
-
-
-
-
-    //Old Methods Not in use:
-    public void retrieve(){
-        getDesc = sp.getString("desc", null);
-        getUser = sp.getString("user", null);
-        getAssignees = sp.getString("assign", null);
-        getStatus = sp.getString("stat", null);
-    }
-    public void addingCase(String gId, String gD, String gU, String gA, String gS){
-        casesArray.add(new Case(gId, gD, gU, gA, gS));
-        //populateList:
-        mCasesLV = (ListView)findViewById(android.R.id.list);
-        ArrayAdapter<Case> adapter = new CaseListAdapter();
-        mCasesLV.setAdapter(adapter);
-    }
-
-
 
 }
