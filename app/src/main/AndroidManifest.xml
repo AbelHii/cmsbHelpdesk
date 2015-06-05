@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.mycompany.CMSBHelpdesk" >
+    package="com.mycompany.CMSBHelpdesk">
 
 
     <uses-sdk
@@ -25,7 +25,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".AddCase"
+            android:name="com.mycompany.CMSBHelpdesk.AddCase"
             android:label="@string/title_activity_add_case"
             android:screenOrientation="portrait"
             android:windowSoftInputMode="stateHidden|adjustResize">
@@ -55,6 +55,17 @@
             android:name=".LoginActivity"
             android:label="@string/app_name"
             android:screenOrientation="portrait">
+        </activity>
+        <activity
+            android:name=".userList"
+            android:label="@string/app_name"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="stateHidden">
+        </activity>
+        <activity
+            android:name="com.mycompany.CMSBHelpdesk.TextEditor"
+            android:label="@string/app_name"
+            android:windowSoftInputMode="stateAlwaysVisible">
         </activity>
     </application>
 

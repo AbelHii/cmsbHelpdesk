@@ -1,6 +1,5 @@
 package com.mycompany.CMSBHelpdesk;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -45,7 +44,7 @@ public class LoginActivity extends ActionBarActivity {
     private ProgressDialog pDialog;
     // JSON parser class
     JSONParser jsonParser = new JSONParser();
-    private static final String LOGIN_URL = "http://abelhii.comli.com/login.php";
+    private static final String LOGIN_URL = "http://10.1.2.52/chd/public/abel/login.php";//"http://abelhii.comli.com/login.php";
     private static final String TAG_SUCCESS = "success";
     private static final String TAG_MESSAGE = "message";
 
@@ -61,8 +60,6 @@ public class LoginActivity extends ActionBarActivity {
         pass = (EditText) findViewById(R.id.password);
         mLoginBtn = (Button)findViewById(R.id.loginBtn);
         mCreateAccountBtn = (Button) findViewById(R.id.createAccountLogin);
-
-        Context context = this;
 
         //check Internet connection
         try {
@@ -102,10 +99,9 @@ public class LoginActivity extends ActionBarActivity {
 
     //To check if internet is actually connected
     //Have to run it in AsyncTask or else you'll get a NetworkOnMain exception error
-    static class checkConnection extends AsyncTask<Context, Void, Boolean> {
+    class checkConnection extends AsyncTask<Context, Void, Boolean> {
         @Override
         protected Boolean doInBackground(Context... contexts) {
-
             return hasInternetConnection(contexts[0]);
         }
     }
@@ -169,12 +165,10 @@ public class LoginActivity extends ActionBarActivity {
                 // checking  log for json response
                 Log.d("Login attempt", json.toString());
 
-
                 // success tag for json
                 success = json.getInt(TAG_SUCCESS);
                 if (success == 1) {
-                    Log.d("Successful Login!", json.toString());
-
+                    Log.d("Successful Login", json.toString());
                     //sending shared preference to keep user logged in even if they close the app
                     sharedPreference.setString(LoginActivity.this, "login", user.getText().toString());
                     sharedPreference.setString(LoginActivity.this, "pass", pass.getText().toString());
@@ -183,15 +177,13 @@ public class LoginActivity extends ActionBarActivity {
                     sharedPreference.setInt(LoginActivity.this, "checker", MainActivity.checker);
 
                     Intent ii = new Intent(getApplicationContext(), MainActivity.class);
-                    //LoginActivity.this.finish();
+                    startActivity(ii);
+                    LoginActivity.this.finish();
                     //this finish() method is used to tell android os that we are done with current
                     // activity now! Moving to other activity
-                    startActivity(ii);
                     return json.getString(TAG_MESSAGE);
                 }else{
-
                     return json.getString(TAG_MESSAGE);
-
                 }
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -202,7 +194,6 @@ public class LoginActivity extends ActionBarActivity {
 
         //Once the background process is done we need to  Dismiss the progress dialog asap
         protected void onPostExecute(String message) {
-
             pDialog.dismiss();
             if (message != null){
                 Toast.makeText(LoginActivity.this, message, Toast.LENGTH_LONG).show();

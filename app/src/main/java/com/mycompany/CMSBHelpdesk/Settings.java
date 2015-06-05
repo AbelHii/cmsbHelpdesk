@@ -70,16 +70,16 @@ public class Settings extends MainActivity {
         }
         if(id==R.id.mainMenu){
             Intent intent = new Intent(context, MainActivity.class);
-            this.finish();
             startActivity(intent);
+            this.finish();
             return true;
         }
         if(id == R.id.log_out) {
             controller.refreshCases("cases");
             sharedPreference.delete(this);
-            this.finish();
             Intent intent = new Intent(context, LoginActivity.class);
             startActivity(intent);
+            this.finish();
             return true;
         }
 

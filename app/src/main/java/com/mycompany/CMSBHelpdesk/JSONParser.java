@@ -145,7 +145,9 @@ public class JSONParser {
             }
             is.close();
             json = str.toString();
+            Log.d("JSON", json);
         } catch (Exception e) {
+            Log.e("Buffer Error", "Error converting result " + e.toString());
             System.out.println("ERROR : " + e.getMessage());
         }
 
@@ -155,7 +157,6 @@ public class JSONParser {
         } catch (JSONException e) {
             System.out.println("ERROR : " + e.getMessage());
         }
-
 
         return jsonObj;
 

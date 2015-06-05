@@ -26,6 +26,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -45,14 +46,14 @@ public class AddNewUser extends AddCase implements View.OnClickListener {
     ProgressDialog pDialog;
     JSONParser jsonParser = new JSONParser();
 
-    private static String ADD_NEW_USER_URL = "http://abelhii.comli.com/addNewUser.php";
+    private static String ADD_NEW_USER_URL = "http://10.1.2.52/chd/public/abel/addNewUser.php";//http://abelhii.comli.com/addNewUser.php";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_new_user);
 
-        getSQLiteUsers();
+        //getSQLiteUsers();
         initialise();
 
         populateSpinner(mNewCompany, companyList);
@@ -64,7 +65,8 @@ public class AddNewUser extends AddCase implements View.OnClickListener {
 
     public void initialise(){
         //converting companyV to Set because it doesn't allow duplicates:
-        companyList = new HashSet<>(companyV);
+        ArrayList<String> companyV1 = companyV;
+        companyList = new HashSet<>(companyV1);
 
         mcancel = (Button)findViewById(R.id.cancelBtn);
         addUser = (Button)findViewById(R.id.addNewUser);
@@ -86,20 +88,18 @@ public class AddNewUser extends AddCase implements View.OnClickListener {
     }
     //Check if a name already exists or if nothing is selected for company
     public boolean nameExists(String name, ArrayList nameList){
-        for(int i = 0; i < nameList.size(); i++){
-            if(name.trim().equalsIgnoreCase(nameList.get(i).toString().trim())) {
-                Toast.makeText(getApplicationContext(),
-                        name + " already exists", Toast.LENGTH_SHORT).show();
-                return true;
-            }else if(name.trim().equalsIgnoreCase("")){
-                Toast.makeText(getApplicationContext(),
-                        "Name: is empty", Toast.LENGTH_SHORT).show();
-                return true;
-            }else if(mNewCompany.getSelectedItem() == null){
-                Toast.makeText(getApplicationContext(),
-                        "Company: is empty", Toast.LENGTH_SHORT).show();
-                return true;
-            }
+        if(Arrays.asList(nameList).contains(name)) {
+            Toast.makeText(getApplicationContext(),
+                    name + " already exists", Toast.LENGTH_SHORT).show();
+            return true;
+        }else if(name.trim().equalsIgnoreCase("")){
+            Toast.makeText(getApplicationContext(),
+                    "Name: is empty", Toast.LENGTH_SHORT).show();
+            return true;
+        }else if(mNewCompany.getSelectedItem() == null){
+            Toast.makeText(getApplicationContext(),
+                    "Company: is empty", Toast.LENGTH_SHORT).show();
+            return true;
         }
         return false;
     }
@@ -129,6 +129,7 @@ public class AddNewUser extends AddCase implements View.OnClickListener {
                             } else {
                                 userControl.insertValue("users", "name", mNewName.getText().toString());
                                 Intent intent = new Intent(getApplicationContext(), AddCase.class);
+                                intent.putExtra("caller", "addCase");
                                 AddNewUser.this.finish();
                                 startActivity(intent);
                             }
@@ -184,10 +185,10 @@ public class AddNewUser extends AddCase implements View.OnClickListener {
                     //check log cat for JSON response
                     Log.d("Inserted New User: ", json.toString());
 
-                    AddCase.check = 0;
+                    userList.check = 0;
 
                     Intent intent = new Intent(getApplicationContext(), AddCase.class);
-
+                    intent.putExtra("caller", "addCase");
                     userControl.openDB();
                     userControl.insertValue("users", "name", name);
                     userControl.close();
@@ -258,6 +259,7 @@ public class AddNewUser extends AddCase implements View.OnClickListener {
         if(id==R.id.mainMenu){
             Intent intent = new Intent(context, MainActivity.class);
             AddNewUser.this.finish();
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             startActivity(intent);
             return true;
         }

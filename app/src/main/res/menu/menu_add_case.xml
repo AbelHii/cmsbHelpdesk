@@ -7,9 +7,13 @@
         android:title="@string/action_settings"
         android:orderInCategory="100"
         app:showAsAction="never" />
+    <item android:id="@+id/log_out"
+        android:title="@string/title_activity_logout"
+        android:orderInCategory="101"
+        app:showAsAction="never" />
 
-    <item android:id="@+id/backBtn"
-        android:title="@string/back"
-        android:orderInCategory="1"
-        app:showAsAction="always"/>
+    <item android:id="@+id/mainMenu"
+        android:title="@string/main"
+        android:orderInCategory="2"
+        app:showAsAction="ifRoom"/>
 </menu>

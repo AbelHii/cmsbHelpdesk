@@ -38,7 +38,7 @@
         <item>@string/cms_road</item>
         <item>@string/cms_works</item>
     </string-array>
-    
+
     <string-array name="severity">
         <item>1</item>
         <item>2</item>
