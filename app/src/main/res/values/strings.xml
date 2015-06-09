@@ -75,8 +75,8 @@
     <string name="listUsersByCompany">List Users by Company:</string>
     <string name="id">ID:</string>
     <string name="numCloseCase">Number of closed cases to list on the main page:</string>
-    <string name="password">Password</string>
-    <string name="user">User:</string>
+    <string name="password">Password:</string>
+    <string name="user">Username:</string>
     <string name="desc">Description</string>
     <string name="login">Login</string>
     <string name="highlight">Highlight assigned cases as:</string>
@@ -92,5 +92,9 @@
     <string name="title_activity_text_editor">TextEditor</string>
     <string name="done">Done</string>
     <string name="syncStatus">S</string>
+    <string name="server">Server:</string>
+    <string name="settings">Settings</string>
+    <string name="title_activity_setup">SetupActivity</string>
+    <string name="account">Account Setup</string>
 
 </resources>

@@ -4,13 +4,13 @@
     tools:context="com.mycompany.CMSBHelpdesk.TextEditor">
 
     <item android:id="@+id/action_settings"
-        android:title="@string/action_settings"
-        android:orderInCategory="100"
-        app:showAsAction="never" />
-    <item android:id="@+id/log_out"
+    android:title="@string/action_settings"
+    android:orderInCategory="100"
+    app:showAsAction="never" />
+    <!--<item android:id="@+id/log_out"
         android:title="@string/title_activity_logout"
         android:orderInCategory="101"
-        app:showAsAction="never" />
+        app:showAsAction="never" />-->
     <item android:id="@+id/backBtn"
         android:title="@string/back"
         android:orderInCategory="1"

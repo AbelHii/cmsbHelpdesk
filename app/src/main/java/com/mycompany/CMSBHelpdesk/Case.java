@@ -1,80 +1,61 @@
 package com.mycompany.CMSBHelpdesk;
 
-import android.os.Parcel;
-import android.os.Parcelable;
+import android.content.Context;
+
+import java.util.ArrayList;
+import java.util.HashMap;
 
 /**
- * Created by Abel on 04/03/2015.
+ * Created by Abel on 09/06/2015.
  */
-public class Case implements Parcelable{
+public class Case {
+    private String username ;
+    private String description;
+    private String actiontaken;
+    private String assignee;
+    private String status;
+    private String id;
+    private String login_id;
+    private String status_id;
+    private String sync;
 
-    private String _user, _assignee, _desc, _status;
-    private String _id;
-
-    public Case (String id, String desc, String user, String assignee, String status){
-        _id = id;
-        _desc = desc;
-        _user = user;
-        _assignee = assignee;
-        _status = status;
+    public Case(String id, String username, String description, String status, String sync){
+        this.id = id;
+        this.username = username;
+        this.description = description;
+        this.status = status;
+        this.sync = sync;
     }
 
-    public Case(Parcel p){
-        this._id = p.readString();
-        this._desc = p.readString();
-        this._user = p.readString();
-        this._assignee = p.readString();
-        this._status = p.readString();
+    //GETTERS:
+    public String getID(){
+        return id;
+    }
+    public String getUsername(){
+        return username;
+    }
+    public String getDescription(){
+        return description;
+    }
+    public String getStatus(){
+        return status;
+    }
+    public String getSync(){
+        return sync;
     }
 
-    public String getUser(){return _user;}
-    public void setUser(String user){
-        _user = user;
+    //SETTERS:
+    public void setID(String id){
+        this.id = id;
     }
-
-    public String getAssignee(){return _assignee;}
-    public void setAssignee(String assignee){
-        _assignee = assignee;
+    public void setUsername(String username){
+        this.username = username;
     }
-
-    public String getDesc(){return _desc;}
-    public void setDesc(String desc){
-        _desc = desc;
+    public void setDescription(String description){
+        this.description = description;
     }
-
-    public String getId(){return _id;}
-    public void setId(String id){
-        _id = id;
-    }
-
-    public String getStatus(){return _status;}
     public void setStatus(String status){
-        _status = status;
+        this.status = status;
     }
-
-
-    @Override
-    public int describeContents(){
-        return 0;
-    }
-    @Override
-    public void writeToParcel(Parcel parcel, int flag){
-        parcel.writeString(_id);
-        parcel.writeString(_desc);
-        parcel.writeString(_user);
-        parcel.writeString(_assignee);
-        parcel.writeString(_status);
-    }
-
-
-    public static Parcelable.Creator<Case> CREATOR = new Parcelable.Creator<Case>(){
-        public Case createFromParcel(Parcel source){
-            return new Case(source);
-        }
-
-        public Case[] newArray(int size){
-            return new Case[size];
-        }
-    };
 
 }

@@ -6,23 +6,16 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
-import android.media.MediaRouter;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
-import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.AutoCompleteTextView;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TabHost;
 import android.widget.TextView;
@@ -36,11 +29,7 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.logging.ErrorManager;
-
-import static android.os.Process.killProcess;
 
 public class AddCase extends MainActivity{
 
@@ -50,8 +39,6 @@ public class AddCase extends MainActivity{
     private Button maddCBtn, mSubmit;
     private TextView mAssignee, mCompany, mEmail, mTel;
     private TextView mActionTaken, mDesc;
-    private spinnerMethods sM = new spinnerMethods();
-    private spinnerValues sV = new spinnerValues();
     private SharedPreferences sp;
     private SharedPreferences.Editor e;
 
@@ -62,22 +49,18 @@ public class AddCase extends MainActivity{
     DBController userControl = new DBController(this);
 
     //Stores the values for AddCase and EditCase
-    public static ArrayList<String> userID;
     public static ArrayList<String> spinnerUsernames;
     public static ArrayList<String> companyV;
-    public static ArrayList<String> emailV;
-    public static ArrayList<String> telephoneV;
 
     //DB stuff:
     // JSON parser class
     JSONParser jsonParser = new JSONParser();
-    ArrayList<spinnerValues> spinnersList;
     // cases JSONArray
     JSONArray cases = null;
 
     private ProgressDialog pDialog;
-    public static final String ADD_CASE_URL = "http://10.1.2.52/chd/public/abel/AddCase.php";//http://abelhii.comli.com/AddCase.php";
-    public static final String UPDATE_CASE_URL = "http://10.1.2.52/chd/public/abel/UpdateCase.php";//http://abelhii.comli.com/UpdateCase.php";
+    public static final String ADD_CASE_URL = "http://"+ MainActivity.TAG_IP +"/chd/public/app/AddCase.php";
+    public static final String UPDATE_CASE_URL = "http://"+ MainActivity.TAG_IP +"/chd/public/app/UpdateCase.php";
     /*----------------------------ON CREATE--------------------------------------------------------*/
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -98,15 +81,13 @@ public class AddCase extends MainActivity{
                     break;
                 case "addcase":
                     setTitle(title);
+                    //Setting Assignee name
+                    String checkLog = sharedPreference.getString(this, "login");
+                    mAssignee.setText(checkLog.substring(0, 1).toUpperCase() + checkLog.substring(1));
                     break;
             }
         }
 
-        //Setting Assignee name
-        String checkLog = sharedPreference.getString(this, "login");
-        mAssignee.setText(checkLog.substring(0, 1).toUpperCase() + checkLog.substring(1));
-
-        sM.changeColor(mStatus);
         //This just listens for when a button is clicked.
         addListenerOnButton();
     }
@@ -116,8 +97,6 @@ public class AddCase extends MainActivity{
         //SharedPreference initialisation to save things:
         sp = PreferenceManager.getDefaultSharedPreferences(this);
         e = sp.edit();
-
-        spinnersList = new ArrayList<spinnerValues>();
 
         mUser = (Button) findViewById(R.id.spinnerNames);//(AutoCompleteTextView) findViewById(R.id.spinnerNames);
         mStatus = (Spinner) findViewById(R.id.spinnerStatus);
@@ -151,19 +130,21 @@ public class AddCase extends MainActivity{
         {
             if (i == 0) tabHost.getTabWidget().getChildAt(i).setBackgroundColor(Color.parseColor("#EEEEEE"));
 
-            else tabHost.getTabWidget().getChildAt(i).setBackgroundColor(Color.parseColor("#7392B5"));
+            else tabHost.getTabWidget().getChildAt(i).setBackgroundColor(Color.parseColor("#D3C6C6"));
         }
         tabHost.setOnTabChangedListener(new TabHost.OnTabChangeListener() {
             @Override
             public void onTabChanged(String tabId) {
                 for (int i = 0; i < tabHost.getTabWidget().getChildCount(); i++) {
-                    tabHost.getTabWidget().getChildAt(i).setBackgroundColor(Color.parseColor("#7392B5")); //unselected
+                    tabHost.getTabWidget().getChildAt(i).setBackgroundColor(Color.parseColor("#D3C6C6")); //unselected  #7392B5
                 }
                 tabHost.getTabWidget().getChildAt(tabHost.getCurrentTab()).setBackgroundColor(Color.parseColor("#EEEEEE")); // selected
             }
         });
     }
 
+
+    //UNUSED: To check if a name exists in the list
     public boolean nameExists(String name, ArrayList nameList){
         if(Arrays.asList(nameList).contains(name)) {
             return true;
@@ -269,31 +250,32 @@ public class AddCase extends MainActivity{
                         if (isNetworkConnected()) {
                             id_user = userControl.getID("users", "userId", mUser.getText().toString(), TAG_NAME, 0);
                             new addCase().execute();
-                            Toast.makeText(AddCase.this, "add case internet connected", Toast.LENGTH_LONG).show();
+                            Toast.makeText(AddCase.this, "Added Case", Toast.LENGTH_LONG).show();
                         } else if (!isNetworkConnected()) {
                             Intent intent = new Intent(context, MainActivity.class);
                             addCaseSQLite("10");
-                            Toast.makeText(AddCase.this, "CASAASSEE ADDDDD ", Toast.LENGTH_LONG).show();
+                            Toast.makeText(AddCase.this, "Adding Case For Sync ", Toast.LENGTH_LONG).show();
                             startActivity(intent);
+                            finish();
                         }
                         //Logic for editing case:
                     } else if (title.trim().equalsIgnoreCase("edit Case")) { //EDIT
                         Intent intent = new Intent(context, MainActivity.class);
                         if (isNetworkConnected()) {
                             new updateCase().execute();
-                            Toast.makeText(AddCase.this, "update case internet connected", Toast.LENGTH_LONG).show();
+                            Toast.makeText(AddCase.this, "Updated Case", Toast.LENGTH_LONG).show();
                         } else if (!isNetworkConnected() && sync.equals("10")) {
                             updateCaseSQLite("10");
-                            Toast.makeText(AddCase.this, "Update sync case", Toast.LENGTH_LONG).show();
+                            Toast.makeText(AddCase.this, "Adding Case For Sync", Toast.LENGTH_LONG).show();
                             startActivity(intent);
+                            finish();
                         } else if(!isNetworkConnected() && (sync.equals("") || sync.equals("20"))){
                             updateCaseSQLite("20");
-                            Toast.makeText(AddCase.this, "UPPDAAATEE CASEE", Toast.LENGTH_LONG).show();
+                            Toast.makeText(AddCase.this, "Updating Case For Sync", Toast.LENGTH_LONG).show();
                             startActivity(intent);
+                            finish();
                         }
                     }
-                    //finish() to close Add Case Activity to prevent user from returning to previous page
-                    //finish();
                 }
                 else{
                     mSubmit.setTextColor(Color.parseColor("#CC0000"));
@@ -334,17 +316,6 @@ public class AddCase extends MainActivity{
     public void onBackPressed(){
         this.finish();
     }
-
-    /** maddCBtn = (Button)findViewById(R.id.addContactBtn);
-     maddCBtn.setOnClickListener(new View.OnClickListener() {
-    @Override
-    public void onClick(View arg0) {
-    Toast.makeText(getApplicationContext(), "Add New User", Toast.LENGTH_SHORT).show();
-    Intent intent = new Intent(context, userList.class);
-    finish();
-    startActivity(intent);
-    }
-    });*/
 
     /*----------------------------------SQLITE EDITS-------------------------------*/
     //Adds Case to SQLite:
@@ -390,6 +361,7 @@ public class AddCase extends MainActivity{
         //Retrieving details from when list item is clicked in main activity
         caseID = bund.getString(MainActivity.TAG_ID);
 
+        String assignee = bund.getString(TAG_ASSIGNEE);
         description = bund.getString(MainActivity.TAG_DESCRIPTION);
         actionT = bund.getString(MainActivity.TAG_ACTION_TAKEN);
         username = bund.getString(MainActivity.TAG_USERNAME);
@@ -408,6 +380,8 @@ public class AddCase extends MainActivity{
         mStatus.setSelection(Integer.parseInt(statusID) - 1);
 
         id_user = userControl.getID("users", "userId", mUser.getText().toString(), TAG_NAME, 0);
+
+        mAssignee.setText(assignee.substring(0, 1).toUpperCase() + assignee.substring(1));
     }
 
     public void retrieveUserList(Intent data){
@@ -455,15 +429,15 @@ public class AddCase extends MainActivity{
             finish();
             return true;
         }
-        if(id == R.id.log_out) {
+        /**if(id == R.id.log_out) {
             controller.refreshCases("cases");
             sharedPreference.delete(this);
-            Intent intent = new Intent(context, LoginActivity.class);
+            Intent intent = new Intent(context, Settings.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             this.finishAffinity();
             startActivity(intent);
             return true;
-        }
+        }*/
         return super.onOptionsItemSelected(item);
     }
 
@@ -530,6 +504,7 @@ public class AddCase extends MainActivity{
                     addCaseSQLite("10");
                     startActivity(intent);
 
+                    finish();
                     return json.getString(TAG_MESSAGE);
                 } else {
                     return json.getString(TAG_MESSAGE);
@@ -600,6 +575,7 @@ public class AddCase extends MainActivity{
                     updateCaseSQLite("20");
                     startActivity(intent);
 
+                    finish();
                     return json.getString(TAG_MESSAGE);
                 }else if(success == 0){
 

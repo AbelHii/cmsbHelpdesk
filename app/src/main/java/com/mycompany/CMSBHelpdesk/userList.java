@@ -55,7 +55,7 @@ public class userList extends ActionBarActivity implements SwipeRefreshLayout.On
     //DB variables:
     DBController controlUser = new DBController(this);
     private ProgressDialog pDialog;
-    public static final String USER_URL = "http://10.1.2.52/chd/public/abel/getUsers.php"; //"http://abelhii.comli.com/getUsers.php";
+    public static final String USER_URL = "http://"+MainActivity.TAG_IP+"/chd/public/app/getUsers.php";
     public static int check = 0;
     JSONParser jsonParser = new JSONParser();
     public static JSONArray users = null;
@@ -413,7 +413,7 @@ public class userList extends ActionBarActivity implements SwipeRefreshLayout.On
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_settings, menu);
+        getMenuInflater().inflate(R.menu.menu_user_list, menu);
         return true;
     }
     @Override
@@ -444,15 +444,15 @@ public class userList extends ActionBarActivity implements SwipeRefreshLayout.On
             finish();
             return true;
         }
-        if(id == R.id.log_out) {
+        /**if(id == R.id.log_out) {
             controlUser.refreshCases("cases");
             sharedPreference.delete(this);
-            Intent intent = new Intent(context, LoginActivity.class);
+            Intent intent = new Intent(context, Settings.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             this.finishAffinity();
             startActivity(intent);
             return true;
-        }
+        }*/
         return super.onOptionsItemSelected(item);
     }
 }

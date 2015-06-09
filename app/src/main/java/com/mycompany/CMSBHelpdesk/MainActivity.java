@@ -5,10 +5,6 @@ package com.mycompany.CMSBHelpdesk;
  *
  * SQLite Tutorial from: http://programmerguru.com/android-tutorial/how-to-sync-remote-mysql-db-to-sqlite-on-android/
  *
- * Note:
- * loadList() only works properly when the ArrayList casesList is instantiated
- * after class new getCases().execute() retrieves the json data from MySQL and passes it on
- *
  */
 
 import android.app.ProgressDialog;
@@ -23,8 +19,10 @@ import android.os.Handler;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
@@ -53,7 +51,7 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
     private TextView stat, mSyncStatus;
     private SwipeRefreshLayout swipeLayout;
     private ListView lv;
-    public static int checker = 0;
+    public static int checker;
     public static String checkLog;
 
     //Variables for sync
@@ -74,7 +72,8 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
     JSONArray cases = null;
 
     private ProgressDialog pDialog;
-    private static final String CASE_URL = "http://10.1.2.52/chd/public/abel/getCases.php";//http://abelhii.comli.com/getCases.php";
+    public static String TAG_IP = "";
+    private static String CASE_URL = "";
     private static String SYNC_URL = "";
     public static final String TAG_SUCCESS = "success";
     public static final String TAG_MESSAGE = "message";
@@ -105,45 +104,50 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         checkLog = sharedPreference.getString(this, "login");
+        TAG_IP = sharedPreference.getString(this, "ip");
         String ending = "'s Cases";
-
-        //To exit the app if no internet connection at login:
-        if (getIntent().getBooleanExtra("EXIT", false)) {
-            this.finish();
-        }
 
 
         //check if user was logged in before:
         //if not go to login page, else continue.
         String checkPass = sharedPreference.getString(this, "pass");
-        if(checkLog.equals("") || checkPass.equals("")){
-            Intent intent = new Intent(MainActivity.this, LoginActivity.class);
-            startActivity(intent);
+        String oneTimeSetup = sharedPreference.getString(this, "oneTS");
+        if (oneTimeSetup.equals("")) {
+            Intent intentOneTime = new Intent(MainActivity.this, SetupActivity.class);
+            startActivity(intentOneTime);
         }
-        else {
+        else if (checkLog.equals("") || checkPass.equals("")) {
+            Intent intent = new Intent(MainActivity.this, Settings.class);
+            startActivity(intent);
+        } else {
+            CASE_URL = "http://" + TAG_IP + "/chd/public/app/getCases.php";
+            if(checkLog.equalsIgnoreCase("admin")){
+                CASE_URL = "http://" + TAG_IP + "/chd/public/app/getCasesAdmin.php";
+                setTitle("Welcome Admin");
+            }else{
+                //This just sets the title for MainActivity and for people who's names ends with 's'
+                if (checkLog.substring(checkLog.length() - 1).equals("s")) {
+                    ending = "' Cases";
+                }
+                setTitle(checkLog.substring(0, 1).toUpperCase() + checkLog.substring(1) + ending);
+            }
             initialise();
-            casesList = new ArrayList<HashMap<String, String>>();
-            getListView();
-
-            //This just sets the title for MainActivity and for people who's names ends with 's'
-            if(checkLog.substring(checkLog.length() -1).equals("s")) {ending = "' Cases";}
-            setTitle(checkLog.substring(0, 1).toUpperCase() + checkLog.substring(1) +ending);
+            //
+            // getListView();
 
             //this is how it chooses which list to load
+            Settings.newLogin = sharedPreference.getInt(MainActivity.this, "log");
             checker = controller.checkNumRows("cases");
-            if (checker == 0 || checker < 0) {
+            if (checker == 0 || checker < 0 || Settings.newLogin == 100) {
                 //check if connected to internet or not
                 if (isNetworkConnected()) {
-                    new getCases().execute();
-                    //Loads the list from MySQL DB
-                    loadList();
-                    getSQLiteList();
-                    refreshAtTop();
+                    onRefresh();
                     Toast.makeText(this, "1", Toast.LENGTH_SHORT).show();
                     userList.check = controller.checkNumRows("users");
-                    if(userList.check == 0){
+                    if (userList.check == 0) {
                         new getUsers().execute();
                     }
+                    sharedPreference.setInt(this, "log", 0);
                 }else {
                     swipeLayout.setEnabled(false);
                     //Retrieve previously saved data
@@ -151,43 +155,40 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
                                     " \n Please Connect to the internet and restart the app",
                             Toast.LENGTH_LONG).show();
                 }
-            }else if(isNetworkConnected() && checker > 0){
+            } else if (isNetworkConnected() && checker > 0) {
                 getSQLiteList();
                 refreshAtTop();
                 Toast.makeText(this, "2", Toast.LENGTH_SHORT).show();
-            }
-            else if(!isNetworkConnected()){
+            } else if (!isNetworkConnected()) {
                 swipeLayout.setEnabled(false);
                 getSQLiteList();
                 Toast.makeText(this, "3", Toast.LENGTH_SHORT).show();
             }
         }
-
     }
 
     public void getSQLiteList(){
-        getListView();
+        mCasesLV = getListView();
         // Get Cases records from SQLite DB
         ArrayList<HashMap<String, String>> listCase = controller.getAllCases();
-
+        ArrayList<Case> c = new ArrayList<Case>();
+        for(int i = 0; i<listCase.size(); i++) {
+            c.add(new Case(listCase.get(i).get(TAG_ID),
+                    listCase.get(i).get(TAG_USERNAME),
+                    listCase.get(i).get(TAG_DESCRIPTION),
+                    listCase.get(i).get(TAG_STATUS),
+                    listCase.get(i).get(TAG_SYNC)));
+        }
         // If users exists in SQLite DB
         if (listCase.size() != 0) {
 
-            ListAdapter adapter = new SimpleAdapter(
-                    MainActivity.this, listCase,
-                    R.layout.list_item, new String[] { TAG_ID,
-                    TAG_USERNAME, TAG_STATUS, TAG_DESCRIPTION, TAG_SYNC},
-                    new int[] { R.id.IDMain,
-                            R.id.userMain, R.id.statusMain, R.id.descMain, R.id.syncStatus });
+            ListAdapter adapter = new CaseListAdapter(MainActivity.this, R.id.list_item, c);
             setListAdapter(adapter);
-            lv = (ListView)findViewById(android.R.id.list);
-            lv.setAdapter(adapter);
+            //lv = (ListView)findViewById(android.R.id.list);
+            //mCasesLV.setAdapter(adapter);
             onListItemClick();
 
         }
-
-        //To show that SQLite DB is not empty
-        checker = controller.checkNumRows("cases");
 
         //To get the assignee id for adding case
         if(controller.getTableValues("cases", 6).size() == 0 && controller.getTableValues("cases", 0).size() == 0) {
@@ -197,7 +198,9 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
             sharedPreference.setString(MainActivity.this, TAG_ID, controller.getMaxId("cases"));
             sharedPreference.setString(MainActivity.this, TAG_LOGIN_ID, controller.getTableValues("cases", 6).get(0));
         }
-        //controller.close();
+
+        //To show that SQLite DB is not empty
+        checker = controller.checkNumRows("cases");
     }
 
     //--------------REFRESH SPINNER-----------------------------------------------------------------------------
@@ -211,8 +214,8 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
             controller.refreshCases("cases");
             //refresh and refill SQLite Database
             new getCases().execute();
-            loadList();
             getSQLiteList();
+            onListItemClick();
             refreshAtTop();
 
             swipeLayout.setRefreshing(false);
@@ -237,30 +240,33 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
 
 
     //--------------DISPLAY LIST!-----------------------------------------------------------------------------
-    //Load List from MySQL DB
-    public void loadList(){
-        lv = getListView();
-        final ArrayAdapter<HashMap<String, String>> mainAdapter = new ArrayAdapter<HashMap<String, String>>(MainActivity.this,
-                android.R.layout.simple_list_item_1,
-                casesList);
-        //this is so that the list doesn't stack:
-        mainAdapter.notifyDataSetChanged();
-        mainAdapter.clear();
-        lv.setAdapter(mainAdapter);
-        onListItemClick();
-    }
     public void onListItemClick(){
         //when list item is clicked go to add case to edit that item
         //and send data to add case using bundles
-        lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        mCasesLV.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> arg0, View view, int position,
                                     long arg3) {
+
+                view.setOnTouchListener(new View.OnTouchListener() {
+                    @Override
+                    public boolean onTouch(View view, MotionEvent motionEvent) {
+                        if(motionEvent.getAction() == motionEvent.ACTION_DOWN) {
+                            view.setBackgroundColor(Color.parseColor("#B1EAE4"));
+                        }
+                        else if(motionEvent.getAction() == motionEvent.ACTION_UP){
+                            view.setBackgroundColor(Color.parseColor("#EEEEEE"));
+                        }
+                        return false;
+                    }
+                });
+
                 Intent intent = new Intent(MainActivity.this, AddCase.class);
                 //Check if it needs to be synced or not so as not to update a case that hasn't been added yet
                 intent.putExtra("caller", "editCase");
                 Bundle bundle = new Bundle();
                 bundle.putString(TAG_ID, controller.getTableValues("cases", 0).get(position));
+                bundle.putString(TAG_ASSIGNEE, controller.getTableValues("cases", 1).get(position));
                 bundle.putString(TAG_STATUS, controller.getTableValues("cases", 2).get(position));
                 bundle.putString(TAG_USERNAME, controller.getTableValues("cases", 3).get(position));
                 bundle.putString(TAG_DESCRIPTION, controller.getTableValues("cases", 4).get(position));
@@ -271,11 +277,11 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
                 intent.putExtras(bundle);
 
                 startActivity(intent);
-                //controller.close();
 
+                //Animation that slides to next activity
+                overridePendingTransition(R.anim.right_to_left, R.anim.left_to_right);
             }
         });
-
     }
 
 
@@ -285,6 +291,7 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
     //SMALL BUT USEFUL METHODS:
     //initialises variables and such:
     private void initialise(){
+        casesList = new ArrayList<HashMap<String, String>>();
         stat = (TextView) findViewById(R.id.statusMain);
         swipeLayout = (SwipeRefreshLayout) findViewById(R.id.swipe_container);
         swipeLayout.setOnRefreshListener(this);
@@ -304,19 +311,6 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
         return activeNetwork != null && activeNetwork.isConnectedOrConnecting();// && activeNetwork.getState() == NetworkInfo.State.CONNECTED;
     }
 
-    public void statusColorChange(){
-        String status = stat.getText().toString();
-
-        switch(status.toLowerCase()){
-            case "in progress":
-                stat.setBackgroundResource(R.color.accent_material_light);
-                break;
-            case "pending close":
-                stat.setBackgroundResource(R.color.accent_material_light);
-                break;
-        }
-    }
-
     //to disable the back button
     @Override
     public void onBackPressed(){
@@ -327,19 +321,43 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
 
     /*-------------------------------------ADAPTER FOR LISTVIEW--------------------------------------------------------------*/
     //CASE LIST ADAPTER
-    private class CaseListAdapter extends ArrayAdapter {
-        public CaseListAdapter() {
-            super (MainActivity.this, R.layout.listview_item, android.R.id.list);
+    private class CaseListAdapter extends ArrayAdapter<Case>{
+        private Context context;
+        private ArrayList<Case> items;
+        public CaseListAdapter(Context context, int listItemId, ArrayList<Case> data) {
+            super (MainActivity.this, listItemId, data);
+            this.context = context;
+            this.items = data;
         }
+
         @Override
-         public View getView(int position, View convertView, ViewGroup parent) {
-            View view = super.getView(position, convertView, parent);
-            if (position % 2 == 1) {
-                view.setBackgroundColor(Color.parseColor("#990000"));
-            } else {
-                view.setBackgroundColor(Color.CYAN);
+        public View getView(int position, View convertView, ViewGroup parent){
+            View view = convertView;
+
+            if(view == null){
+                LayoutInflater vi;
+                vi = LayoutInflater.from(getContext());
+                view = vi.inflate(R.layout.list_item, null);
             }
 
+            Case c = items.get(position);
+            if(c != null){
+                TextView mId = (TextView) view.findViewById(R.id.IDMain);
+                TextView mUser = (TextView) view.findViewById(R.id.userMain);
+                TextView mDesc = (TextView) view.findViewById(R.id.descMain);
+                TextView mStatus = (TextView) view.findViewById(R.id.statusMain);
+                TextView mSync = (TextView) view.findViewById(R.id.syncStatus);
+                if(mId != null){mId.setText(c.getID());}
+                if(mUser != null){mUser.setText(c.getUsername());}
+                if(mDesc != null){mDesc.setText(c.getDescription());}
+                if(mStatus != null){mStatus.setText(c.getStatus());}
+                if(mSync != null){mSync.setText(c.getSync());}
+            }
+
+            if(position % 2 == 0)
+                view.setBackgroundColor(Color.parseColor("#EEEEEE"));
+            else
+                view.setBackgroundColor(Color.parseColor("#E9E9E9"));
             return view;
         }
     }
@@ -347,9 +365,6 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
     public ListView getListView() {
         if(mCasesLV == null){
             mCasesLV = (ListView)findViewById(android.R.id.list);
-            ArrayAdapter<String> adapt = new CaseListAdapter();
-            adapt.notifyDataSetChanged();
-            mCasesLV.setAdapter(adapt);
             return mCasesLV;
         }
         return mCasesLV;
@@ -394,7 +409,8 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
                                 @Override
                                 public void run() {
                                     Toast.makeText(MainActivity.this,"Error check your internet connection", Toast.LENGTH_SHORT).show();
-                                    MainActivity.this.finish();
+                                    finish();
+                                    System.exit(0);
                                 }
                             });
                         }else
@@ -455,6 +471,7 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
             return null;
         }
 
+        @Override
         protected void onPostExecute(String result){
             // dismiss the dialog after getting all products
             pDialog.dismiss();
@@ -467,17 +484,25 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
                         /**
                          * Updating parsed JSON data into ListView
                          * */
-                        ListAdapter adapter = new SimpleAdapter(
-                                MainActivity.this, casesList,
-                                R.layout.list_item, new String[] { TAG_ID,
-                                        TAG_USERNAME, TAG_STATUS, TAG_DESCRIPTION, TAG_SYNC},
-                                new int[] { R.id.IDMain,
-                                        R.id.userMain, R.id.statusMain, R.id.descMain, R.id.syncStatus });
+                        ArrayList<Case> c = new ArrayList<Case>();
+                        for(int i = 0; i<casesList.size(); i++) {
+                            c.add(new Case(casesList.get(i).get(TAG_ID),
+                                    casesList.get(i).get(TAG_USERNAME),
+                                    casesList.get(i).get(TAG_DESCRIPTION),
+                                    casesList.get(i).get(TAG_STATUS),
+                                    casesList.get(i).get(TAG_SYNC)));
+                        }
+                        ListAdapter adapter = new CaseListAdapter(MainActivity.this, R.id.list_item, c);
+                        /**new SimpleAdapter(
+                        MainActivity.this, casesList,
+                        R.layout.list_item, new String[] { TAG_ID,
+                                TAG_USERNAME, TAG_STATUS, TAG_DESCRIPTION, TAG_SYNC},
+                        new int[] { R.id.IDMain,
+                                R.id.userMain, R.id.statusMain, R.id.descMain, R.id.syncStatus });*/
                         // updating listView
                         setListAdapter(adapter);
                     }
                 });
-                checker = controller.checkNumRows("cases");
                 Toast.makeText(getBaseContext(), result, Toast.LENGTH_LONG)
                         .show();
             }
@@ -577,8 +602,9 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
             //"10" is for add case and "20" is for update case:
             if(isNetworkConnected() && (ay.contains("10") || ay.contains("20"))){
                 for (int i = ay.size()-1; i >= 0; i--) {
-                    if (!ay.get(i).toString().equals("")) {
-                        Toast.makeText(context, "Sync Databases IN", Toast.LENGTH_SHORT).show();
+                    if (!ay.get(i).toString().equals("") && ((ay.contains("10") || ay.contains("20")))) {
+                        //Toast.makeText(context, "Sync Databases IN", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(context, ""+i, Toast.LENGTH_SHORT).show();
                         caseID = controller.getTableValues("cases", 0).get(i);
                         username = controller.getTableValues("cases", 3).get(i);
                         mDescription = controller.getTableValues("cases", 4).get(i);
@@ -597,7 +623,6 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
                 controller.refreshCases("cases");
                 //refresh and refill SQLite Database
                 new getCases().execute();
-                loadList();
                 getSQLiteList();
                 refreshAtTop();
                 Toast.makeText(context, "Databases Synced", Toast.LENGTH_SHORT).show();
@@ -613,15 +638,15 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
             startActivity(intent);
             return true;
         }
-        else if(id == R.id.log_out) {
+        /**else if(id == R.id.log_out) {
             controller.refreshCases("cases");
             sharedPreference.delete(this);
-            Intent intent = new Intent(context, LoginActivity.class);
+            Intent intent = new Intent(context, Settings.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             MainActivity.this.finishAffinity();
             startActivity(intent);
             return true;
-        }
+        }*/
 
         return super.onOptionsItemSelected(item);
     }
@@ -629,17 +654,6 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
     /*---------IMPORTANT CODE!----------------------------------------------------------------*/
     //gets Users from MySQL DB
     class getUsers extends AsyncTask<String, String, String> {
-        //Before starting background thread Show Progress Dialog
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            pDialog = new ProgressDialog(MainActivity.this);
-            pDialog.setProgressStyle(android.R.style.Widget_ProgressBar_Small);
-            pDialog.setMessage("Updating Users List \nPlease Wait...");
-            pDialog.setCancelable(false);
-            pDialog.show();
-        }
-
         @Override
         protected String doInBackground(String... params) {
             int success = 0;
@@ -709,17 +723,6 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
                 e.printStackTrace();
             }
             return null;
-        }
-
-        protected void onPostExecute(String result){
-            // dismiss the dialog after getting all products
-            pDialog.dismiss();
-            if (result != null) {
-                //MainActivity.this.setProgressBarIndeterminateVisibility(false);
-                userList.check = controller.checkNumRows("users");
-                Toast.makeText(getBaseContext(), result, Toast.LENGTH_LONG)
-                        .show();
-            }
         }
     }
 }

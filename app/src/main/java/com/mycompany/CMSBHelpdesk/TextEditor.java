@@ -82,14 +82,14 @@ public class TextEditor extends ActionBarActivity {
             startActivity(intent);
             return true;
         }
-        if(id == R.id.log_out) {
+        /**if(id == R.id.log_out) {
             control.refreshCases("cases");
             sharedPreference.delete(this);
-            Intent intent = new Intent(context, LoginActivity.class);
+            Intent intent = new Intent(context, Settings.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             startActivity(intent);
             return true;
-        }
+        }*/
         return super.onOptionsItemSelected(item);
     }
 }

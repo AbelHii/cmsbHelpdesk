@@ -1,42 +1,143 @@
-<ScrollView
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/ScrollView01"
-    android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
-    android:scrollbars="vertical"
-    android:layout_gravity="center_horizontal">
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
 
-    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:tools="http://schemas.android.com/tools"
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        android:orientation="vertical"
-        tools:context="com.mycompany.CMSBHelpdesk.Settings"
-        android:layout_margin="50dp">
+    <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_margin="15dp"
+            android:gravity="center"
+            tools:context="com.mycompany.myapplication.LoginActivity"
+            android:id="@+id/loginBackground" >
 
         <TextView
-            android:text="@string/action_settings"
+            android:id="@+id/accSetup"
+            android:layout_alignParentTop="true"
+            android:layout_height="wrap_content"
             android:layout_width="wrap_content"
+            android:text="@string/account"
+            android:padding="10dp"
+            android:textSize="15sp"
+            android:textAllCaps="true"/>
+
+        <TextView
+            android:layout_width="fill_parent"
+            android:layout_height="1dip"
+            android:background="#ddd"
+            android:layout_below="@+id/accSetup"/>
+
+        <!--USERNAME-->
+        <TextView
+            android:id="@+id/usernameLabel"
+            android:layout_below="@+id/accSetup"
             android:layout_height="wrap_content"
-            android:textSize="30sp"
-            android:textStyle="bold"
-            android:layout_margin="10dp"/>
+            android:layout_width="wrap_content"
+            android:text="@string/user"
+            android:padding="10dp"
+            android:textSize="15sp"
+            android:textColor="#333"
+            android:textStyle="bold"/>
+        <EditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/accSetup"
+            android:layout_toRightOf="@+id/usernameLabel"
+            android:hint="Enter Username"
+            android:textSize="15sp"
+            android:ems="10"
+            android:id="@+id/username"
+            android:imeOptions="actionNext"
+            android:singleLine="true"
+            android:background="@null"
+            android:padding="10dp"/>
+
+        <TextView
+            android:layout_width="fill_parent"
+            android:layout_height="1dip"
+            android:background="#ddd"
+            android:layout_below="@+id/username"/>
+
+        <!--PASSWORD-->
+        <TextView
+            android:id="@+id/passwordLabel"
+            android:layout_below="@+id/usernameLabel"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:text="@string/password"
+            android:padding="10dp"
+            android:textSize="15sp"
+            android:textColor="#333"
+            android:textStyle="bold"/>
+        <EditText
+            android:layout_toRightOf="@+id/passwordLabel"
+            android:layout_below="@+id/usernameLabel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:password="true"
+            android:hint="Enter Password"
+            android:textSize="15sp"
+            android:ems="10"
+            android:id="@+id/password"
+            android:imeOptions="actionNext"
+            android:singleLine="true"
+            android:background="@null"
+            android:paddingRight="10dp"
+            android:paddingTop="10dp"
+            android:paddingLeft="12dp"
+            android:paddingBottom="10dp"/>
+
+
+        <TextView
+            android:layout_width="fill_parent"
+            android:layout_height="1dip"
+            android:background="#ddd"
+            android:layout_below="@+id/password"/>
+
+        <!--SERVER-->
+        <TextView
+            android:id="@+id/serverLabel"
+            android:layout_below="@+id/passwordLabel"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:text="@string/server"
+            android:padding="10dp"
+            android:textSize="15sp"
+            android:textColor="#333"
+            android:textStyle="bold"/>
+        <EditText
+            android:layout_alignParentRight="true"
+            android:layout_toRightOf="@+id/serverLabel"
+            android:layout_below="@+id/passwordLabel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Enter Server Address"
+            android:textSize="15sp"
+            android:ems="10"
+            android:id="@+id/server"
+            android:imeOptions="actionDone"
+            android:singleLine="true"
+            android:background="@null"
+            android:paddingRight="10dp"
+            android:paddingTop="10dp"
+            android:paddingLeft="35dp"
+            android:paddingBottom="10dp"/>
+
+
+        <TextView
+            android:layout_width="fill_parent"
+            android:layout_height="1dip"
+            android:background="#ddd"
+            android:layout_below="@+id/serverLabel"/>
 
         <Button
-            android:layout_width="fill_parent"
+            android:id="@+id/settingsBtn"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/title_activity_general"
-            android:id="@+id/general"
-            android:textSize="20sp"
-            android:layout_margin="10dp"/>
+            android:layout_below="@+id/serverLabel"
+            android:layout_margin="10dp"
+            android:text="@string/submit"
+            android:textAllCaps="true"/>
 
-        <Button
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/title_activity_users"
-            android:id="@+id/users"
-            android:textSize="20sp"
-            android:layout_margin="10dp"/>
-
-    </LinearLayout>
+    </RelativeLayout>
 </ScrollView>
