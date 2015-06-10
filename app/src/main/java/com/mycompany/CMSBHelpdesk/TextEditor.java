@@ -10,6 +10,8 @@ import android.view.MenuItem;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 
+import com.mycompany.CMSBHelpdesk.helpers.DBController;
+
 
 public class TextEditor extends ActionBarActivity {
 
@@ -21,7 +23,18 @@ public class TextEditor extends ActionBarActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_text_editor);
+        //Default Back Button
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
+        String type = getIntent().getStringExtra("mType");
+        switch(type){
+            case "desc":
+                setTitle("Case Description");
+                break;
+            case "actionT":
+                setTitle("Action Taken");
+                break;
+        }
         mTextEdit = (EditText) findViewById(R.id.textEdit);
         getText();
     }
@@ -69,7 +82,7 @@ public class TextEditor extends ActionBarActivity {
             startActivity(intent);
             return true;
         }
-        if (id == R.id.backBtn) {
+        if (id == android.R.id.home) {
             InputMethodManager imm = (InputMethodManager)getSystemService(
                     Context.INPUT_METHOD_SERVICE);
             imm.hideSoftInputFromWindow(mTextEdit.getWindowToken(), 0);

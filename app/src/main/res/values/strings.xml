@@ -96,5 +96,9 @@
     <string name="settings">Settings</string>
     <string name="title_activity_setup">SetupActivity</string>
     <string name="account">Account Setup</string>
+    <string name="title_activity_test">test</string>
+    <string name="title_section1">Section 1</string>
+    <string name="title_section2">Section 2</string>
+    <string name="title_section3">Section 3</string>
 
 </resources>

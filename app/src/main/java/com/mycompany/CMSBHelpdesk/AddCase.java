@@ -9,17 +9,26 @@ import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentPagerAdapter;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.Spinner;
 import android.widget.TabHost;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.mycompany.CMSBHelpdesk.helpers.DBController;
+import com.mycompany.CMSBHelpdesk.helpers.JSONParser;
+import com.mycompany.CMSBHelpdesk.helpers.sharedPreference;
 
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
@@ -30,6 +39,7 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 
 public class AddCase extends MainActivity{
 
@@ -211,6 +221,7 @@ public class AddCase extends MainActivity{
             public void onClick(View view) {
                 Intent intent = new Intent(AddCase.this, TextEditor.class);
                 intent.putExtra("text", mDesc.getText().toString());
+                intent.putExtra("mType", "desc");
                 startActivityForResult(intent, 1);
             }
         });
@@ -219,6 +230,7 @@ public class AddCase extends MainActivity{
             public void onClick(View view) {
                 Intent intent = new Intent(AddCase.this, TextEditor.class);
                 intent.putExtra("text", mActionTaken.getText().toString());
+                intent.putExtra("mType", "actionT");
                 startActivityForResult(intent, 2);
             }
         });

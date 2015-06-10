@@ -11,6 +11,8 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 
+import com.mycompany.CMSBHelpdesk.helpers.sharedPreference;
+
 
 public class SetupActivity extends ActionBarActivity {
 
@@ -22,12 +24,14 @@ public class SetupActivity extends ActionBarActivity {
         setContentView(R.layout.activity_setup);
 
         mSetupBtn = (Button) findViewById(R.id.SetUpBtn);
+        mSetupBtn.setTextAppearance(this, R.style.forSetup);
         mSetupBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(SetupActivity.this, Settings.class);
                 sharedPreference.setString(SetupActivity.this, "oneTS", "true");
                 startActivity(intent);
+                finish();
             }
         });
         mSetupBtn.setOnTouchListener(new View.OnTouchListener() {
@@ -43,6 +47,11 @@ public class SetupActivity extends ActionBarActivity {
         });
     }
 
+
+    @Override
+    public void onBackPressed(){
+        System.exit(1);
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

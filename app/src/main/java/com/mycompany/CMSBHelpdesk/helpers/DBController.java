@@ -1,10 +1,13 @@
-package com.mycompany.CMSBHelpdesk;
+package com.mycompany.CMSBHelpdesk.helpers;
 
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+
+import com.mycompany.CMSBHelpdesk.MainActivity;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;

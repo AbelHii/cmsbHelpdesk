@@ -1,4 +1,4 @@
-package com.mycompany.CMSBHelpdesk;
+package com.mycompany.CMSBHelpdesk.helpers;
 
 import android.util.Log;
 

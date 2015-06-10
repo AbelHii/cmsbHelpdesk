@@ -29,6 +29,9 @@ import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.Toast;
 
+import com.mycompany.CMSBHelpdesk.helpers.DBController;
+import com.mycompany.CMSBHelpdesk.helpers.JSONParser;
+
 import org.apache.http.NameValuePair;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -65,6 +68,8 @@ public class userList extends ActionBarActivity implements SwipeRefreshLayout.On
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_user_list);
+        //Default Back Button
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         setTitle("Choose User");
 
         initialise();
@@ -430,7 +435,7 @@ public class userList extends ActionBarActivity implements SwipeRefreshLayout.On
             startActivity(intent);
             return true;
         }
-        if (id == R.id.backBtn) {
+        if (id == android.R.id.home) {
             InputMethodManager imm = (InputMethodManager)getSystemService(
                     Context.INPUT_METHOD_SERVICE);
             imm.hideSoftInputFromWindow(inputSearch.getWindowToken(), 0);

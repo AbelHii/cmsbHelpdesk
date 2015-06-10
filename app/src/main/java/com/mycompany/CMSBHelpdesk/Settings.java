@@ -21,6 +21,10 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.mycompany.CMSBHelpdesk.helpers.DBController;
+import com.mycompany.CMSBHelpdesk.helpers.JSONParser;
+import com.mycompany.CMSBHelpdesk.helpers.sharedPreference;
+
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONException;
@@ -58,6 +62,8 @@ public class Settings extends ActionBarActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
+        //Default Back Button
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         //initialise
         user = (EditText) findViewById(R.id.username);
@@ -65,7 +71,7 @@ public class Settings extends ActionBarActivity {
         ip = (EditText) findViewById(R.id.server);
         mSettingsBtn = (Button)findViewById(R.id.settingsBtn);
 
-        username = sharedPreference.getString(this,"username");
+        username = sharedPreference.getString(this, "username");
         password = sharedPreference.getString(this,"password");
         server = sharedPreference.getString(this,"server");
 
@@ -96,7 +102,7 @@ public class Settings extends ActionBarActivity {
             }
         }else{
             new AlertDialog.Builder(this)
-                    .setIcon(R.mipmap.nowifi)
+                    .setIcon(R.drawable.nowifi)
                     .setTitle("No internet connection")
                     .setMessage("Please turn on mobile data or wifi")
                     .setCancelable(false)
@@ -184,6 +190,7 @@ public class Settings extends ActionBarActivity {
                 Log.d("Login attempt", json.toString());
 
                 // success tag for json
+                sharedPreference.setInt(Settings.this, "success", json.getInt(TAG_SUCCESS));
                 success = json.getInt(TAG_SUCCESS);
                 if (success == 1) {
                     Log.d("Successful Login", json.toString());
@@ -244,9 +251,10 @@ public class Settings extends ActionBarActivity {
                     LOGIN_URL = "http://" + ip.getText().toString() + "/chd/public/app/login.php";
                     if(connectionCheck()) {
                         new AttemptLogin().execute();
+                        success = sharedPreference.getInt(Settings.this, "success");
                         if (success == 1) {
                             mSettingsBtn.setTextColor(Color.parseColor("#12af83"));
-                        } else if (success == 0) {
+                        }else if (success == 0) {
                             error();
                         }
 
@@ -254,7 +262,7 @@ public class Settings extends ActionBarActivity {
                     }
                     else{
                         new AlertDialog.Builder(context)
-                                .setIcon(R.mipmap.nowifi)
+                                .setIcon(R.drawable.nowifi)
                                 .setTitle("No internet connection")
                                 .setMessage("Check your Internet Connection")
                                 .setCancelable(false)
@@ -280,7 +288,7 @@ public class Settings extends ActionBarActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_settings, menu);
+        //getMenuInflater().inflate(R.menu.menu_settings, menu);
         return true;
     }
 
@@ -292,7 +300,7 @@ public class Settings extends ActionBarActivity {
         int id = item.getItemId();
         final Context context = this;
 
-        if (id == R.id.backBtn) {
+        if (id == android.R.id.home) {
             this.finish();
             return true;
         }
