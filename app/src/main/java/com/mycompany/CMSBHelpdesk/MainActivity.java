@@ -31,7 +31,6 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.mycompany.CMSBHelpdesk.objects.Case;
 import com.mycompany.CMSBHelpdesk.helpers.DBController;
 import com.mycompany.CMSBHelpdesk.helpers.JSONParser;
 import com.mycompany.CMSBHelpdesk.helpers.sharedPreference;
