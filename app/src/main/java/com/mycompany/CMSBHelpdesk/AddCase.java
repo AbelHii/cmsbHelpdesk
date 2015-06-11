@@ -6,12 +6,15 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -41,7 +44,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
-public class AddCase extends MainActivity{
+public class AddCase extends ActionBarActivity {
 
     public Button mUser;
     private Spinner mStatus;
@@ -119,8 +122,8 @@ public class AddCase extends MainActivity{
         mActionTaken = (TextView) findViewById (R.id.actionTaken);
 
         //getting the most recent case id and assignee id
-        id = sharedPreference.getString(AddCase.this, TAG_ID);
-        assigneeID = sharedPreference.getString(AddCase.this, TAG_LOGIN_ID);
+        id = sharedPreference.getString(AddCase.this, MainActivity.TAG_ID);
+        assigneeID = sharedPreference.getString(AddCase.this, MainActivity.TAG_LOGIN_ID);
 
 
         final TabHost tabHost = (TabHost) findViewById(R.id.tabHost);
@@ -153,6 +156,12 @@ public class AddCase extends MainActivity{
         });
     }
 
+    //Check if network is connected
+    public boolean isNetworkConnected(){
+        final ConnectivityManager conMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        final NetworkInfo activeNetwork = conMgr.getActiveNetworkInfo();
+        return activeNetwork != null && activeNetwork.isConnectedOrConnecting();// && activeNetwork.getState() == NetworkInfo.State.CONNECTED;
+    }
 
     //UNUSED: To check if a name exists in the list
     public boolean nameExists(String name, ArrayList nameList){
@@ -260,7 +269,7 @@ public class AddCase extends MainActivity{
                     //Logic for adding case:
                     if (title.trim().equalsIgnoreCase("add Case")) { //ADD
                         if (isNetworkConnected()) {
-                            id_user = userControl.getID("users", "userId", mUser.getText().toString(), TAG_NAME, 0);
+                            id_user = userControl.getID("users", "userId", mUser.getText().toString(), MainActivity.TAG_NAME, 0);
                             new addCase().execute();
                             Toast.makeText(AddCase.this, "Added Case", Toast.LENGTH_LONG).show();
                         } else if (!isNetworkConnected()) {
@@ -373,7 +382,7 @@ public class AddCase extends MainActivity{
         //Retrieving details from when list item is clicked in main activity
         caseID = bund.getString(MainActivity.TAG_ID);
 
-        String assignee = bund.getString(TAG_ASSIGNEE);
+        String assignee = bund.getString(MainActivity.TAG_ASSIGNEE);
         description = bund.getString(MainActivity.TAG_DESCRIPTION);
         actionT = bund.getString(MainActivity.TAG_ACTION_TAKEN);
         username = bund.getString(MainActivity.TAG_USERNAME);
@@ -391,7 +400,7 @@ public class AddCase extends MainActivity{
         mActionTaken.setText(actionT);
         mStatus.setSelection(Integer.parseInt(statusID) - 1);
 
-        id_user = userControl.getID("users", "userId", mUser.getText().toString(), TAG_NAME, 0);
+        id_user = userControl.getID("users", "userId", mUser.getText().toString(), MainActivity.TAG_NAME, 0);
 
         mAssignee.setText(assignee.substring(0, 1).toUpperCase() + assignee.substring(1));
     }
@@ -507,7 +516,7 @@ public class AddCase extends MainActivity{
                 Log.d("Inserting... ", json.toString());
 
                 //Check for SUCCESS TAG
-                success = json.getInt(TAG_SUCCESS);
+                success = json.getInt(MainActivity.TAG_SUCCESS);
                 if (success == 1) {
                     //check log cat for JSON response
                     Log.d("Successfully Added Case: ", json.toString());
@@ -517,9 +526,9 @@ public class AddCase extends MainActivity{
                     startActivity(intent);
 
                     finish();
-                    return json.getString(TAG_MESSAGE);
+                    return json.getString(MainActivity.TAG_MESSAGE);
                 } else {
-                    return json.getString(TAG_MESSAGE);
+                    return json.getString(MainActivity.TAG_MESSAGE);
                 }
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -578,7 +587,7 @@ public class AddCase extends MainActivity{
                 Log.d("Updating... ", json.toString());
 
                 //Check for SUCCESS TAG
-                success = json.getInt(TAG_SUCCESS);
+                success = json.getInt(MainActivity.TAG_SUCCESS);
                 if (success == 1) {
                     //check log cat for JSON response
                     Log.d("Successfully Updated Case: ", json.toString());
@@ -588,11 +597,11 @@ public class AddCase extends MainActivity{
                     startActivity(intent);
 
                     finish();
-                    return json.getString(TAG_MESSAGE);
+                    return json.getString(MainActivity.TAG_MESSAGE);
                 }else if(success == 0){
 
                 } else {
-                    return json.getString(TAG_MESSAGE);
+                    return json.getString(MainActivity.TAG_MESSAGE);
                 }
             } catch (JSONException e) {
                 e.printStackTrace();

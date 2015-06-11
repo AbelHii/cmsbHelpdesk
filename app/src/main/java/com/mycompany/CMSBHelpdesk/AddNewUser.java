@@ -178,7 +178,7 @@ public class AddNewUser extends AddCase implements View.OnClickListener {
             Log.d("Inserting... ", json.toString());
 
                 //Check for SUCCESS TAG
-                success = json.getInt(TAG_SUCCESS);
+                success = json.getInt(MainActivity.TAG_SUCCESS);
                 if (success == 1) {
                     //check log cat for JSON response
                     Log.d("Inserted New User: ", json.toString());
@@ -192,9 +192,9 @@ public class AddNewUser extends AddCase implements View.OnClickListener {
                     userControl.close();
                     startActivity(intent);
                     finish();
-                    return json.getString(TAG_MESSAGE);
+                    return json.getString(MainActivity.TAG_MESSAGE);
                 } else {
-                    return json.getString(TAG_MESSAGE);
+                    return json.getString(MainActivity.TAG_MESSAGE);
                 }
             } catch (JSONException e) {
                 e.printStackTrace();
