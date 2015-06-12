@@ -45,6 +45,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import static android.R.drawable.editbox_background;
+
 
 public class MainActivity extends ActionBarActivity implements SwipeRefreshLayout.OnRefreshListener {
 
@@ -189,15 +191,6 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
             onListItemClick();
         }
 
-        //To get the assignee id for adding case
-        if(controller.getTableValues("cases", 6).size() == 0 && controller.getTableValues("cases", 0).size() == 0) {
-            sharedPreference.setString(MainActivity.this, TAG_ID, "0");
-        }
-        else if(controller.getTableValues("cases", 6).size() != 0 && controller.getTableValues("cases", 0).size() != 0){
-            sharedPreference.setString(MainActivity.this, TAG_ID, controller.getMaxId("cases"));
-            sharedPreference.setString(MainActivity.this, TAG_LOGIN_ID, controller.getTableValues("cases", 6).get(0));
-        }
-
         //To show that SQLite DB is not empty
         checker = controller.checkNumRows("cases");
     }
@@ -227,7 +220,9 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
     public void refreshAtTop() {
         mCasesLV.setOnScrollListener(new AbsListView.OnScrollListener() {
             @Override
-            public void onScrollStateChanged(AbsListView view, int scrollState) {}
+            public void onScrollStateChanged(AbsListView view, int scrollState) {
+            }
+
             @Override
             public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
                 int topRowVerticalPosition =
@@ -292,7 +287,7 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
         adapter = new CaseListAdapter(MainActivity.this, R.id.list_item, emptyC);
 
         casesList = new ArrayList<HashMap<String, String>>();
-        stat = (TextView) findViewById(R.id.statusMain);
+
         swipeLayout = (SwipeRefreshLayout) findViewById(R.id.swipe_container);
         swipeLayout.setOnRefreshListener(this);
         swipeLayout.setColorScheme(android.R.color.holo_orange_light,
@@ -349,15 +344,43 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
                 if(mId != null){mId.setText(c.getID());}
                 if(mUser != null){mUser.setText(c.getUsername());}
                 if(mDesc != null){mDesc.setText(c.getDescription());}
-                if(mStatus != null){mStatus.setText(c.getStatus());}
+                if(mStatus != null){
+                    mStatus.setText(c.getStatus());
+                    switch(c.getStatus()){
+                        case "Not Started":
+                            mStatus.setTextColor(Color.parseColor("#ff0000"));
+                            //mStatus.setBackgroundColor(Color.parseColor("#ff0000"));
+                            break;
+                        case "In Progress":
+                            mStatus.setTextColor(Color.parseColor("#12af83"));
+                            //mStatus.setBackgroundColor(Color.parseColor("#12af83"));
+                            break;
+                        case "Waiting for Vendor":
+                            mStatus.setTextColor(Color.parseColor("#aaaf83"));
+                            //mStatus.setBackgroundColor(Color.parseColor("#aaaf83"));
+                            break;
+                        case "Differed":
+                            mStatus.setTextColor(Color.parseColor("#af1283"));
+                            //mStatus.setBackgroundColor(Color.parseColor("#af1283"));
+                            break;
+                        case "Pending Close":
+                            mStatus.setTextColor(Color.parseColor("#12aaff"));
+                            //mStatus.setBackgroundColor(Color.parseColor("#12aaff"));
+                            break;
+                        case "Closed":
+                            mStatus.setTextColor(Color.parseColor("#5a5a5a"));
+                            //mStatus.setBackgroundColor(Color.parseColor("#5a5a5a"));
+                            break;
+                    }
+                }
                 if(mSync != null){mSync.setText(c.getSync());}
             }
 
 
             if(position % 2 == 0){
-                view.setBackgroundColor(Color.parseColor("#EEEEEE"));
+                view.setBackgroundResource(R.drawable.mycolors);
             }else {
-                view.setBackgroundColor(Color.parseColor("#E9E9E9"));
+                view.setBackgroundResource(R.drawable.mycolors2);
             }
             return view;
         }
@@ -594,6 +617,11 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
 
         //noinspection SimplifiableIfStatement
         if(id == R.id.add_case){
+            //To set the case id for adding case if cases are empty
+            if(controller.getTableValues("cases", 0).isEmpty())
+                sharedPreference.setString(MainActivity.this, TAG_ID, "0");
+            else if(controller.getTableValues("cases", 0) != null)
+                sharedPreference.setString(MainActivity.this, TAG_ID, controller.getMaxId("cases"));
             Intent intent = new Intent(context, AddCase.class);
             intent.putExtra("caller", "addCase");
             startActivity(intent);

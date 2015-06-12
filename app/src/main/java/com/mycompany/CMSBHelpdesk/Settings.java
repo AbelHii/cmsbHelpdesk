@@ -40,9 +40,11 @@ import java.util.concurrent.ExecutionException;
 public class Settings extends ActionBarActivity {
 
     protected Button mSettingsBtn;
-    public String username, password, server;
+    public String username, password, server, loginID;
     //Login class "AttemptLogin" and "JSONParser" is from mrbool.com
-    private EditText user, pass, ip;
+    private EditText user;
+    private EditText pass;
+    private static EditText ip;
     int success;
     public static int newLogin;
 
@@ -138,6 +140,7 @@ public class Settings extends ActionBarActivity {
     public static boolean hasInternetConnection(Context context) {
         if (isNetworkConnected(context)) {
             try {
+                //TODO: change the url it checks
                 HttpURLConnection urlc = (HttpURLConnection) (new URL("http://www.google.com").openConnection());
                 urlc.setRequestProperty("User-Agent", "Test");
                 urlc.setRequestProperty("Connection", "close");
@@ -171,7 +174,6 @@ public class Settings extends ActionBarActivity {
 
         @Override
         protected String doInBackground(String... args) {
-            // TODO Auto-generated method stub
             // here Check for success tag
             String username = user.getText().toString();
             String password = pass.getText().toString();
@@ -198,6 +200,7 @@ public class Settings extends ActionBarActivity {
                     sharedPreference.setString(Settings.this, "login", user.getText().toString());
                     sharedPreference.setString(Settings.this, "pass", pass.getText().toString());
                     sharedPreference.setString(Settings.this, "ip", ip.getText().toString());
+                    sharedPreference.setString(Settings.this, MainActivity.TAG_LOGIN_ID, json.getString("loginID"));
 
                     MainActivity.checker = 0;
                     sharedPreference.setInt(Settings.this, "checker", MainActivity.checker);
@@ -253,7 +256,7 @@ public class Settings extends ActionBarActivity {
                         new AttemptLogin().execute();
                         success = sharedPreference.getInt(Settings.this, "success");
                         if (success == 1) {
-                            mSettingsBtn.setTextColor(Color.parseColor("#12af83"));
+                            mSettingsBtn.setBackgroundResource(R.drawable.on_btn_click);
                         }else if (success == 0) {
                             error();
                         }

@@ -11,17 +11,12 @@ import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.Spinner;
@@ -42,13 +37,12 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Locale;
 
 public class AddCase extends ActionBarActivity {
 
     public Button mUser;
     private Spinner mStatus;
-    private String id, name, username, description,actionT, assigneeID, statusID, caseID, company, email, telephone, sync = "", id_user;
+    private String id = "0", name, username, description,actionT, assigneeID, statusID, caseID, company, email, telephone, sync = "", id_user;
     private Button maddCBtn, mSubmit;
     private TextView mAssignee, mCompany, mEmail, mTel;
     private TextView mActionTaken, mDesc;
@@ -186,45 +180,10 @@ public class AddCase extends ActionBarActivity {
                 startActivityForResult(intent, 3);
             }
         });
-        mUser.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View view, MotionEvent motionEvent) {
-                if(motionEvent.getAction() == motionEvent.ACTION_DOWN) {
-                    mUser.setBackgroundColor(Color.parseColor("#CCCCCC"));
-                }
-                else if(motionEvent.getAction() == motionEvent.ACTION_UP){
-                    //mUser.removeCallbacks((Runnable) mUser);
-                    mUser.setBackgroundColor(Color.parseColor("#DDDDDD"));
-                }
-                return false;
-            }
-        });
-        mDesc.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View view, MotionEvent motionEvent) {
-                if(motionEvent.getAction() == motionEvent.ACTION_DOWN) {
-                    mDesc.setBackgroundColor(Color.parseColor("#CCCCCC"));
-                }
-                else if(motionEvent.getAction() == motionEvent.ACTION_UP){
-                    //mUser.removeCallbacks((Runnable) mUser);
-                    mDesc.setBackgroundColor(Color.parseColor("#DDDDDD"));
-                }
-                return false;
-            }
-        });
-        mActionTaken.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View view, MotionEvent motionEvent) {
-                if(motionEvent.getAction() == motionEvent.ACTION_DOWN) {
-                    mActionTaken.setBackgroundColor(Color.parseColor("#CCCCCC"));
-                }
-                else if(motionEvent.getAction() == motionEvent.ACTION_UP){
-                    //mUser.removeCallbacks((Runnable) mUser);
-                    mActionTaken.setBackgroundColor(Color.parseColor("#DDDDDD"));
-                }
-                return false;
-            }
-        });
+        mUser.setBackgroundResource(R.drawable.on_btn_click2);
+        mDesc.setBackgroundResource(R.drawable.on_btn_click);
+        mActionTaken.setBackgroundResource(R.drawable.on_btn_click);
+        mStatus.setBackgroundResource(R.drawable.on_btn_click2);
         mDesc.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -241,19 +200,6 @@ public class AddCase extends ActionBarActivity {
                 intent.putExtra("text", mActionTaken.getText().toString());
                 intent.putExtra("mType", "actionT");
                 startActivityForResult(intent, 2);
-            }
-        });
-        mStatus.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View view, MotionEvent motionEvent) {
-                if(motionEvent.getAction() == motionEvent.ACTION_DOWN) {
-                    mStatus.setBackgroundColor(Color.parseColor("#CBCBCB"));
-                }
-                else if(motionEvent.getAction() == motionEvent.ACTION_UP){
-                    //mUser.removeCallbacks((Runnable) mUser);
-                    mStatus.setBackgroundColor(Color.parseColor("#E4E4E4"));
-                }
-                return false;
             }
         });
         //Submit button
@@ -565,7 +511,7 @@ public class AddCase extends ActionBarActivity {
 
             //getID parameters: (tablename, idname, compare to string, columnName, columnNumber)
             //everything can be found in the DBController.java
-            String user_id = id_user;
+            String user_id = userControl.getID("users", "userId", mUser.getText().toString(), MainActivity.TAG_NAME, 0);
             String description = mDesc.getText().toString();
             String actionTaken = mActionTaken.getText().toString();
             String status = String.valueOf(mStatus.getSelectedItemPosition() + 1);
