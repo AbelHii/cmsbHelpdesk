@@ -5,340 +5,327 @@
     android:layout_height="fill_parent"
     android:layout_width="fill_parent">
 
-        <TabHost
+    <TabHost
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:id="@+id/tabHost"
+        tools:context=".AddCase">
+
+        <LinearLayout
             android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
-            android:id="@+id/tabHost"
-            tools:context=".AddCase">
+            android:layout_height="match_parent"
+            android:orientation="vertical">
 
-            <LinearLayout
-                android:layout_width="fill_parent"
-                android:layout_height="match_parent"
-                android:orientation="vertical">
-
-                <TabWidget
-                    android:id="@android:id/tabs"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    ></TabWidget>
-
-                <FrameLayout
-                    android:id="@android:id/tabcontent"
-                    android:layout_width="fill_parent"
-                    android:layout_height="fill_parent">
-
-                    <RelativeLayout
-                        android:id="@+id/contactInfo"
-                        android:layout_height="fill_parent"
-                        android:layout_width="fill_parent"
-                        android:orientation="vertical"
-                        android:padding="10dp"
-                        android:layout_marginTop="10dp">
-
-                        <!--Name:-->
-                        <TextView
-                            android:id="@+id/nameLabel"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_alignParentTop="true"
-                            android:text="@string/name"
-                            android:textSize="20sp"
-                            android:textColor="#333"
-                            android:layout_marginTop="10dp"
-                            android:layout_marginBottom="10dp"
-                            android:padding="10dp"/>
-                        <!--<AutoCompleteTextView
-                            android:layout_width="fill_parent"
-                            android:layout_height="wrap_content"
-                            android:id="@+id/spinnerNames"
-                            android:prompt="@string/spinner_title"
-                            android:hint="@string/spinner_title"
-                            android:entries="@array/nameList"
-                            android:singleLine="true"
-                            android:textSize="17sp"
-                            android:layout_margin="5dp"
-                            android:completionThreshold="1"
-                            android:dropDownHeight="150dp"
-                            android:inputType="textAutoComplete"/>-->
-                        <Button
-                            android:layout_height="wrap_content"
-                            android:layout_width="match_parent"
-                            android:layout_toRightOf="@+id/nameLabel"
-                            android:id="@+id/spinnerNames"
-                            android:hint="@string/spinner_title"
-                            android:textColorHint="#999999"
-                            android:gravity="start|center_vertical"
-                            android:singleLine="true"
-                            android:textSize="17sp"
-                            android:background="#ddd"
-                            android:layout_marginLeft="26dp"
-                            android:layout_marginTop="10dp"
-                            android:layout_marginBottom="10dp"
-                            android:padding="10dp"
-                            />
-
-                        <TextView
-                            android:layout_width="fill_parent"
-                            android:layout_height="1dip"
-                            android:background="#ddd"
-                            android:layout_below="@+id/spinnerNames"
-                            android:padding="10dp"/>
-
-                        <!--Company:-->
-                        <TextView
-                            android:id="@+id/compLabel"
-                            android:layout_below="@+id/spinnerNames"
-                            android:text="@string/company"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:textSize="20sp"
-                            android:textColor="#333"
-                            android:padding="10dp"
-                            /><TextView
-                            android:id="@+id/company"
-                            android:layout_below="@+id/spinnerNames"
-                            android:layout_toRightOf="@+id/compLabel"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:textSize="17sp"
-                            android:padding="15dp"/>
-
-                        <TextView
-                            android:layout_width="fill_parent"
-                            android:layout_height="1dip"
-                            android:background="#ddd"
-                            android:layout_below="@+id/compLabel"
-                            android:padding="10dp"/>
-
-                        <!--Email:-->
-                        <TextView
-                            android:id="@+id/emailLabel"
-                            android:layout_below="@+id/compLabel"
-                            android:text="@string/email"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:textSize="20sp"
-                            android:textColor="#333"
-                            android:padding="10dp"
-                            /><TextView
-                            android:id="@+id/email"
-                            android:layout_below="@+id/compLabel"
-                            android:layout_toRightOf="@+id/emailLabel"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:textSize="17sp"
-                            android:padding="15dp"
-                            android:layout_marginLeft="33dp"/>
-
-                        <TextView
-                            android:layout_width="fill_parent"
-                            android:layout_height="1dip"
-                            android:background="#ddd"
-                            android:layout_below="@+id/emailLabel"
-                            android:padding="10dp"/>
-
-                        <!--Tel:-->
-                        <TextView
-                            android:id="@+id/telLabel"
-                            android:layout_below="@+id/emailLabel"
-                            android:text="@string/tel"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:textSize="20sp"
-                            android:textColor="#333"
-                            android:padding="10dp"
-                            /><TextView
-                            android:id="@+id/tel"
-                            android:layout_below="@+id/emailLabel"
-                            android:layout_toRightOf="@+id/telLabel"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:textSize="17sp"
-                            android:padding="15dp"
-                            android:layout_marginLeft="53dp"/>
-
-                        <TextView
-                            android:layout_width="fill_parent"
-                            android:layout_height="1dip"
-                            android:background="#ddd"
-                            android:layout_below="@+id/telLabel"
-                            android:padding="10dp"/>
-
-                        <!--Add New Contact Button:-->
-                        <!--<Button
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:id="@+id/addContactBtn"
-                            android:text="@string/add_contact"
-                            android:textSize="15sp"
-                            android:layout_margin="5dp"/>-->
-                    </RelativeLayout>
-
-                    <LinearLayout
-                        android:id="@+id/caseParticulars"
-                        android:layout_width="fill_parent"
-                        android:layout_height="fill_parent"
-                        android:orientation="vertical"
-                        android:layout_margin="15dp">
-
-                        <RelativeLayout
-                            android:layout_width="fill_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="10dp"
-                            android:layout_marginBottom="10dp">
-
-                            <!--Assignee-->
-                            <TextView
-                                android:layout_alignParentTop="true"
-                                android:id="@+id/assigneeLabel"
-                                android:text="@string/assignee"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:textSize="20sp"
-                                android:textColor="#333"
-                                android:paddingTop="10dp"
-                                android:paddingBottom="10dp"
-                                android:paddingRight="10dp"/>
-                            <TextView
-                                android:id = "@+id/assigneeName"
-                                android:text="@string/assignee"
-                                android:layout_toRightOf="@+id/assigneeLabel"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:textSize="19sp"
-                                android:textColor="#000099"
-                                android:padding="10dp"/>
-
-                            <TextView
-                                android:id="@+id/divider"
-                                android:layout_width="fill_parent"
-                                android:layout_height="1dip"
-                                android:background="#ddd"
-                                android:layout_below="@+id/assigneeLabel"
-                                android:padding="10dp"/>
-                        <!--Status-->
-
-                            <TextView
-                                android:id="@+id/statusLabel"
-                                android:text="@string/status"
-                                android:layout_below="@+id/assigneeLabel"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:textSize="20sp"
-                                android:textColor="#333"
-                                android:paddingTop="10dp"
-                                android:paddingBottom="7dp"
-                                android:paddingRight="10dp"
-                                android:layout_marginTop="10dp"/>
-                            <Spinner
-                                android:layout_below="@+id/divider"
-                                android:layout_toRightOf="@+id/statusLabel"
-                                android:id ="@+id/spinnerStatus"
-                                android:layout_width="fill_parent"
-                                android:layout_height="40dp"
-                                android:entries="@array/status"
-                                android:singleLine="true"
-                                android:textSize="20sp"
-                                android:background="#E4E4E4"
-                                android:padding="10dp"
-                                android:layout_marginTop="10dp"
-                                android:layout_marginLeft="13dp"
-                                />
-                            <ImageView
-                                android:layout_below="@+id/assigneeLabel"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:src="@drawable/spinner_arrow"
-                                android:layout_alignParentRight="true"
-                                android:layout_marginTop="10dp"
-                                android:padding="3dp"/>
-                        </RelativeLayout>
-
-                        <TextView
-                            android:layout_width="fill_parent"
-                            android:layout_height="1dip"
-                            android:background="#ccc"
-                            android:padding="10dp"/>
-
-                        <TextView
-                            android:id="@+id/caseDescLabel"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/case_desc"
-                            android:textSize="19sp"
-                            android:layout_marginTop="30dp"
-                            android:textColor="#333"/>
-
-                            <TextView
-                                android:id="@+id/caseDesc"
-                                android:gravity="top|left"
-                                android:padding="5dp"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:inputType="textCapSentences|textMultiLine"
-                                android:hint="@string/case_desc"
-                                android:textColorHint="#999999"
-                                android:lines="3"
-                                android:maxLength="400"
-                                android:background="#ddd"
-                                android:textColor="#333"
-                                android:textSize="17sp"/>
-
-                        <TextView
-                            android:layout_width="fill_parent"
-                            android:layout_height="1dip"
-                            android:background="#ddd"
-                            android:layout_margin="10dp"/>
-
-                        <!--Action Taken-->
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/action_taken"
-                            android:textSize="19sp"
-                            android:textColor="#333"/>
-
-                            <TextView
-                                android:id="@+id/actionTaken"
-                                android:gravity="top|left"
-                                android:padding="5dp"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:inputType="textCapSentences|textMultiLine"
-                                android:hint="@string/action_taken"
-                                android:textColorHint="#999999"
-                                android:lines="3"
-                                android:maxLength="400"
-                                android:background="#ddd"
-                                android:textColor="#333"
-                                android:textSize="17sp"/>
-
-                    </LinearLayout>
-
-
-                </FrameLayout>
-            </LinearLayout>
-        </TabHost>
-
-
-        <RelativeLayout
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            tools:context=".MainActivity"
-            android:layout_margin="10dp"
-            android:gravity="center_horizontal"
-            android:layout_alignParentBottom="true">
-
-            <Button
+            <TabWidget
+                android:id="@android:id/tabs"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_alignParentBottom="true"
-                android:text="@string/submit"
-                android:textSize="20sp"
-                android:textAllCaps="true"
-                android:id ="@+id/submitBtn"
-                android:padding="20dp"
-                android:layout_margin="10dp"/>
+                ></TabWidget>
 
-        </RelativeLayout>
+            <FrameLayout
+                android:id="@android:id/tabcontent"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent">
+
+                <RelativeLayout
+                    android:id="@+id/contactInfo"
+                    android:layout_height="fill_parent"
+                    android:layout_width="fill_parent"
+                    android:orientation="vertical"
+                    android:padding="10dp"
+                    android:layout_marginTop="10dp">
+
+                    <!--Name:-->
+                    <TextView
+                        android:id="@+id/nameLabel"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentTop="true"
+                        android:text="@string/name"
+                        android:textSize="20sp"
+                        android:textColor="#333"
+                        android:layout_marginTop="10dp"
+                        android:layout_marginBottom="10dp"
+                        android:padding="10dp"/>
+                    <Button
+                        android:layout_height="wrap_content"
+                        android:layout_width="match_parent"
+                        android:layout_toRightOf="@+id/nameLabel"
+                        android:id="@+id/spinnerNames"
+                        android:hint="@string/spinner_title"
+                        android:textColorHint="#999999"
+                        android:gravity="start|center_vertical"
+                        android:singleLine="true"
+                        android:textSize="17sp"
+                        android:background="#ddd"
+                        android:layout_marginLeft="26dp"
+                        android:layout_marginTop="10dp"
+                        android:layout_marginBottom="10dp"
+                        android:padding="10dp"
+                        />
+
+                    <TextView
+                        android:layout_width="fill_parent"
+                        android:layout_height="1dip"
+                        android:background="#ddd"
+                        android:layout_below="@+id/spinnerNames"
+                        android:padding="10dp"/>
+
+                    <!--Company:-->
+                    <TextView
+                        android:id="@+id/compLabel"
+                        android:layout_below="@+id/spinnerNames"
+                        android:text="@string/company"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="20sp"
+                        android:textColor="#333"
+                        android:padding="10dp"
+                        /><TextView
+                    android:id="@+id/company"
+                    android:layout_below="@+id/spinnerNames"
+                    android:layout_toRightOf="@+id/compLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="17sp"
+                    android:padding="15dp"/>
+
+                    <TextView
+                        android:layout_width="fill_parent"
+                        android:layout_height="1dip"
+                        android:background="#ddd"
+                        android:layout_below="@+id/compLabel"
+                        android:padding="10dp"/>
+
+                    <!--Email:-->
+                    <TextView
+                        android:id="@+id/emailLabel"
+                        android:layout_below="@+id/compLabel"
+                        android:text="@string/email"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="20sp"
+                        android:textColor="#333"
+                        android:padding="10dp"
+                        /><TextView
+                    android:id="@+id/email"
+                    android:layout_below="@+id/compLabel"
+                    android:layout_toRightOf="@+id/emailLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="17sp"
+                    android:padding="15dp"
+                    android:layout_marginLeft="33dp"/>
+
+                    <TextView
+                        android:layout_width="fill_parent"
+                        android:layout_height="1dip"
+                        android:background="#ddd"
+                        android:layout_below="@+id/emailLabel"
+                        android:padding="10dp"/>
+
+                    <!--Tel:-->
+                    <TextView
+                        android:id="@+id/telLabel"
+                        android:layout_below="@+id/emailLabel"
+                        android:text="@string/tel"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="20sp"
+                        android:textColor="#333"
+                        android:padding="10dp"
+                        /><TextView
+                    android:id="@+id/tel"
+                    android:layout_below="@+id/emailLabel"
+                    android:layout_toRightOf="@+id/telLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="17sp"
+                    android:padding="15dp"
+                    android:layout_marginLeft="53dp"/>
+
+                    <TextView
+                        android:layout_width="fill_parent"
+                        android:layout_height="1dip"
+                        android:background="#ddd"
+                        android:layout_below="@+id/telLabel"
+                        android:padding="10dp"/>
+
+                    <!--Add New Contact Button:-->
+                    <!--<Button
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:id="@+id/addContactBtn"
+                        android:text="@string/add_contact"
+                        android:textSize="15sp"
+                        android:layout_margin="5dp"/>-->
+                </RelativeLayout>
+
+                <LinearLayout
+                    android:id="@+id/caseParticulars"
+                    android:layout_width="fill_parent"
+                    android:layout_height="fill_parent"
+                    android:orientation="vertical"
+                    android:layout_margin="15dp">
+
+                    <RelativeLayout
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:layout_marginBottom="10dp">
+
+                        <!--Assignee-->
+                        <TextView
+                            android:layout_alignParentTop="true"
+                            android:id="@+id/assigneeLabel"
+                            android:text="@string/assignee"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="20sp"
+                            android:textColor="#333"
+                            android:paddingTop="10dp"
+                            android:paddingBottom="10dp"
+                            android:paddingRight="10dp"/>
+                        <TextView
+                            android:id = "@+id/assigneeName"
+                            android:text="@string/assignee"
+                            android:layout_toRightOf="@+id/assigneeLabel"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="19sp"
+                            android:textColor="#000099"
+                            android:padding="10dp"/>
+
+                        <TextView
+                            android:id="@+id/divider"
+                            android:layout_width="fill_parent"
+                            android:layout_height="1dip"
+                            android:background="#ddd"
+                            android:layout_below="@+id/assigneeLabel"
+                            android:padding="10dp"/>
+                        <!--Status-->
+
+                        <TextView
+                            android:id="@+id/statusLabel"
+                            android:text="@string/status"
+                            android:layout_below="@+id/assigneeLabel"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="20sp"
+                            android:textColor="#333"
+                            android:paddingTop="10dp"
+                            android:paddingBottom="7dp"
+                            android:paddingRight="10dp"
+                            android:layout_marginTop="10dp"/>
+                        <Spinner
+                            android:layout_below="@+id/divider"
+                            android:layout_toRightOf="@+id/statusLabel"
+                            android:id ="@+id/spinnerStatus"
+                            android:layout_width="fill_parent"
+                            android:layout_height="40dp"
+                            android:entries="@array/status"
+                            android:singleLine="true"
+                            android:textSize="20sp"
+                            android:background="#E4E4E4"
+                            android:padding="10dp"
+                            android:layout_marginTop="10dp"
+                            android:layout_marginLeft="13dp"
+                            />
+                        <ImageView
+                            android:layout_below="@+id/assigneeLabel"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:src="@drawable/spinner_arrow"
+                            android:layout_alignParentRight="true"
+                            android:layout_marginTop="10dp"
+                            android:padding="3dp"/>
+                    </RelativeLayout>
+
+                    <TextView
+                        android:layout_width="fill_parent"
+                        android:layout_height="1dip"
+                        android:background="#ccc"
+                        android:padding="10dp"/>
+
+                    <TextView
+                        android:id="@+id/caseDescLabel"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/case_desc"
+                        android:textSize="19sp"
+                        android:layout_marginTop="30dp"
+                        android:textColor="#333"/>
+
+                    <TextView
+                        android:id="@+id/caseDesc"
+                        android:gravity="top|left"
+                        android:padding="5dp"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="textCapSentences|textMultiLine"
+                        android:hint="@string/case_desc"
+                        android:textColorHint="#999999"
+                        android:lines="3"
+                        android:maxLength="400"
+                        android:background="#ddd"
+                        android:textColor="#333"
+                        android:textSize="17sp"/>
+
+                    <TextView
+                        android:layout_width="fill_parent"
+                        android:layout_height="1dip"
+                        android:background="#ddd"
+                        android:layout_margin="10dp"/>
+
+                    <!--Action Taken-->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/action_taken"
+                        android:textSize="19sp"
+                        android:textColor="#333"/>
+
+                    <TextView
+                        android:id="@+id/actionTaken"
+                        android:gravity="top|left"
+                        android:padding="5dp"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="textCapSentences|textMultiLine"
+                        android:hint="@string/action_taken"
+                        android:textColorHint="#999999"
+                        android:lines="3"
+                        android:maxLength="400"
+                        android:background="#ddd"
+                        android:textColor="#333"
+                        android:textSize="17sp"/>
+
+                </LinearLayout>
+
+
+            </FrameLayout>
+        </LinearLayout>
+    </TabHost>
+
+
+    <RelativeLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        tools:context=".MainActivity"
+        android:layout_margin="10dp"
+        android:gravity="center_horizontal"
+        android:layout_alignParentBottom="true">
+
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:text="@string/submit"
+            android:textSize="20sp"
+            android:textAllCaps="true"
+            android:id ="@+id/submitBtn"
+            android:padding="20dp"
+            android:layout_margin="10dp"/>
+
+    </RelativeLayout>
 </RelativeLayout>

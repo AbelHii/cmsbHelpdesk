@@ -1,14 +1,16 @@
 package com.mycompany.CMSBHelpdesk;
 
 /**
- * @author Abel Hii
+ * @author Abel Hii 2015
  *
  * SQLite Tutorial from: http://programmerguru.com/android-tutorial/how-to-sync-remote-mysql-db-to-sqlite-on-android/
  *
  */
 
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.net.ConnectivityManager;
@@ -45,8 +47,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import static android.R.drawable.editbox_background;
-
 
 public class MainActivity extends ActionBarActivity implements SwipeRefreshLayout.OnRefreshListener {
 
@@ -56,7 +56,8 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
     private CaseListAdapter adapter;
     public static int checker;
     public static String checkLog;
-
+    ArrayList<HashMap<String,String>> casemap;
+    ArrayList<String> syncColumn;
     //Variables for sync
     private String nameId = "", caseID ="", username="", mDescription="",actionT="", assigneeID="", statusID="", sync="";
 
@@ -145,10 +146,14 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
             if (checker == 0 || checker < 0 || Settings.newLogin == 100) {
                 //check if connected to internet or not
                 if (isNetworkConnected()) {
-                    onRefresh();
+                    new getCases().execute();
+                    pDialog.dismiss();
+                    onListItemClick();
+                    refreshAtTop();
                     Toast.makeText(this, "1", Toast.LENGTH_SHORT).show();
                     userList.check = controller.checkNumRows("users");
                     if (userList.check == 0) {
+                        Toast.makeText(this, "1.5", Toast.LENGTH_SHORT).show();
                         new getUsers().execute();
                     }
                     sharedPreference.setInt(this, "log", 0);
@@ -156,7 +161,7 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
                     swipeLayout.setEnabled(false);
                     //Retrieve previously saved data
                     Toast.makeText(this, "No Internet Connection!" +
-                                    " \n Please Connect to the internet and restart the app",
+                                    "\nPlease Connect to the internet and restart the app",
                             Toast.LENGTH_LONG).show();
                 }
             } else if (isNetworkConnected() && checker > 0) {
@@ -202,17 +207,25 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
-            //Drop old table:
-            controller.refreshCases("cases");
-            //refreshesList
-            refreshList();
-            //refresh and refill SQLite Database
-            new getCases().execute();
-            //getSQLiteList();
-            onListItemClick();
-            refreshAtTop();
+                casemap = controller.getAllCases();
+                syncColumn = returnColumn(casemap);
+                if(isNetworkConnected() && (syncColumn.contains("10") || syncColumn.contains("20"))) {
+                    Toast.makeText(MainActivity.this, "There are cases that need to be synced", Toast.LENGTH_LONG).show();
 
-            swipeLayout.setRefreshing(false);
+                    swipeLayout.setRefreshing(false);
+                }else {
+                    //Drop old table:
+                    controller.refreshCases("cases");
+                    //refreshesList
+                    refreshList();
+                    //refresh and refill SQLite Database
+                    new getCases().execute();
+                    //getSQLiteList();
+                    onListItemClick();
+                    refreshAtTop();
+
+                    swipeLayout.setRefreshing(false);
+                }
             }
         }, 5000);
     }
@@ -272,6 +285,37 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
 
                 //Animation that slides to next activity
                 overridePendingTransition(R.anim.right_to_left, R.anim.left_to_right);
+            }
+        });
+
+        this.getListView().setLongClickable(true);
+        this.getListView().setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            public boolean onItemLongClick(AdapterView<?> parent, View v, int position, long id) {
+                //Do your tasks here
+                AlertDialog.Builder alert = new AlertDialog.Builder(
+                        MainActivity.this);
+                alert.setTitle("Alert!!");
+                alert.setMessage("Are you sure you want to delete this case?");
+                alert.setPositiveButton("Delete", new DialogInterface.OnClickListener() {
+
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        //do your work here
+                        dialog.dismiss();
+
+                    }
+                });
+                alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+
+                        dialog.dismiss();
+                    }
+                });
+
+                alert.show();
+                return true;
             }
         });
     }
@@ -537,67 +581,101 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
 
     /*-------------------------------------#SYNC--------------------------------------------*/
 
+    int count = 0;
     class syncDB extends AsyncTask<String,String,String>{
         @Override
         protected String doInBackground(String... params) {
             int success = 0;
 
             List<NameValuePair> parameters = new ArrayList<NameValuePair>();
-            switch(sync.trim()){
-                case "10":{
-                    SYNC_URL = AddCase.ADD_CASE_URL;
+            for (int i = syncColumn.size()-1; i >= 0; --i) {
+                if (!syncColumn.get(i).equalsIgnoreCase("") && ((syncColumn.contains("10") || syncColumn.contains("20")))) {
+                    caseID = casemap.get(i).get(TAG_ID);//controller.getTableValues("cases", 0).get(i);
+                    username = casemap.get(i).get(TAG_USERNAME);//controller.getTableValues("cases", 3).get(i);
+                    mDescription = casemap.get(i).get(TAG_DESCRIPTION);//controller.getTableValues("cases", 4).get(i);
+                    actionT = casemap.get(i).get(TAG_ACTION_TAKEN);//controller.getTableValues("cases", 5).get(i);
+                    assigneeID = casemap.get(i).get(TAG_LOGIN_ID);//controller.getTableValues("cases", 6).get(i);
+                    statusID = casemap.get(i).get(TAG_STATUS_ID);//controller.getTableValues("cases", 7).get(i);
+                    sync = String.valueOf(syncColumn.get(i));//controller.getTableValues("cases", 8).get(i);
 
-                    //Building Parameters
-                    parameters.add(new BasicNameValuePair("name", nameId));
-                    parameters.add(new BasicNameValuePair("description", mDescription));
-                    parameters.add(new BasicNameValuePair("actiontaken", actionT));
-                    parameters.add(new BasicNameValuePair("assignee", assigneeID));
-                    parameters.add(new BasicNameValuePair("status", statusID));
+                    nameId = controller.getID("users", "userId", username, TAG_NAME, 0);
 
-                    break;
+                    if(sync.equals("10")){
+                        SYNC_URL = AddCase.ADD_CASE_URL;
+
+                        //Building Parameters
+                        parameters.add(new BasicNameValuePair("name", nameId));
+                        parameters.add(new BasicNameValuePair("description", mDescription));
+                        parameters.add(new BasicNameValuePair("actiontaken", actionT));
+                        parameters.add(new BasicNameValuePair("assignee", assigneeID));
+                        parameters.add(new BasicNameValuePair("status", statusID));
+
+                        jsonParser.makeHttpRequest(
+                                SYNC_URL, "POST", parameters);
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                Toast.makeText(MainActivity.this, "Add Sync "+ count++, Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                    }
+                    else if(sync.equals("20")){
+                        SYNC_URL = AddCase.UPDATE_CASE_URL;
+
+                        //Building Parameters
+                        parameters.add(new BasicNameValuePair("id", caseID));
+                        parameters.add(new BasicNameValuePair("user_id", nameId));
+                        parameters.add(new BasicNameValuePair("description", mDescription));
+                        parameters.add(new BasicNameValuePair("actiontaken", actionT));
+                        parameters.add(new BasicNameValuePair("status", statusID));
+
+                        jsonParser.makeHttpRequest(
+                                SYNC_URL, "POST", parameters);
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                Toast.makeText(MainActivity.this, "Update Sync "+ count++, Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                    }
+
                 }
-                case "20":{
-                    SYNC_URL = AddCase.UPDATE_CASE_URL;
-
-                    //Building Parameters
-                    parameters.add(new BasicNameValuePair("id", caseID));
-                    parameters.add(new BasicNameValuePair("user_id", nameId));
-                    parameters.add(new BasicNameValuePair("description", mDescription));
-                    parameters.add(new BasicNameValuePair("actiontaken", actionT));
-                    parameters.add(new BasicNameValuePair("status", statusID));
-
-                    break;
-                }
-                case "":{break;}
             }
-
-            try {
-                Log.d("request!", "starting");
-
-                JSONObject json = jsonParser.makeHttpRequest(
-                        SYNC_URL, "POST", parameters);
-
-                //check log cat for JSON response
-                Log.d("Inserting... ", json.toString());
-
-                //Check for SUCCESS TAG
-                success = json.getInt(TAG_SUCCESS);
-                if (success == 1) {
-                    //check log cat for JSON response
-                    Log.d("Successfully Synced Case: ", json.toString());
-
-                    reloadActivity();
-                    return json.getString(TAG_MESSAGE);
-                } else {
-                    return json.getString(TAG_MESSAGE);
-                }
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-
             return null;
         }
+
+        @Override
+        public void onPostExecute(String result){
+            controller.refreshCases("cases");
+            refreshList();
+            new getCases().execute();
+            refreshAtTop();
+            Toast.makeText(MainActivity.this, "Databases Synced", Toast.LENGTH_SHORT).show();
+        }
     }
+
+    public ArrayList<String> returnColumn(ArrayList<HashMap<String,String>> map){
+        ArrayList<String> ay = new ArrayList<String>();
+        for(int i = 0; i<map.size()-1; i++){
+            ay.add(map.get(i).get(TAG_SYNC));
+        }
+        return ay;
+    }
+    //SYNC METHOD
+    public void synchronise(){
+        casemap = controller.getAllCases();
+        syncColumn = returnColumn(casemap);
+        //"10" is for add case and "20" is for update case:
+        if(isNetworkConnected() && (syncColumn.contains("10") || syncColumn.contains("20"))){
+            new syncDB().execute();
+        }else if(!isNetworkConnected()){
+            Toast.makeText(this, "No Internet Connection", Toast.LENGTH_SHORT).show();
+        }else{
+            Toast.makeText(this, "Databases are in Sync", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+
     //--------------IMPORTANT CODE!-----------------------------------------------------------------------------
     //IMPORTANT NEEDED FOR ACTIVITY TO WORK PROPERLY
     //Below is just the action bar for like settings and stuff
@@ -628,39 +706,7 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
             return true;
         }
         else if(id == R.id.synchronise){
-            ArrayList<String> ay = controller.getTableValues("cases", 8);
-            //"10" is for add case and "20" is for update case:
-            if(isNetworkConnected() && (ay.contains("10") || ay.contains("20"))){
-                for (int i = ay.size()-1; i >= 0; i--) {
-                    if (!ay.get(i).toString().equals("") && ((ay.contains("10") || ay.contains("20")))) {
-                        //Toast.makeText(context, "Sync Databases IN", Toast.LENGTH_SHORT).show();
-                        Toast.makeText(context, ""+i, Toast.LENGTH_SHORT).show();
-                        caseID = controller.getTableValues("cases", 0).get(i);
-                        username = controller.getTableValues("cases", 3).get(i);
-                        mDescription = controller.getTableValues("cases", 4).get(i);
-                        actionT = controller.getTableValues("cases", 5).get(i);
-                        assigneeID = controller.getTableValues("cases", 6).get(i);
-                        statusID = controller.getTableValues("cases", 7).get(i);
-                        sync = controller.getTableValues("cases", 8).get(i);
-
-                        nameId = controller.getID("users", "userId", username, TAG_NAME, 0);
-
-                        controller.updateSyncValue("cases", caseID, "", TAG_SYNC);
-                        new syncDB().execute();
-                    }
-                }
-                //Drop old table:
-                controller.refreshCases("cases");
-                //refresh and refill SQLite Database
-                refreshList();
-                new getCases().execute();
-                refreshAtTop();
-                Toast.makeText(context, "Databases Synced", Toast.LENGTH_SHORT).show();
-            }else if(!isNetworkConnected()){
-                Toast.makeText(context, "Not Connected to the internet", Toast.LENGTH_SHORT).show();
-            }else{
-                Toast.makeText(context, "Databases are in Sync", Toast.LENGTH_SHORT).show();
-            }
+            synchronise();
             return true;
         }
         else if(id == R.id.action_settings){
@@ -684,6 +730,17 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
     /*---------IMPORTANT CODE!----------------------------------------------------------------*/
     //gets Users from MySQL DB
     class getUsers extends AsyncTask<String, String, String> {
+        //Before starting background thread Show Progress Dialog
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            pDialog = new ProgressDialog(MainActivity.this, R.style.MyTheme);
+            pDialog.setProgressStyle(android.R.style.Widget_ProgressBar_Small);
+            pDialog.setCancelable(false);
+            pDialog.show();
+            //MainActivity.this.setProgressBarIndeterminateVisibility(true);
+        }
+
         @Override
         protected String doInBackground(String... params) {
             int success = 0;
@@ -753,6 +810,12 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
                 e.printStackTrace();
             }
             return null;
+        }
+
+        @Override
+        protected void onPostExecute(String result){
+            // dismiss the dialog after getting all users
+            pDialog.dismiss();
         }
     }
 }

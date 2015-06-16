@@ -202,55 +202,58 @@ public class AddCase extends ActionBarActivity {
                 startActivityForResult(intent, 2);
             }
         });
+
         //Submit button
         mSubmit = (Button) findViewById(R.id.submitBtn);
         if(!mUser.getText().toString().trim().equalsIgnoreCase("")){
             mSubmit.setTextAppearance(AddCase.this, R.style.submitButton);
         }
-        mSubmit.setOnClickListener(new View.OnClickListener() {
-            @Override
-        public void onClick(View v) {
-                if(!mUser.getText().toString().trim().equalsIgnoreCase("")) {
-                    mSubmit.setTextAppearance(AddCase.this, R.style.submitButton);
-                    //Logic for adding case:
-                    if (title.trim().equalsIgnoreCase("add Case")) { //ADD
-                        if (isNetworkConnected()) {
-                            id_user = userControl.getID("users", "userId", mUser.getText().toString(), MainActivity.TAG_NAME, 0);
-                            new addCase().execute();
-                            Toast.makeText(AddCase.this, "Added Case", Toast.LENGTH_LONG).show();
-                        } else if (!isNetworkConnected()) {
+        //Don't allow admin to submit or edit cases:
+        if(MainActivity.checkLog.equalsIgnoreCase("admin")){
+        }else {
+            mSubmit.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (!mUser.getText().toString().trim().equalsIgnoreCase("")) {
+                        mSubmit.setTextAppearance(AddCase.this, R.style.submitButton);
+                        //Logic for adding case:
+                        if (title.trim().equalsIgnoreCase("add Case")) { //ADD
+                            if (isNetworkConnected()) {
+                                id_user = userControl.getID("users", "userId", mUser.getText().toString(), MainActivity.TAG_NAME, 0);
+                                new addCase().execute();
+                                Toast.makeText(AddCase.this, "Added Case", Toast.LENGTH_LONG).show();
+                            } else if (!isNetworkConnected()) {
+                                Intent intent = new Intent(context, MainActivity.class);
+                                addCaseSQLite("10");
+                                Toast.makeText(AddCase.this, "Adding Case For Sync ", Toast.LENGTH_LONG).show();
+                                startActivity(intent);
+                                finish();
+                            }
+                            //Logic for editing case:
+                        } else if (title.trim().equalsIgnoreCase("edit Case")) { //EDIT
                             Intent intent = new Intent(context, MainActivity.class);
-                            addCaseSQLite("10");
-                            Toast.makeText(AddCase.this, "Adding Case For Sync ", Toast.LENGTH_LONG).show();
-                            startActivity(intent);
-                            finish();
+                            if (isNetworkConnected()) {
+                                new updateCase().execute();
+                                Toast.makeText(AddCase.this, "Updated Case", Toast.LENGTH_LONG).show();
+                            } else if (!isNetworkConnected() && sync.equals("10")) {
+                                updateCaseSQLite("10");
+                                Toast.makeText(AddCase.this, "Adding Case For Sync", Toast.LENGTH_LONG).show();
+                                startActivity(intent);
+                                finish();
+                            } else if (!isNetworkConnected() && (sync.equals("") || sync.equals("20"))) {
+                                updateCaseSQLite("20");
+                                Toast.makeText(AddCase.this, "Updating Case For Sync", Toast.LENGTH_LONG).show();
+                                startActivity(intent);
+                                finish();
+                            }
                         }
-                        //Logic for editing case:
-                    } else if (title.trim().equalsIgnoreCase("edit Case")) { //EDIT
-                        Intent intent = new Intent(context, MainActivity.class);
-                        if (isNetworkConnected()) {
-                            new updateCase().execute();
-                            Toast.makeText(AddCase.this, "Updated Case", Toast.LENGTH_LONG).show();
-                        } else if (!isNetworkConnected() && sync.equals("10")) {
-                            updateCaseSQLite("10");
-                            Toast.makeText(AddCase.this, "Adding Case For Sync", Toast.LENGTH_LONG).show();
-                            startActivity(intent);
-                            finish();
-                        } else if(!isNetworkConnected() && (sync.equals("") || sync.equals("20"))){
-                            updateCaseSQLite("20");
-                            Toast.makeText(AddCase.this, "Updating Case For Sync", Toast.LENGTH_LONG).show();
-                            startActivity(intent);
-                            finish();
-                        }
+                    } else {
+                        mSubmit.setTextColor(Color.parseColor("#CC0000"));
+                        Toast.makeText(AddCase.this, "Name is Empty", Toast.LENGTH_SHORT).show();
                     }
                 }
-                else{
-                    mSubmit.setTextColor(Color.parseColor("#CC0000"));
-                    Toast.makeText(AddCase.this, "Name is Empty", Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
-
+            });
+        }
     }
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {

@@ -158,10 +158,6 @@ public class Settings extends ActionBarActivity {
 
 
     class AttemptLogin extends AsyncTask<String, String, String> {
-
-        //Before starting background thread Show Progress Dialog
-        boolean failure = false;
-
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
@@ -222,10 +218,11 @@ public class Settings extends ActionBarActivity {
         }
 
         //Once the background process is done we need to  Dismiss the progress dialog asap
+        @Override
         protected void onPostExecute(String message) {
             pDialog.dismiss();
             if (message != null){
-                Toast.makeText(Settings.this, message, Toast.LENGTH_LONG).show();
+                Toast.makeText(Settings.this, message, Toast.LENGTH_SHORT).show();
             }
         }
     }
@@ -253,15 +250,14 @@ public class Settings extends ActionBarActivity {
 
                     LOGIN_URL = "http://" + ip.getText().toString() + "/chd/public/app/login.php";
                     if(connectionCheck()) {
-                        new AttemptLogin().execute();
-                        success = sharedPreference.getInt(Settings.this, "success");
-                        if (success == 1) {
-                            mSettingsBtn.setBackgroundResource(R.drawable.on_btn_click);
-                        }else if (success == 0) {
-                            error();
-                        }
-
                         sharedPreference.setInt(Settings.this, "log", 100);
+                        //to close the keyboard when going ot mainActivity:
+                        InputMethodManager imm = (InputMethodManager)getSystemService(
+                                Context.INPUT_METHOD_SERVICE);
+                        imm.hideSoftInputFromWindow(user.getWindowToken(), 0);
+                        imm.hideSoftInputFromWindow(pass.getWindowToken(), 0);
+                        imm.hideSoftInputFromWindow(ip.getWindowToken(), 0);
+                        new AttemptLogin().execute();
                     }
                     else{
                         new AlertDialog.Builder(context)
