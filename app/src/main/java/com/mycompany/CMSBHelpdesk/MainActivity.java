@@ -7,12 +7,11 @@ package com.mycompany.CMSBHelpdesk;
  *
  */
 
-import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
@@ -36,6 +35,7 @@ import android.widget.Toast;
 import com.mycompany.CMSBHelpdesk.helpers.DBController;
 import com.mycompany.CMSBHelpdesk.helpers.JSONParser;
 import com.mycompany.CMSBHelpdesk.helpers.sharedPreference;
+import com.mycompany.CMSBHelpdesk.objects.Case;
 
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
@@ -102,11 +102,18 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
     public static final String TAG_EMAIL = "email";
     public static final String TAG_TELEPHONE = "telephone";
 
+    public static String colorAB = "#EDBD00";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        //set actionbar colour and remove shadow
+        android.support.v7.app.ActionBar bar = getSupportActionBar();
+        bar.setElevation(0);
+        bar.setBackgroundDrawable(new ColorDrawable(Color.parseColor(colorAB)));
+
         checkLog = sharedPreference.getString(this, "login");
         TAG_IP = sharedPreference.getString(this, "ip");
         String ending = "'s Cases";
@@ -284,38 +291,7 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
                 startActivity(intent);
 
                 //Animation that slides to next activity
-                overridePendingTransition(R.anim.right_to_left, R.anim.left_to_right);
-            }
-        });
-
-        this.getListView().setLongClickable(true);
-        this.getListView().setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-            public boolean onItemLongClick(AdapterView<?> parent, View v, int position, long id) {
-                //Do your tasks here
-                AlertDialog.Builder alert = new AlertDialog.Builder(
-                        MainActivity.this);
-                alert.setTitle("Alert!!");
-                alert.setMessage("Are you sure you want to delete this case?");
-                alert.setPositiveButton("Delete", new DialogInterface.OnClickListener() {
-
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        //do your work here
-                        dialog.dismiss();
-
-                    }
-                });
-                alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-
-                        dialog.dismiss();
-                    }
-                });
-
-                alert.show();
-                return true;
+                overridePendingTransition(R.anim.slide_out_left, R.anim.slide_in_right);
             }
         });
     }
@@ -392,7 +368,7 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
                     mStatus.setText(c.getStatus());
                     switch(c.getStatus()){
                         case "Not Started":
-                            mStatus.setTextColor(Color.parseColor("#ff0000"));
+                            mStatus.setTextColor(Color.parseColor("#cc0000"));
                             //mStatus.setBackgroundColor(Color.parseColor("#ff0000"));
                             break;
                         case "In Progress":
@@ -400,7 +376,7 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
                             //mStatus.setBackgroundColor(Color.parseColor("#12af83"));
                             break;
                         case "Waiting for Vendor":
-                            mStatus.setTextColor(Color.parseColor("#aaaf83"));
+                            mStatus.setTextColor(Color.parseColor("#ddbb00"));
                             //mStatus.setBackgroundColor(Color.parseColor("#aaaf83"));
                             break;
                         case "Differed":
@@ -656,7 +632,7 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
 
     public ArrayList<String> returnColumn(ArrayList<HashMap<String,String>> map){
         ArrayList<String> ay = new ArrayList<String>();
-        for(int i = 0; i<map.size()-1; i++){
+        for(int i = 0; i<map.size(); i++){
             ay.add(map.get(i).get(TAG_SYNC));
         }
         return ay;
@@ -703,6 +679,8 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
             Intent intent = new Intent(context, AddCase.class);
             intent.putExtra("caller", "addCase");
             startActivity(intent);
+            //Animation that slides to next activity
+            overridePendingTransition(R.anim.slide_out_left, R.anim.slide_in_right);
             return true;
         }
         else if(id == R.id.synchronise){
@@ -712,6 +690,7 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
         else if(id == R.id.action_settings){
             Intent intent = new Intent(context, Settings.class);
             startActivity(intent);
+            overridePendingTransition(R.anim.abc_slide_in_top, R.anim.abc_slide_out_bottom);
             return true;
         }
         /**else if(id == R.id.log_out) {

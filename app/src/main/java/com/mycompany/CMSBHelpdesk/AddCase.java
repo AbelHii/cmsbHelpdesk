@@ -6,21 +6,28 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.ColorDrawable;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBarActivity;
+import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
+import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.View;
-import android.view.inputmethod.InputMethodManager;
+import android.widget.AbsoluteLayout;
+import android.widget.AdapterView;
 import android.widget.Button;
+import android.widget.ImageButton;
+import android.widget.PopupWindow;
+import android.widget.Scroller;
 import android.widget.Spinner;
-import android.widget.TabHost;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -41,10 +48,11 @@ import java.util.List;
 public class AddCase extends ActionBarActivity {
 
     public Button mUser;
+    public ImageButton mInfo;
     private Spinner mStatus;
-    private String id = "0", name, username, description,actionT, assigneeID, statusID, caseID, company, email, telephone, sync = "", id_user;
+    private String id = "0", name, username = "", description,actionT, assigneeID, statusID, caseID, company, email, telephone, sync = "", id_user;
     private Button maddCBtn, mSubmit;
-    private TextView mAssignee, mCompany, mEmail, mTel;
+    private TextView mIDCase, mContactName, mAssignee, mCompany, mEmail, mTel;
     private TextView mActionTaken, mDesc;
     private SharedPreferences sp;
     private SharedPreferences.Editor e;
@@ -62,16 +70,21 @@ public class AddCase extends ActionBarActivity {
     //DB stuff:
     // JSON parser class
     JSONParser jsonParser = new JSONParser();
-    // cases JSONArray
-    JSONArray cases = null;
 
     private ProgressDialog pDialog;
-    public static final String ADD_CASE_URL = "http://"+ MainActivity.TAG_IP +"/chd/public/app/AddCase.php";
-    public static final String UPDATE_CASE_URL = "http://"+ MainActivity.TAG_IP +"/chd/public/app/UpdateCase.php";
+    public static String ADD_CASE_URL = "http://"+ MainActivity.TAG_IP +"/chd/public/app/AddCase.php";
+    public static String UPDATE_CASE_URL = "http://"+ MainActivity.TAG_IP +"/chd/public/app/UpdateCase.php";
     /*----------------------------ON CREATE--------------------------------------------------------*/
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        //set actionbar colour
+        android.support.v7.app.ActionBar bar = getSupportActionBar();
+        bar.setBackgroundDrawable(new ColorDrawable(Color.parseColor(MainActivity.colorAB)));
+
+        //Default Back Button
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         setContentView(R.layout.activity_add_case);
         setTitle(title);
 
@@ -88,9 +101,7 @@ public class AddCase extends ActionBarActivity {
                     break;
                 case "addcase":
                     setTitle(title);
-                    //Setting Assignee name
-                    String checkLog = sharedPreference.getString(this, "login");
-                    mAssignee.setText(checkLog.substring(0, 1).toUpperCase() + checkLog.substring(1));
+                    mIDCase.setText(String.valueOf(Integer.parseInt(id)+1));
                     break;
             }
         }
@@ -101,16 +112,24 @@ public class AddCase extends ActionBarActivity {
 
     //----------------------------------------INITIALISE-------------------------------------------------------------------
     private void initialise(){
+        MainActivity.checkLog = sharedPreference.getString(this, "login");
+        MainActivity.TAG_IP = sharedPreference.getString(this, "ip");
+        ADD_CASE_URL = "http://"+ MainActivity.TAG_IP +"/chd/public/app/AddCase.php";
+        UPDATE_CASE_URL = "http://"+ MainActivity.TAG_IP +"/chd/public/app/UpdateCase.php";
         //SharedPreference initialisation to save things:
         sp = PreferenceManager.getDefaultSharedPreferences(this);
         e = sp.edit();
 
         mUser = (Button) findViewById(R.id.spinnerNames);//(AutoCompleteTextView) findViewById(R.id.spinnerNames);
+        mInfo = (ImageButton) findViewById(R.id.moreInfo);
         mStatus = (Spinner) findViewById(R.id.spinnerStatus);
+
+        mIDCase = (TextView) findViewById(R.id.IDCase);
+        mContactName = (TextView) findViewById(R.id.contactName);
         mCompany = (TextView)findViewById(R.id.company);
         mEmail = (TextView) findViewById(R.id.email);
         mTel = (TextView)findViewById(R.id.tel);
-        mAssignee = (TextView) findViewById((R.id.assigneeName));
+        //mAssignee = (TextView) findViewById((R.id.assigneeName));
 
         mDesc = (TextView)findViewById (R.id.caseDesc);
         mActionTaken = (TextView) findViewById (R.id.actionTaken);
@@ -119,35 +138,6 @@ public class AddCase extends ActionBarActivity {
         id = sharedPreference.getString(AddCase.this, MainActivity.TAG_ID);
         assigneeID = sharedPreference.getString(AddCase.this, MainActivity.TAG_LOGIN_ID);
 
-
-        final TabHost tabHost = (TabHost) findViewById(R.id.tabHost);
-        tabHost.setup();
-
-        TabHost.TabSpec tabSpec = tabHost.newTabSpec("form");
-        tabSpec.setContent(R.id.contactInfo);
-        tabSpec.setIndicator("Contact Info");
-        tabHost.addTab(tabSpec);
-
-        tabSpec = tabHost.newTabSpec("form");
-        tabSpec.setContent(R.id.caseParticulars);
-        tabSpec.setIndicator("Case Particulars");
-        tabHost.addTab(tabSpec);
-
-        for(int i=0;i<tabHost.getTabWidget().getChildCount();i++)
-        {
-            if (i == 0) tabHost.getTabWidget().getChildAt(i).setBackgroundColor(Color.parseColor("#EEEEEE"));
-
-            else tabHost.getTabWidget().getChildAt(i).setBackgroundColor(Color.parseColor("#D3C6C6"));
-        }
-        tabHost.setOnTabChangedListener(new TabHost.OnTabChangeListener() {
-            @Override
-            public void onTabChanged(String tabId) {
-                for (int i = 0; i < tabHost.getTabWidget().getChildCount(); i++) {
-                    tabHost.getTabWidget().getChildAt(i).setBackgroundColor(Color.parseColor("#D3C6C6")); //unselected  #7392B5
-                }
-                tabHost.getTabWidget().getChildAt(tabHost.getCurrentTab()).setBackgroundColor(Color.parseColor("#EEEEEE")); // selected
-            }
-        });
     }
 
     //Check if network is connected
@@ -155,17 +145,6 @@ public class AddCase extends ActionBarActivity {
         final ConnectivityManager conMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         final NetworkInfo activeNetwork = conMgr.getActiveNetworkInfo();
         return activeNetwork != null && activeNetwork.isConnectedOrConnecting();// && activeNetwork.getState() == NetworkInfo.State.CONNECTED;
-    }
-
-    //UNUSED: To check if a name exists in the list
-    public boolean nameExists(String name, ArrayList nameList){
-        if(Arrays.asList(nameList).contains(name)) {
-            return true;
-        }else{
-            Toast.makeText(this,
-                "User: " + name + " doesn't exist", Toast.LENGTH_SHORT).show();
-            return false;
-        }
     }
 
     /*--------------------ADD LISTENER TO BUTTON ---------------------------------------------------------*/
@@ -200,6 +179,38 @@ public class AddCase extends ActionBarActivity {
                 intent.putExtra("text", mActionTaken.getText().toString());
                 intent.putExtra("mType", "actionT");
                 startActivityForResult(intent, 2);
+            }
+        });
+        mDesc.setScroller(new Scroller(this));
+        mDesc.setVerticalScrollBarEnabled(true);
+        mDesc.setMovementMethod(new ScrollingMovementMethod());
+
+        mActionTaken.setScroller(new Scroller(this));
+        mActionTaken.setVerticalScrollBarEnabled(true);
+        mActionTaken.setMovementMethod(new ScrollingMovementMethod());
+
+        //popup
+        mInfo.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                LayoutInflater layoutInflater
+                        = (LayoutInflater)getBaseContext()
+                        .getSystemService(LAYOUT_INFLATER_SERVICE);
+                View popupView = layoutInflater.inflate(R.layout.contact_info, null);
+                final PopupWindow popupWindow = new PopupWindow(
+                        popupView,
+                        AbsoluteLayout.LayoutParams.WRAP_CONTENT,
+                        AbsoluteLayout.LayoutParams.WRAP_CONTENT);
+                if(mUser.getText().toString().equals("") || mUser.getText().toString().equals(null)) {
+                }else {
+                    setTexts(popupView);
+                }
+                popupWindow.setAnimationStyle(R.style.popupAnimation);
+                popupWindow.setBackgroundDrawable(new BitmapDrawable());
+                popupWindow.setOutsideTouchable(true);
+                popupWindow.showAtLocation(popupView, Gravity.CENTER, 0, -300);
+
+                //popupWindow.showAsDropDown(mInfo, 50, -100);
             }
         });
 
@@ -285,6 +296,7 @@ public class AddCase extends ActionBarActivity {
     @Override
     public void onBackPressed(){
         this.finish();
+        overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
     }
 
     /*----------------------------------SQLITE EDITS-------------------------------*/
@@ -297,7 +309,6 @@ public class AddCase extends ActionBarActivity {
 
         //insertOneCase(String id, String assignee, String status, String user, String desc, String aT, String logID, String statID)
         userControl.insertOneCase(identification,
-                mAssignee.getText().toString(),
                 mStatus.getSelectedItem().toString(),
                 mUser.getText().toString(),
                 mDesc.getText().toString(),
@@ -313,7 +324,6 @@ public class AddCase extends ActionBarActivity {
         }
 
         userControl.updateOneCase(caseID,
-                mAssignee.getText().toString(),
                 mStatus.getSelectedItem().toString(),
                 mUser.getText().toString(),
                 mDesc.getText().toString(),
@@ -325,6 +335,19 @@ public class AddCase extends ActionBarActivity {
 
 
  /*-----------------------RETRIEVE VALUES FROM MAINACTIVITY AND SET THEM IN ADDCASE------------------*/
+    public void setTexts(View popupView){
+        mContactName = (TextView) popupView.findViewById(R.id.contactName);
+        mCompany = (TextView) popupView.findViewById(R.id.company);
+        mEmail = (TextView) popupView.findViewById(R.id.email);
+        mTel = (TextView) popupView.findViewById(R.id.tel);
+
+        username = mUser.getText().toString();
+        mContactName.setText(username);
+        mCompany.setText(userControl.getUsersData(username).get(0));
+        mEmail.setText(userControl.getUsersData(username).get(1));
+        mTel.setText(userControl.getUsersData(username).get(2));
+    }
+
     //For Edit Case:
     public void retrieve(){
         Bundle bund = getIntent().getExtras();
@@ -332,6 +355,7 @@ public class AddCase extends ActionBarActivity {
         caseID = bund.getString(MainActivity.TAG_ID);
 
         String assignee = bund.getString(MainActivity.TAG_ASSIGNEE);
+        id = bund.getString(MainActivity.TAG_ID);
         description = bund.getString(MainActivity.TAG_DESCRIPTION);
         actionT = bund.getString(MainActivity.TAG_ACTION_TAKEN);
         username = bund.getString(MainActivity.TAG_USERNAME);
@@ -340,33 +364,30 @@ public class AddCase extends ActionBarActivity {
         sync = bund.getString(MainActivity.TAG_SYNC);
 
         //This just sets the static values according to the user
-        mCompany.setText(userControl.getUsersData(username).get(0));
-        mEmail.setText(userControl.getUsersData(username).get(1));
-        mTel.setText(userControl.getUsersData(username).get(2));
+        //SET TEXT
         mUser.setText(username);
         mUser.setTextAppearance(this, R.style.bigFont);
         mDesc.setText(description);
         mActionTaken.setText(actionT);
         mStatus.setSelection(Integer.parseInt(statusID) - 1);
+        mIDCase.setText(id);
 
         id_user = userControl.getID("users", "userId", mUser.getText().toString(), MainActivity.TAG_NAME, 0);
 
-        mAssignee.setText(assignee.substring(0, 1).toUpperCase() + assignee.substring(1));
+        //mAssignee.setText(assignee.substring(0, 1).toUpperCase() + assignee.substring(1));
     }
 
     public void retrieveUserList(Intent data){
         Bundle b = data.getExtras();
 
         name = b.getString(MainActivity.TAG_NAME);
-        company = b.getString(MainActivity.TAG_COMPANY);
-        email = b.getString(MainActivity.TAG_EMAIL);
-        telephone = b.getString(MainActivity.TAG_TELEPHONE);
+        //company = b.getString(MainActivity.TAG_COMPANY);
+        //email = b.getString(MainActivity.TAG_EMAIL);
+        //telephone = b.getString(MainActivity.TAG_TELEPHONE);
 
+        //SET TEXT
         mUser.setText(name);
         mUser.setTextAppearance(this, R.style.bigFont);
-        mCompany.setText(company);
-        mEmail.setText(email);
-        mTel.setText(telephone);
     }
 
     //-----------------------------------IMPORTANT CODE!---------------------------------------------------
@@ -390,6 +411,7 @@ public class AddCase extends ActionBarActivity {
         if (id == R.id.action_settings) {
             Intent intent = new Intent(context, Settings.class);
             startActivity(intent);
+            overridePendingTransition(R.anim.abc_slide_in_top, R.anim.abc_slide_out_bottom);
             return true;
         }
         if(id==R.id.mainMenu){
@@ -397,27 +419,16 @@ public class AddCase extends ActionBarActivity {
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             startActivity(intent);
             finish();
+            //Animation that slides to next activity
+            overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
+            return true;
+        }if (id == android.R.id.home) {
+            this.finish();
+            //Animation that slides to next activity
+            overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
             return true;
         }
-        /**if(id == R.id.log_out) {
-            controller.refreshCases("cases");
-            sharedPreference.delete(this);
-            Intent intent = new Intent(context, Settings.class);
-            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-            this.finishAffinity();
-            startActivity(intent);
-            return true;
-        }*/
         return super.onOptionsItemSelected(item);
-    }
-
-    //Closes the keyboard if you tap anywhere else on the screen!!
-    @Override
-    public boolean onTouchEvent(MotionEvent event) {
-        InputMethodManager imm = (InputMethodManager)getSystemService(Context.
-                INPUT_METHOD_SERVICE);
-        imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
-        return true;
     }
 
 /*------------------------------------------ASYNC TASK to connect to MYSQL SB----------------------------------------------------------------------*/

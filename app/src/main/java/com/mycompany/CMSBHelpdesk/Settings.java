@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
@@ -37,9 +38,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
+import yuku.ambilwarna.AmbilWarnaDialog;
+
 public class Settings extends ActionBarActivity {
 
-    protected Button mSettingsBtn;
+    protected Button mSettingsBtn, mChooseColour;
     public String username, password, server, loginID;
     //Login class "AttemptLogin" and "JSONParser" is from mrbool.com
     private EditText user;
@@ -59,11 +62,30 @@ public class Settings extends ActionBarActivity {
     private static final String TAG_MESSAGE = "message";
 
     public static final String LOG_TAG = "Requesting";
-
+    AmbilWarnaDialog dialogColors;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
+
+
+        dialogColors = new AmbilWarnaDialog(this, 16777215,
+                new AmbilWarnaDialog.OnAmbilWarnaListener() {
+                    @Override
+                    public void onCancel(AmbilWarnaDialog ambilWarnaDialog) {
+                        // cancel was selected by the user
+                    }
+
+                    @Override
+                    public void onOk(AmbilWarnaDialog ambilWarnaDialog, int i) {
+                        // color is the color selected by the user.
+                    }
+                });
+
+        //set actionbar colour
+        android.support.v7.app.ActionBar bar = getSupportActionBar();
+        bar.setBackgroundDrawable(new ColorDrawable(Color.parseColor(MainActivity.colorAB)));
+
         //Default Back Button
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
@@ -203,6 +225,7 @@ public class Settings extends ActionBarActivity {
 
                     Intent ii = new Intent(getApplicationContext(), MainActivity.class);
                     startActivity(ii);
+                    overridePendingTransition(R.anim.abc_slide_in_bottom, R.anim.abc_slide_out_top);
                     Settings.this.finish();
                     //this finish() method is used to tell android os that we are done with current
                     // activity now! Moving to other activity
@@ -236,6 +259,14 @@ public class Settings extends ActionBarActivity {
 
         final Context context = this;
 
+        mChooseColour = (Button) findViewById(R.id.choose_colour);
+        mChooseColour.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                dialogColors.show();
+            }
+        });
+
         mSettingsBtn = (Button) findViewById(R.id.settingsBtn);
         mSettingsBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -244,19 +275,21 @@ public class Settings extends ActionBarActivity {
                     Toast.makeText(Settings.this, "Server Field is empty", Toast.LENGTH_SHORT).show();
                     error();
                 }else {
-                    sharedPreference.setString(Settings.this, "username", user.getText().toString());
-                    sharedPreference.setString(Settings.this, "password", pass.getText().toString());
-                    sharedPreference.setString(Settings.this, "server", ip.getText().toString());
-
                     LOGIN_URL = "http://" + ip.getText().toString() + "/chd/public/app/login.php";
                     if(connectionCheck()) {
                         sharedPreference.setInt(Settings.this, "log", 100);
+                        sharedPreference.setString(Settings.this, "username", user.getText().toString());
+                        sharedPreference.setString(Settings.this, "password", pass.getText().toString());
+                        sharedPreference.setString(Settings.this, "server", ip.getText().toString());
                         //to close the keyboard when going ot mainActivity:
                         InputMethodManager imm = (InputMethodManager)getSystemService(
                                 Context.INPUT_METHOD_SERVICE);
                         imm.hideSoftInputFromWindow(user.getWindowToken(), 0);
                         imm.hideSoftInputFromWindow(pass.getWindowToken(), 0);
                         imm.hideSoftInputFromWindow(ip.getWindowToken(), 0);
+                        if(control.getAllCases() != null){
+                            control.refreshCases("cases");
+                        }
                         new AttemptLogin().execute();
                     }
                     else{
@@ -283,6 +316,11 @@ public class Settings extends ActionBarActivity {
         });
     }
 
+    @Override
+    public void onBackPressed(){
+        this.finish();
+        overridePendingTransition(R.anim.abc_slide_in_bottom, R.anim.abc_slide_out_top);
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -301,6 +339,7 @@ public class Settings extends ActionBarActivity {
 
         if (id == android.R.id.home) {
             this.finish();
+            overridePendingTransition(R.anim.abc_slide_in_bottom, R.anim.abc_slide_out_top);
             return true;
         }
 

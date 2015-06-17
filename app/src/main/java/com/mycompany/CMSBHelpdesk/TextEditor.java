@@ -3,12 +3,18 @@ package com.mycompany.CMSBHelpdesk;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.text.method.ScrollingMovementMethod;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Scroller;
 
 import com.mycompany.CMSBHelpdesk.helpers.DBController;
 
@@ -16,6 +22,7 @@ import com.mycompany.CMSBHelpdesk.helpers.DBController;
 public class TextEditor extends ActionBarActivity {
 
     EditText mTextEdit;
+    Button mDone;
     // DB Class to perform DB related operations
     DBController control = new DBController(this);
     int requestCode;
@@ -23,6 +30,11 @@ public class TextEditor extends ActionBarActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_text_editor);
+
+        //set actionbar colour
+        android.support.v7.app.ActionBar bar = getSupportActionBar();
+        bar.setBackgroundDrawable(new ColorDrawable(Color.parseColor(MainActivity.colorAB)));
+
         //Default Back Button
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
@@ -36,6 +48,13 @@ public class TextEditor extends ActionBarActivity {
                 break;
         }
         mTextEdit = (EditText) findViewById(R.id.textEdit);
+        mDone = (Button) findViewById(R.id.done);
+        mDone.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                returnText();
+            }
+        });
         getText();
     }
 
@@ -53,8 +72,6 @@ public class TextEditor extends ActionBarActivity {
         imm.hideSoftInputFromWindow(mTextEdit.getWindowToken(), 0);
         finish();
     }
-
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

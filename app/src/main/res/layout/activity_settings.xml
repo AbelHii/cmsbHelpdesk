@@ -131,10 +131,18 @@
             android:layout_below="@+id/serverLabel"/>
 
         <Button
-            android:id="@+id/settingsBtn"
+            android:id="@+id/choose_colour"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_below="@+id/serverLabel"
+            android:layout_margin="10dp"
+            android:text="Choose Colour"
+            android:textAllCaps="true"/>
+        <Button
+            android:id="@+id/settingsBtn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/choose_colour"
             android:layout_margin="10dp"
             android:text="@string/submit"
             android:textAllCaps="true"/>

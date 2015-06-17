@@ -197,12 +197,11 @@ public class DBController extends SQLiteOpenHelper{
         database.insert(table, column, values);
     }
 
-    public void insertOneCase(String id, String assignee, String status, String user, String desc, String aT, String logID, String statID, String sync){
+    public void insertOneCase(String id, String status, String user, String desc, String aT, String logID, String statID, String sync){
         SQLiteDatabase database = this.getWritableDatabase();
         ContentValues values = new ContentValues();
 
         values.put(MainActivity.TAG_ID, id);
-        values.put(MainActivity.TAG_ASSIGNEE, assignee);
         values.put(MainActivity.TAG_STATUS, status);
         values.put(MainActivity.TAG_USERNAME, user);
         values.put(MainActivity.TAG_DESCRIPTION, desc);
@@ -215,11 +214,10 @@ public class DBController extends SQLiteOpenHelper{
         database.close();
     }
 
-    public void updateOneCase(String id, String assignee, String status, String user, String desc, String aT, String logID, String statID, String sync){
+    public void updateOneCase(String id, String status, String user, String desc, String aT, String logID, String statID, String sync){
         SQLiteDatabase database = this.getWritableDatabase();
         ContentValues values = new ContentValues();
 
-        values.put(MainActivity.TAG_ASSIGNEE, assignee);
         values.put(MainActivity.TAG_STATUS, status);
         values.put(MainActivity.TAG_USERNAME, user);
         values.put(MainActivity.TAG_DESCRIPTION, desc);

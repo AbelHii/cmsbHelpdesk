@@ -5,20 +5,33 @@
     tools:context="com.mycompany.CMSBHelpdesk.TextEditor">
 
     <ScrollView
-        android:layout_width="match_parent"
+        android:layout_width="fill_parent"
         android:layout_height="fill_parent"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:scrollbars="vertical"
         android:background="#ddd">
-        <EditText
-            android:id="@+id/textEdit"
-            android:layout_width="match_parent"
-            android:layout_height="fill_parent"
-            android:background="#ddd"
-            android:inputType="textCapSentences|textMultiLine"
-            android:gravity="top|left"
-            android:padding="16dp"
-            android:textSize="25sp"
-            android:textColor="#333"
-            android:maxLength="400"/>
+            <EditText
+                android:id="@+id/textEdit"
+                android:layout_width="fill_parent"
+                android:layout_height="match_parent"
+                android:background="#ddd"
+                android:inputType="textCapSentences|textMultiLine"
+                android:gravity="top|left"
+                android:padding="16dp"
+                android:textSize="25sp"
+                android:textColor="#333"
+                android:maxLength="400"
+                android:hint="....."
+                android:textColorHint="#aaa"/>
     </ScrollView>
+    <Button
+        android:id="@+id/done"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:text="@string/done"
+        android:textStyle="bold"
+        android:background="@drawable/mycolors"/>
 
 </RelativeLayout>

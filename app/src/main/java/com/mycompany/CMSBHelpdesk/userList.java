@@ -4,6 +4,8 @@ import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
@@ -68,6 +70,11 @@ public class userList extends ActionBarActivity implements SwipeRefreshLayout.On
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_user_list);
+
+        //set actionbar colour
+        android.support.v7.app.ActionBar bar = getSupportActionBar();
+        bar.setBackgroundDrawable(new ColorDrawable(Color.parseColor(MainActivity.colorAB)));
+
         //Default Back Button
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         setTitle("Choose User");
@@ -199,9 +206,9 @@ public class userList extends ActionBarActivity implements SwipeRefreshLayout.On
                 Bundle bundle = new Bundle();
                 bundle.putString(MainActivity.TAG_USERID, map.get(position).get(MainActivity.TAG_USERID));
                 bundle.putString(MainActivity.TAG_NAME, map.get(position).get(MainActivity.TAG_NAME));
-                bundle.putString(MainActivity.TAG_COMPANY, map.get(position).get(MainActivity.TAG_COMPANY));
-                bundle.putString(MainActivity.TAG_EMAIL, map.get(position).get(MainActivity.TAG_EMAIL));
-                bundle.putString(MainActivity.TAG_TELEPHONE, map.get(position).get(MainActivity.TAG_TELEPHONE));
+                //bundle.putString(MainActivity.TAG_COMPANY, map.get(position).get(MainActivity.TAG_COMPANY));
+                //bundle.putString(MainActivity.TAG_EMAIL, map.get(position).get(MainActivity.TAG_EMAIL));
+                //bundle.putString(MainActivity.TAG_TELEPHONE, map.get(position).get(MainActivity.TAG_TELEPHONE));
                 intent.putExtras(bundle);
 
                 setResult(Activity.RESULT_OK, intent);
@@ -230,6 +237,7 @@ public class userList extends ActionBarActivity implements SwipeRefreshLayout.On
                             R.id.companyMain, R.id.emailMain,
                             R.id.telMain});
             setListAdapter(mAdapter);
+            mAdapter.notifyDataSetChanged();
             //userLv.setAdapter(mAdapter);
         }
         controlUser.close();
