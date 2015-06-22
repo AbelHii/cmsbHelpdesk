@@ -1,16 +1,19 @@
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+<RelativeLayout
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="fill_parent"
+    android:layout_margin="15dp"
+    tools:context="com.mycompany.myapplication.LoginActivity"
+    android:id="@+id/loginBackground"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
-    <RelativeLayout
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true">
+        <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_margin="15dp"
-            android:gravity="center"
-            tools:context="com.mycompany.myapplication.LoginActivity"
-            android:id="@+id/loginBackground" >
-
+            android:layout_height="wrap_content">
         <TextView
             android:id="@+id/accSetup"
             android:layout_alignParentTop="true"
@@ -42,8 +45,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_below="@+id/accSetup"
-            android:layout_toRightOf="@+id/usernameLabel"
-            android:hint="Enter Username"
+            android:layout_toEndOf="@+id/usernameLabel"
+            android:hint="@string/enter_username"
             android:textSize="15sp"
             android:ems="10"
             android:id="@+id/username"
@@ -106,21 +109,21 @@
             android:textColor="#333"
             android:textStyle="bold"/>
         <EditText
-            android:layout_alignParentRight="true"
-            android:layout_toRightOf="@+id/serverLabel"
+            android:layout_alignParentEnd="true"
+            android:layout_toEndOf="@+id/serverLabel"
             android:layout_below="@+id/passwordLabel"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Enter Server Address"
+            android:hint="@string/enter_server_address"
             android:textSize="15sp"
             android:ems="10"
             android:id="@+id/server"
             android:imeOptions="actionDone"
             android:singleLine="true"
             android:background="@null"
-            android:paddingRight="10dp"
+            android:paddingEnd="10dp"
             android:paddingTop="10dp"
-            android:paddingLeft="35dp"
+            android:paddingStart="35dp"
             android:paddingBottom="10dp"/>
 
 
@@ -130,22 +133,16 @@
             android:background="#ddd"
             android:layout_below="@+id/serverLabel"/>
 
-        <Button
-            android:id="@+id/choose_colour"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@+id/serverLabel"
-            android:layout_margin="10dp"
-            android:text="Choose Colour"
-            android:textAllCaps="true"/>
-        <Button
-            android:id="@+id/settingsBtn"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@+id/choose_colour"
-            android:layout_margin="10dp"
-            android:text="@string/submit"
-            android:textAllCaps="true"/>
+        </RelativeLayout>
+    </ScrollView>
 
-    </RelativeLayout>
-</ScrollView>
+    <Button
+        android:id="@+id/settingsBtn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:textSize="20sp"
+        android:padding="20dp"
+        android:text="@string/submit"
+        android:textAllCaps="true"/>
+</RelativeLayout>

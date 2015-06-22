@@ -16,9 +16,11 @@ import android.support.v7.app.ActionBarActivity;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
@@ -28,11 +30,13 @@ import android.widget.Filter;
 import android.widget.Filterable;
 import android.widget.ListAdapter;
 import android.widget.ListView;
-import android.widget.SimpleAdapter;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.mycompany.CMSBHelpdesk.helpers.DBController;
 import com.mycompany.CMSBHelpdesk.helpers.JSONParser;
+import com.mycompany.CMSBHelpdesk.helpers.internetCheck;
+import com.mycompany.CMSBHelpdesk.objects.User;
 
 import org.apache.http.NameValuePair;
 import org.json.JSONArray;
@@ -47,15 +51,14 @@ import java.util.List;
 public class userList extends ActionBarActivity implements SwipeRefreshLayout.OnRefreshListener {
 
     private ListView userLv;
-    SimpleAdapter mAdapter;
-    ArrayAdapter<String> adapt;
     EditText inputSearch;
+    UserListAdapter userAdapter;
 
     private SwipeRefreshLayout swipeLayout;
 
     // ArrayList for Listview
-    ArrayList<HashMap<String, String>> useList = new ArrayList<HashMap<String, String>>();
     ArrayList<HashMap<String, String>> listUser;
+    ArrayList<User> filteredData = new ArrayList<>();
 
     //DB variables:
     DBController controlUser = new DBController(this);
@@ -80,60 +83,44 @@ public class userList extends ActionBarActivity implements SwipeRefreshLayout.On
         setTitle("Choose User");
 
         initialise();
+        check = controlUser.checkNumRows("users");
         //This is the process which loads the spinner depending on the situation
         if (check == 0 || check < 0) {
             //check if connected to internet or not
-            if (isNetworkConnected()) {
+            if (internetCheck.connectionCheck(userList.this)) {
                 new getUsers().execute();
                 //Loads the list from MySQL DB
                 getSQLiteUsers();
                 refreshAtTop();
-                Toast.makeText(userList.this, "4", Toast.LENGTH_SHORT).show();
+                //Toast.makeText(userList.this, "4", Toast.LENGTH_SHORT).show();
             } else {
                 //Retrieve previously saved data
                 Toast.makeText(userList.this, "User List Empty and No Internet Connection!" +
                                 " \n Please Connect to the internet and refresh the app",
                         Toast.LENGTH_LONG).show();
             }
-        } else if (isNetworkConnected() && check > 0) {
+        } else if (internetCheck.isNetworkConnected(userList.this) && check > 0) {
             getSQLiteUsers();
             refreshAtTop();
-            Toast.makeText(userList.this, "5", Toast.LENGTH_SHORT).show();
-        } else if (!isNetworkConnected()) {
+            //Toast.makeText(userList.this, "5", Toast.LENGTH_SHORT).show();
+        } else if (!internetCheck.isNetworkConnected(userList.this)) {
             swipeLayout.setEnabled(false);
             getSQLiteUsers();
-            Toast.makeText(userList.this, "6", Toast.LENGTH_SHORT).show();
+            //Toast.makeText(userList.this, "6", Toast.LENGTH_SHORT).show();
         }
 
-        onListItemClick();
     }
+
+
+
 
     /*---------------------------------------INITIALISE AND CHECKS----------------------------------------------------------------*/
     public void initialise(){
-        useList = new ArrayList<HashMap<String,String>>();
         check = controlUser.checkNumRows("users");
 
-        //Does the searching/filtering
-        inputSearch = (EditText) findViewById(R.id.inputSearch);
-        getText();
-        inputSearch.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void onTextChanged(CharSequence cs, int arg1, int arg2, int arg3) {
-                // When user changed the Text
-                userList.this.mAdapter.getFilter().filter(cs);
-                //userLv.setTextFilterEnabled(true);
-                //userLv.setFilterText(cs.toString().trim());
-            }
-            @Override
-            public void beforeTextChanged(CharSequence arg0, int arg1, int arg2,
-                                          int arg3) {
-            }
-            @Override
-            public void afterTextChanged(Editable s) {
-                //if(s.length() == 0) userLv.clearTextFilter();
-                userList.this.adapt.getFilter().filter(s.toString());
-            }
-        });
+        //Initialise filter functionality:
+        ArrayList<User> emptyU = new ArrayList<>();
+        userAdapter = new UserListAdapter(this, emptyU);
 
         swipeLayout = (SwipeRefreshLayout) findViewById(R.id.swipe_containerU);
         swipeLayout.setOnRefreshListener(this);
@@ -141,17 +128,6 @@ public class userList extends ActionBarActivity implements SwipeRefreshLayout.On
                 android.R.color.holo_red_light,
                 android.R.color.black);
     }
-    //Check if network is connected
-    public boolean isNetworkConnected(){
-        final ConnectivityManager conMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-        final NetworkInfo activeNetwork = conMgr.getActiveNetworkInfo();
-        return activeNetwork != null && activeNetwork.isConnectedOrConnecting();// && activeNetwork.getState() == NetworkInfo.State.CONNECTED;
-    }
-    public void getText(){
-        String textValue = getIntent().getStringExtra("user");
-        inputSearch.setText(textValue);
-    }
-
 
     /*----------------------------------------REFRESH USERS------------------------------------------------------------------*/
     //Functionality for swipe to refresh
@@ -162,7 +138,7 @@ public class userList extends ActionBarActivity implements SwipeRefreshLayout.On
             public void run() {
                 //Drop old table:
                 controlUser.refreshCases("users");
-
+                refreshList();
                 new getUsers().execute();
                 getSQLiteUsers();
                 refreshAtTop();
@@ -188,6 +164,17 @@ public class userList extends ActionBarActivity implements SwipeRefreshLayout.On
             }
         });
     }
+    //This is to make sure that the list updates properly instead of stacking ontop of the old one
+    public void refreshList(){
+        if(userAdapter!=null && listUser!=null) {
+            listUser.clear();
+            userAdapter.clear();
+        }
+    }
+
+
+
+
 
 /*-----------------------------------------------ON LIST ITEM CLICK----------------------------------------------------------------------------*/
     public void onListItemClick(){
@@ -196,21 +183,15 @@ public class userList extends ActionBarActivity implements SwipeRefreshLayout.On
         userLv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> p, View v, int position, long id) {
-                ArrayList<HashMap<String, String>> map = listUser;
-                Object list = p.getItemAtPosition(position);
-                map.add(position, (HashMap<String, String>) list);
-
                 Intent intent = new Intent(userList.this, AddCase.class);
                 intent.putExtra("caller", "userList");
 
                 Bundle bundle = new Bundle();
-                bundle.putString(MainActivity.TAG_USERID, map.get(position).get(MainActivity.TAG_USERID));
-                bundle.putString(MainActivity.TAG_NAME, map.get(position).get(MainActivity.TAG_NAME));
-                //bundle.putString(MainActivity.TAG_COMPANY, map.get(position).get(MainActivity.TAG_COMPANY));
-                //bundle.putString(MainActivity.TAG_EMAIL, map.get(position).get(MainActivity.TAG_EMAIL));
-                //bundle.putString(MainActivity.TAG_TELEPHONE, map.get(position).get(MainActivity.TAG_TELEPHONE));
+                bundle.putString(MainActivity.TAG_USERID, filteredData.get(position).getUserID());
+                bundle.putString(MainActivity.TAG_NAME, filteredData.get(position).getName());
                 intent.putExtras(bundle);
 
+                //Closes keyboard when finished:
                 setResult(Activity.RESULT_OK, intent);
                 InputMethodManager imm = (InputMethodManager) getSystemService(
                         Context.INPUT_METHOD_SERVICE);
@@ -228,25 +209,30 @@ public class userList extends ActionBarActivity implements SwipeRefreshLayout.On
         // If users exists in SQLite DB
         if (listUser.size() != 0) {
 
-            mAdapter = new SimpleAdapter(
-                    userList.this, listUser,
-                    R.layout.listview_item, new String[] { MainActivity.TAG_NAME,
-                    MainActivity.TAG_COMPANY, MainActivity.TAG_EMAIL,
-                    MainActivity.TAG_TELEPHONE},
-                    new int[] { R.id.usernameMain,
-                            R.id.companyMain, R.id.emailMain,
-                            R.id.telMain});
-            setListAdapter(mAdapter);
-            mAdapter.notifyDataSetChanged();
-            //userLv.setAdapter(mAdapter);
+            ArrayList<User> u = new ArrayList<User>();
+            for(int i = 0; i<listUser.size(); i++){
+                u.add(new User(listUser.get(i).get(MainActivity.TAG_USERID),
+                        listUser.get(i).get(MainActivity.TAG_NAME),
+                        listUser.get(i).get(MainActivity.TAG_COMPANY),
+                        listUser.get(i).get(MainActivity.TAG_EMAIL),
+                        listUser.get(i).get(MainActivity.TAG_TELEPHONE)));
+            }
+            userAdapter.addAll(u);
+            setListAdapter(userAdapter);
+            doFilter();
+            check = controlUser.checkNumRows("users");
+            userAdapter.notifyDataSetChanged();
+            onListItemClick();
         }
         controlUser.close();
     }
+
+
+
+    /*--------------------------------------------USER LIST ADAPTER ---------------------------------------------------------------*/
     public ListView getListView() {
         if(userLv == null){
             userLv = (ListView)findViewById(android.R.id.list);
-            adapt = new UserListAdapter();
-            userLv.setAdapter(adapt);
             return userLv;
         }
         return userLv;
@@ -254,59 +240,124 @@ public class userList extends ActionBarActivity implements SwipeRefreshLayout.On
     public void setListAdapter(ListAdapter listAdapter) {
         getListView().setAdapter(listAdapter);
     }
-   // THIS IS THE USERLIST ADAPTER FOR THE LISTVIEW
-    private class UserListAdapter extends ArrayAdapter implements Filterable {
-        private Filter filter;
 
-        public UserListAdapter() {
-            super (userList.this, R.layout.listview_item, android.R.id.list);
+    static class ViewHolder {
+        TextView mUsername;
+        TextView mCompany;
+        TextView mEmail;
+        TextView mTelephone;
+    }
+
+    public void doFilter(){
+        //Does the searching/filtering
+        inputSearch = (EditText) findViewById(R.id.inputSearch);
+        String textValue = getIntent().getStringExtra("user");
+        inputSearch.setText(textValue);
+        inputSearch.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void onTextChanged(CharSequence cs, int start, int before, int count) {
+                // When user changed the Text
+                userList.this.userAdapter.getFilter().filter(cs.toString());
+            }
+            @Override
+            public void beforeTextChanged(CharSequence arg0, int arg1, int arg2,int arg3) {}
+            @Override
+            public void afterTextChanged(Editable s) {}
+        });
+    }
+
+    /*-------------------------IMPORTANT CODE!---------------------------------------------------------------------------*/
+    // THIS IS THE USERLIST ADAPTER FOR THE LISTVIEW
+    // IT DOES THE FILTERING FOR THE SEARCH BAR AS WELL AS STLYE THE LISTVIEW
+    private class UserListAdapter extends ArrayAdapter<User> implements Filterable {
+        private Filter filter;
+        private ArrayList<User> items = new ArrayList<>();
+        private Context context;
+
+       public UserListAdapter(Context context, ArrayList<User> data) {
+            super (userList.this, R.layout.listview_item, data);
+            this.context = context;
+            this.items = data;
+            filteredData = data;
+        }
+
+        @Override
+        public int getCount() {
+            return filteredData.size();
+        }
+
+        @Override
+        public User getItem(int position) {
+            return filteredData.get(position);
+        }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent){
+            View view = convertView;
+            ViewHolder holder;
+            if(view == null){
+                LayoutInflater vi = LayoutInflater.from(getContext());
+                view = vi.inflate(R.layout.listview_item, parent, false);
+
+                holder = new ViewHolder();
+                holder.mUsername = (TextView) view.findViewById(R.id.usernameMain);
+                holder.mCompany = (TextView) view.findViewById(R.id.companyMain);
+                holder.mEmail = (TextView) view.findViewById(R.id.emailMain);
+                holder.mTelephone = (TextView) view.findViewById(R.id.telMain);
+
+                view.setTag(holder);
+            }else{
+                holder = (ViewHolder) view.getTag();
+            }
+
+            User u = filteredData.get(position);
+            holder.mUsername.setText(u.getName());
+            holder.mCompany.setText(u.getCompany());
+            holder.mEmail.setText(u.getEmail());
+            holder.mTelephone.setText(u.getTelephone());
+
+            if(position % 2 == 0){
+                view.setBackgroundResource(R.drawable.mycolors);
+            }else {
+                view.setBackgroundResource(R.drawable.mycolors2);
+            }
+
+            return view;
         }
 
         @Override
         public Filter getFilter() {
-
             filter = new Filter() {
-
                 @SuppressWarnings("unchecked")
                 @Override
                 protected void publishResults(CharSequence constraint, Filter.FilterResults results) {
                     // Now we have to inform the adapter about the new list filtered
-                    useList = (ArrayList<HashMap<String, String>>) results.values;
-                    if (results.count == 0)
-                        notifyDataSetInvalidated();
-                    else {
-                        for (int i=0; i<useList.size(); i++)
-                        {
-                            String s = (String)useList.get(i).get(MainActivity.TAG_NAME);
-                            add(s);
-                        }
-                        notifyDataSetChanged();
-                    }
+                    filteredData = (ArrayList<User>) results.values;
+                    notifyDataSetChanged();
                 }
 
                 @Override
                 protected FilterResults performFiltering(CharSequence constraint) {
 
+                    String filterString = constraint.toString().toLowerCase();
                     FilterResults results = new FilterResults();
-                    ArrayList<HashMap<String, String>> FilteredArrayNames = new ArrayList<HashMap<String, String>>();
+                    ArrayList<User> FilteredArrayNames = new ArrayList<User>();
 
                     // perform your search here using the searchConstraint String.
+                    for (int i = 0; i < items.size(); i++) {
 
-                    constraint = constraint.toString().toLowerCase();
-                    for (int i = 0; i < controlUser.getTableValues("users", 1).size(); i++) {
-                        ArrayList<String> dataNames = controlUser.getTableValues("users", 1);
-                        if (dataNames.get(i).trim().toLowerCase().contains(constraint.toString().toLowerCase().trim())){
-                            HashMap<String, String> map = new HashMap<String, String>();
-                            map.put(MainActivity.TAG_NAME, dataNames.get(i));
-                            FilteredArrayNames.add(map);
+                        User dataNames = items.get(i);
+                        String name = dataNames.getName();
+                        String tel = dataNames.getTelephone();
+
+                        if (name.toLowerCase().contains(filterString) || tel.contains(filterString)){
+                            FilteredArrayNames.add(dataNames);
                         }
                     }
-
                     results.count = FilteredArrayNames.size();
                     results.values = FilteredArrayNames;
                     Log.e("VALUES", results.values.toString());
 
-                    //controlUser.close();
                     return results;
                 }
             };
@@ -339,7 +390,7 @@ public class userList extends ActionBarActivity implements SwipeRefreshLayout.On
             try{
                 //get JSON string from URL
                 JSONObject jsonUse = jsonParser.makeHttpRequest(USER_URL, "GET", parameters);
-                if(isNetworkConnected() == true) {
+                if(internetCheck.isNetworkConnected(userList.this) == true) {
                     while(jsonUse == null){
                         try{
                             Thread.sleep(20);
@@ -385,6 +436,8 @@ public class userList extends ActionBarActivity implements SwipeRefreshLayout.On
                         maps.put(MainActivity.TAG_EMAIL, email);
                         maps.put(MainActivity.TAG_TELEPHONE, telephone);
 
+                        listUser.add(maps);
+
                         //add this map to SQLite too
                         controlUser.insertUser(maps);
                     }
@@ -407,11 +460,21 @@ public class userList extends ActionBarActivity implements SwipeRefreshLayout.On
                 userList.this.setProgressBarIndeterminateVisibility(false);
                 runOnUiThread(new Runnable() {
                     public void run() {
-                        //get users for AddCase
-                        controlUser.getAllUsers();
+                        ArrayList<User> u = new ArrayList<User>();
+                        for(int i = 0; i<listUser.size(); i++){
+                            u.add(new User(listUser.get(i).get(MainActivity.TAG_USERID),
+                                    listUser.get(i).get(MainActivity.TAG_NAME),
+                                    listUser.get(i).get(MainActivity.TAG_COMPANY),
+                                    listUser.get(i).get(MainActivity.TAG_EMAIL),
+                                    listUser.get(i).get(MainActivity.TAG_TELEPHONE)));
+                        }
+
+                        userAdapter.addAll(u);
+                        setListAdapter(userAdapter);
+                        doFilter();
+                        check = controlUser.checkNumRows("users");
                     }
                 });
-                check = controlUser.checkNumRows("users");
                 Toast.makeText(getBaseContext(), result, Toast.LENGTH_LONG)
                         .show();
             }
@@ -421,7 +484,7 @@ public class userList extends ActionBarActivity implements SwipeRefreshLayout.On
 
 
 
-
+/*-------------------ACTION BAR ACTIVITY -----------------------------------------------------*/
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -446,6 +509,7 @@ public class userList extends ActionBarActivity implements SwipeRefreshLayout.On
         if (id == android.R.id.home) {
             InputMethodManager imm = (InputMethodManager)getSystemService(
                     Context.INPUT_METHOD_SERVICE);
+            if(imm != null)
             imm.hideSoftInputFromWindow(inputSearch.getWindowToken(), 0);
             this.finish();
             return true;
@@ -457,15 +521,6 @@ public class userList extends ActionBarActivity implements SwipeRefreshLayout.On
             finish();
             return true;
         }
-        /**if(id == R.id.log_out) {
-            controlUser.refreshCases("cases");
-            sharedPreference.delete(this);
-            Intent intent = new Intent(context, Settings.class);
-            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-            this.finishAffinity();
-            startActivity(intent);
-            return true;
-        }*/
         return super.onOptionsItemSelected(item);
     }
 }

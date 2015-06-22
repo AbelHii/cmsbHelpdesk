@@ -20,7 +20,6 @@
     app:showAsAction="ifRoom|withText|ifRoom"/>
 
     <item android:id="@+id/synchronise"
-        android:icon="@drawable/ic_action_refresh"
         android:title="@string/sync"
         android:orderInCategory="3"
         app:showAsAction="never" />

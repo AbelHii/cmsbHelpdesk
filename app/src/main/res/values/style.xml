@@ -60,7 +60,7 @@
 
     <style name="bigFont">
         <item name="android:textSize">17sp</item>
-        <item name="android:textColor">#3232ad</item>
+        <item name="android:textColor">@color/Navy</item>
     </style>
 
     <style name="normalText">

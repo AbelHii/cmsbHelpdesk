@@ -7,20 +7,19 @@
     android:title="@string/action_settings"
     android:orderInCategory="100"
     app:showAsAction="never" />
-    <!--<item android:id="@+id/log_out"
-        android:title="@string/title_activity_logout"
-        android:orderInCategory="101"
-        app:showAsAction="never" />
-    <item android:id="@+id/backBtn"
-        android:title="@string/back"
-        android:orderInCategory="1"
-        app:showAsAction="always"/>-->
+
+    <item android:id="@+id/timeStamp"
+        android:title="Time Stamp"
+        android:icon="@drawable/time_stamp"
+        android:orderInCategory="2"
+        app:showAsAction="ifRoom"/>
+
     <item android:id="@+id/mainMenu"
         android:title="@string/main"
-        android:orderInCategory="2"
+        android:orderInCategory="3"
         app:showAsAction="never"/>
     <item android:id="@+id/done"
         android:title="@string/done"
-        android:orderInCategory="3"
-        app:showAsAction="always"/>
+        android:orderInCategory="4"
+        app:showAsAction="never"/>
 </menu>

@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:paddingLeft="11dp"
@@ -9,39 +8,46 @@
     android:paddingBottom="5dp">
 
         <TextView
-            android:layout_width="fill_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
             android:textSize="20sp"
-            android:textColor="#000099"
+            android:textColor="@color/Navy"
             android:text="@string/name"
             android:id="@+id/usernameMain"
-            android:padding="1dp"/>
+            android:padding="2dp"
+            android:layout_marginRight="5dp"/>
         <TextView
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:textSize="13sp"
+            android:layout_toRightOf="@+id/usernameMain"
+            android:textAlignment="viewEnd"
+            android:textSize="14sp"
             android:singleLine="true"
-            android:textColor="#5a5a5a"
+            android:textColor="#EE9000"
             android:text="@string/company"
             android:id="@+id/companyMain"
-            android:padding="1dp"/>
+            android:padding="2dp"
+            android:layout_marginTop="6dp"/>
         <TextView
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:textSize="13sp"
+            android:layout_below="@+id/usernameMain"
+            android:textSize="14sp"
             android:singleLine="true"
-            android:textColor="#5a5a5a"
+            android:textColor="#a88888"
             android:text="@string/email"
             android:id="@+id/emailMain"
-            android:padding="1dp"/>
+            android:padding="2dp"/>
         <TextView
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:textSize="13sp"
+            android:layout_below="@+id/emailMain"
+            android:textSize="14sp"
             android:singleLine="true"
-            android:textColor="#5a5a5a"
+            android:textColor="#588888"
             android:text="@string/tel"
             android:id="@+id/telMain"
-            android:padding="1dp"/>
+            android:padding="2dp"/>
 
-</LinearLayout>
+</RelativeLayout>

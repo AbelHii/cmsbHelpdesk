@@ -1,67 +1,82 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout
+
+<RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
+    android:layout_margin="50dp"
     android:background="@drawable/back">
 
-    <RelativeLayout
-        xmlns:android="http://schemas.android.com/apk/res/android"
+    <TextView
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:textSize="20sp"
+        android:textColor="#444"
+        android:textStyle="bold"
+        android:text="Contact Info"
+        android:id="@+id/contactInfo"
+        android:padding="5dp"/>
+    <!--Name:-->
+    <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="10dp">
+        android:textSize="20sp"
+        android:textColor="@color/DodgerBlue"
+        android:text="@string/name"
+        android:id="@+id/contactName"
+        android:padding="2dp"
+        android:layout_marginLeft="10dp"
+        android:layout_below="@+id/contactInfo"/>
+    <!--Company:-->
+    <TextView
+        android:id="@+id/company"
+        android:layout_below="@+id/contactInfo"
+        android:layout_toRightOf="@id/contactName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="14sp"
+        android:text="@string/company"
+        android:textColor="@color/actionBar"
+        android:padding="2dp"
+        android:layout_marginTop="6dp"
+        android:layout_marginLeft="5dp"/>
 
-        <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="80dp"
-            android:src = "@mipmap/cms_logo"
-            android:scaleType="fitEnd"/>
-        <!--Name:-->
-        <TextView
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:textSize="20sp"
-            android:textColor="#fff"
-            android:textStyle="bold"
-            android:text="@string/name"
-            android:id="@+id/contactName"
-            android:padding="5dp"
-            android:layout_marginLeft="10dp"/>
-        <!--Company:-->
-        <TextView
-            android:id="@+id/company"
-            android:layout_below="@id/contactName"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="16sp"
-            android:text="@string/company"
-            android:padding="5dp"
-            android:textColor="#fff"
-            android:layout_marginLeft="10dp"/>
+    <!--Email:-->
+    <TextView
+        android:id="@+id/email"
+        android:layout_below="@+id/company"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="16sp"
+        android:text="@string/email"
+        android:textColor="@color/email"
+        android:padding="2dp"
+        android:layout_marginLeft="10dp"/>
 
-        <!--Email:-->
-        <TextView
-            android:id="@+id/email"
-            android:layout_below="@+id/company"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="16sp"
-            android:text="@string/email"
-            android:padding="5dp"
-            android:textColor="#fff"
-            android:layout_marginLeft="10dp"/>
+    <!--Tel:-->
+    <TextView
+        android:id="@+id/tel"
+        android:layout_below="@+id/email"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="16sp"
+        android:text="@string/tel"
+        android:textColor="@color/tel"
+        android:padding="2dp"
+        android:layout_marginLeft="10dp"/>
 
-        <!--Tel:-->
-        <TextView
-            android:id="@+id/tel"
-            android:layout_below="@+id/email"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="16sp"
-            android:text="@string/tel"
-            android:padding="5dp"
-            android:textColor="#fff"
-            android:layout_marginLeft="10dp"/>
+    <Button
+        android:id="@+id/cancelPopup"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/cancel"
+        android:textSize = "14sp"
+        android:textAllCaps="true"
+        android:textStyle="bold"
+        android:padding="0dp"
+        android:layout_marginTop="10dp"
+        android:background="@drawable/mycolors3"
+        android:layout_below="@+id/tel"/>
 
-    </RelativeLayout>
-</FrameLayout>
+</RelativeLayout>

@@ -34,6 +34,7 @@ import android.widget.Toast;
 
 import com.mycompany.CMSBHelpdesk.helpers.DBController;
 import com.mycompany.CMSBHelpdesk.helpers.JSONParser;
+import com.mycompany.CMSBHelpdesk.helpers.internetCheck;
 import com.mycompany.CMSBHelpdesk.helpers.sharedPreference;
 import com.mycompany.CMSBHelpdesk.objects.Case;
 
@@ -51,7 +52,6 @@ import java.util.List;
 public class MainActivity extends ActionBarActivity implements SwipeRefreshLayout.OnRefreshListener {
 
     private ListView mCasesLV;
-    private TextView stat, mSyncStatus;
     private SwipeRefreshLayout swipeLayout;
     private CaseListAdapter adapter;
     public static int checker;
@@ -63,10 +63,6 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
 
     // DB Class to perform DB related operations
     DBController controller = new DBController(this);
-
-    // Progress Dialog Object
-    ProgressDialog prgDialog;
-    HashMap<String, String> queryValues;
 
     //DB stuff:
     // JSON parser class
@@ -102,16 +98,14 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
     public static final String TAG_EMAIL = "email";
     public static final String TAG_TELEPHONE = "telephone";
 
-    public static String colorAB = "#EDBD00";
+    public static String colorAB = "#FEA000";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        //set actionbar colour and remove shadow
         android.support.v7.app.ActionBar bar = getSupportActionBar();
-        bar.setElevation(0);
         bar.setBackgroundDrawable(new ColorDrawable(Color.parseColor(colorAB)));
 
         checkLog = sharedPreference.getString(this, "login");
@@ -152,15 +146,15 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
             checker = controller.checkNumRows("cases");
             if (checker == 0 || checker < 0 || Settings.newLogin == 100) {
                 //check if connected to internet or not
-                if (isNetworkConnected()) {
+                if (internetCheck.connectionCheck(MainActivity.this)) {
                     new getCases().execute();
                     pDialog.dismiss();
                     onListItemClick();
                     refreshAtTop();
-                    Toast.makeText(this, "1", Toast.LENGTH_SHORT).show();
+                    //Toast.makeText(this, "1", Toast.LENGTH_SHORT).show();
                     userList.check = controller.checkNumRows("users");
                     if (userList.check == 0) {
-                        Toast.makeText(this, "1.5", Toast.LENGTH_SHORT).show();
+                        //Toast.makeText(this, "1.5", Toast.LENGTH_SHORT).show();
                         new getUsers().execute();
                     }
                     sharedPreference.setInt(this, "log", 0);
@@ -171,14 +165,14 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
                                     "\nPlease Connect to the internet and restart the app",
                             Toast.LENGTH_LONG).show();
                 }
-            } else if (isNetworkConnected() && checker > 0) {
+            } else if (internetCheck.isNetworkConnected(this) && checker > 0) {
                 getSQLiteList();
                 refreshAtTop();
-                Toast.makeText(this, "2", Toast.LENGTH_SHORT).show();
-            } else if (!isNetworkConnected()) {
+                //Toast.makeText(this, "2", Toast.LENGTH_SHORT).show();
+            } else if (!internetCheck.isNetworkConnected(this)) {
                 swipeLayout.setEnabled(false);
                 getSQLiteList();
-                Toast.makeText(this, "3", Toast.LENGTH_SHORT).show();
+                //Toast.makeText(this, "3", Toast.LENGTH_SHORT).show();
             }
         }
     }
@@ -187,15 +181,15 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
         // Get Cases records from SQLite DB
         ArrayList<HashMap<String, String>> listCase = controller.getAllCases();
         ArrayList<Case> c = new ArrayList<Case>();
-        for(int i = 0; i<listCase.size(); i++) {
-            c.add(new Case(listCase.get(i).get(TAG_ID),
-                    listCase.get(i).get(TAG_USERNAME),
-                    listCase.get(i).get(TAG_DESCRIPTION),
-                    listCase.get(i).get(TAG_STATUS),
-                    listCase.get(i).get(TAG_SYNC)));
-        }
         // If users exists in SQLite DB
         if (listCase.size() != 0) {
+            for(int i = 0; i<listCase.size(); i++) {
+                c.add(new Case(listCase.get(i).get(TAG_ID),
+                        listCase.get(i).get(TAG_USERNAME),
+                        listCase.get(i).get(TAG_DESCRIPTION),
+                        listCase.get(i).get(TAG_STATUS),
+                        listCase.get(i).get(TAG_SYNC)));
+            }
             adapter.addAll(c);
             setListAdapter(adapter);
             //lv = (ListView)findViewById(android.R.id.list);
@@ -216,7 +210,7 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
             public void run() {
                 casemap = controller.getAllCases();
                 syncColumn = returnColumn(casemap);
-                if(isNetworkConnected() && (syncColumn.contains("10") || syncColumn.contains("20"))) {
+                if(internetCheck.connectionCheck(MainActivity.this) && (syncColumn.contains("10") || syncColumn.contains("20"))) {
                     Toast.makeText(MainActivity.this, "There are cases that need to be synced", Toast.LENGTH_LONG).show();
 
                     swipeLayout.setRefreshing(false);
@@ -227,14 +221,13 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
                     refreshList();
                     //refresh and refill SQLite Database
                     new getCases().execute();
-                    //getSQLiteList();
                     onListItemClick();
                     refreshAtTop();
 
                     swipeLayout.setRefreshing(false);
                 }
             }
-        }, 5000);
+        }, 4500);
     }
     //Swipe to reload only when you're at the top of the list functionality:
     public void refreshAtTop() {
@@ -314,17 +307,6 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
                 android.R.color.holo_red_light,
                 android.R.color.black);
     }
-    // Reload MainActivity
-    public void reloadActivity() {
-        Intent objIntent = new Intent(getApplicationContext(), MainActivity.class);
-        startActivity(objIntent);
-    }
-    //Check if network is connected
-    public boolean isNetworkConnected(){
-        final ConnectivityManager conMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-        final NetworkInfo activeNetwork = conMgr.getActiveNetworkInfo();
-        return activeNetwork != null && activeNetwork.isConnectedOrConnecting();// && activeNetwork.getState() == NetworkInfo.State.CONNECTED;
-    }
 
     //to disable the back button
     @Override
@@ -369,27 +351,21 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
                     switch(c.getStatus()){
                         case "Not Started":
                             mStatus.setTextColor(Color.parseColor("#cc0000"));
-                            //mStatus.setBackgroundColor(Color.parseColor("#ff0000"));
                             break;
                         case "In Progress":
                             mStatus.setTextColor(Color.parseColor("#12af83"));
-                            //mStatus.setBackgroundColor(Color.parseColor("#12af83"));
                             break;
                         case "Waiting for Vendor":
                             mStatus.setTextColor(Color.parseColor("#ddbb00"));
-                            //mStatus.setBackgroundColor(Color.parseColor("#aaaf83"));
                             break;
                         case "Differed":
                             mStatus.setTextColor(Color.parseColor("#af1283"));
-                            //mStatus.setBackgroundColor(Color.parseColor("#af1283"));
                             break;
                         case "Pending Close":
-                            mStatus.setTextColor(Color.parseColor("#12aaff"));
-                            //mStatus.setBackgroundColor(Color.parseColor("#12aaff"));
+                            mStatus.setTextColor(Color.parseColor("#1abef9"));
                             break;
                         case "Closed":
                             mStatus.setTextColor(Color.parseColor("#5a5a5a"));
-                            //mStatus.setBackgroundColor(Color.parseColor("#5a5a5a"));
                             break;
                     }
                 }
@@ -431,7 +407,6 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
             pDialog.setProgressStyle(android.R.style.Widget_ProgressBar_Small);
             pDialog.setCancelable(false);
             pDialog.show();
-            //MainActivity.this.setProgressBarIndeterminateVisibility(true);
         }
 
         @Override
@@ -445,7 +420,7 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
             try{
                 //get JSON string from URL
                 JSONObject json = jsonParser.makeHttpRequest(CASE_URL, "GET", parameters);
-                while(json == null && isNetworkConnected()){
+                while(json == null && internetCheck.connectionCheck(MainActivity.this)){
                     try{
                         Thread.sleep(20);
                         json = jsonParser.makeHttpRequest(CASE_URL, "GET", parameters);
@@ -539,13 +514,6 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
                         }
                         adapter.addAll(c);
                         setListAdapter(adapter);
-                        /**new SimpleAdapter(
-                        MainActivity.this, casesList,
-                        R.layout.list_item, new String[] { TAG_ID,
-                                TAG_USERNAME, TAG_STATUS, TAG_DESCRIPTION, TAG_SYNC},
-                        new int[] { R.id.IDMain,
-                                R.id.userMain, R.id.statusMain, R.id.descMain, R.id.syncStatus });*/
-                        // updating listView
                     }
                 });
                 Toast.makeText(getBaseContext(), result, Toast.LENGTH_LONG)
@@ -566,13 +534,13 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
             List<NameValuePair> parameters = new ArrayList<NameValuePair>();
             for (int i = syncColumn.size()-1; i >= 0; --i) {
                 if (!syncColumn.get(i).equalsIgnoreCase("") && ((syncColumn.contains("10") || syncColumn.contains("20")))) {
-                    caseID = casemap.get(i).get(TAG_ID);//controller.getTableValues("cases", 0).get(i);
-                    username = casemap.get(i).get(TAG_USERNAME);//controller.getTableValues("cases", 3).get(i);
-                    mDescription = casemap.get(i).get(TAG_DESCRIPTION);//controller.getTableValues("cases", 4).get(i);
-                    actionT = casemap.get(i).get(TAG_ACTION_TAKEN);//controller.getTableValues("cases", 5).get(i);
-                    assigneeID = casemap.get(i).get(TAG_LOGIN_ID);//controller.getTableValues("cases", 6).get(i);
-                    statusID = casemap.get(i).get(TAG_STATUS_ID);//controller.getTableValues("cases", 7).get(i);
-                    sync = String.valueOf(syncColumn.get(i));//controller.getTableValues("cases", 8).get(i);
+                    caseID = casemap.get(i).get(TAG_ID);
+                    username = casemap.get(i).get(TAG_USERNAME);
+                    mDescription = casemap.get(i).get(TAG_DESCRIPTION);
+                    actionT = casemap.get(i).get(TAG_ACTION_TAKEN);
+                    assigneeID = casemap.get(i).get(TAG_LOGIN_ID);
+                    statusID = casemap.get(i).get(TAG_STATUS_ID);
+                    sync = String.valueOf(syncColumn.get(i));
 
                     nameId = controller.getID("users", "userId", username, TAG_NAME, 0);
 
@@ -642,12 +610,13 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
         casemap = controller.getAllCases();
         syncColumn = returnColumn(casemap);
         //"10" is for add case and "20" is for update case:
-        if(isNetworkConnected() && (syncColumn.contains("10") || syncColumn.contains("20"))){
+        if(internetCheck.isNetworkConnected(MainActivity.this) && (syncColumn.contains("10") || syncColumn.contains("20"))){
+            if(internetCheck.connectionCheck(MainActivity.this))
             new syncDB().execute();
-        }else if(!isNetworkConnected()){
-            Toast.makeText(this, "No Internet Connection", Toast.LENGTH_SHORT).show();
-        }else{
+        }else if(!(syncColumn.contains("10") || syncColumn.contains("20"))){
             Toast.makeText(this, "Databases are in Sync", Toast.LENGTH_SHORT).show();
+        }else if(!internetCheck.connectionCheck(MainActivity.this)){
+            Toast.makeText(this, "No Internet Connection", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -693,15 +662,6 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
             overridePendingTransition(R.anim.abc_slide_in_top, R.anim.abc_slide_out_bottom);
             return true;
         }
-        /**else if(id == R.id.log_out) {
-            controller.refreshCases("cases");
-            sharedPreference.delete(this);
-            Intent intent = new Intent(context, Settings.class);
-            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-            MainActivity.this.finishAffinity();
-            startActivity(intent);
-            return true;
-        }*/
 
         return super.onOptionsItemSelected(item);
     }
@@ -729,7 +689,7 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
             try{
                 //get JSON string from URL
                 JSONObject jsonUse = jsonParser.makeHttpRequest(userList.USER_URL, "GET", parameters);
-                if(isNetworkConnected() == true) {
+                if(internetCheck.isNetworkConnected(MainActivity.this) == true) {
                     while(jsonUse == null){
                         try{
                             Thread.sleep(20);

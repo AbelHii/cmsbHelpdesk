@@ -7,6 +7,7 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.text.format.DateFormat;
 import android.text.method.ScrollingMovementMethod;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -18,11 +19,16 @@ import android.widget.Scroller;
 
 import com.mycompany.CMSBHelpdesk.helpers.DBController;
 
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
+
 
 public class TextEditor extends ActionBarActivity {
 
     EditText mTextEdit;
-    Button mDone;
+    Button mDone, mCancel;
     // DB Class to perform DB related operations
     DBController control = new DBController(this);
     int requestCode;
@@ -55,6 +61,16 @@ public class TextEditor extends ActionBarActivity {
                 returnText();
             }
         });
+        mCancel = (Button) findViewById(R.id.cancel);
+        mCancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                InputMethodManager imm = (InputMethodManager)getSystemService(
+                        Context.INPUT_METHOD_SERVICE);
+                imm.hideSoftInputFromWindow(mTextEdit.getWindowToken(), 0);
+                TextEditor.this.finish();
+            }
+        });
         getText();
     }
 
@@ -74,6 +90,24 @@ public class TextEditor extends ActionBarActivity {
     }
 
     @Override
+    public void onBackPressed(){
+        returnText();
+    }
+
+    public void setTimeStamp(){
+        SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yy  HH:mm    ");
+        String currentTimeStamp = dateFormat.format(new Date()); // Find today's date
+
+        int start = Math.max(mTextEdit.getSelectionStart(), 0);
+        int end = Math.max(mTextEdit.getSelectionEnd(), 0);
+        mTextEdit.getText().replace(
+                Math.min(start,end),
+                Math.max(start, end),
+                "\n"+currentTimeStamp+"\n", 0,
+                currentTimeStamp.length()+1);
+    }
+
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_text_editor, menu);
@@ -89,11 +123,14 @@ public class TextEditor extends ActionBarActivity {
         final Context context = this;
 
         //noinspection SimplifiableIfStatement
+        if(id==R.id.timeStamp){
+            setTimeStamp();
+            return true;
+        }
         if(id==R.id.done){
             returnText();
             return true;
         }
-
         if (id == R.id.action_settings) {
             Intent intent = new Intent(context, Settings.class);
             startActivity(intent);
@@ -112,14 +149,6 @@ public class TextEditor extends ActionBarActivity {
             startActivity(intent);
             return true;
         }
-        /**if(id == R.id.log_out) {
-            control.refreshCases("cases");
-            sharedPreference.delete(this);
-            Intent intent = new Intent(context, Settings.class);
-            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-            startActivity(intent);
-            return true;
-        }*/
         return super.onOptionsItemSelected(item);
     }
 }

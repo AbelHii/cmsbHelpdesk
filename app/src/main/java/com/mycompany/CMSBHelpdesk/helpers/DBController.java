@@ -39,9 +39,6 @@ public class DBController extends SQLiteOpenHelper{
         users = "CREATE TABLE users (userId INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, company TEXT, " +
                 "email TEXT, telephone TEXT)";
         database.execSQL(users);
-
-        //Companies
-        company = "CREATE TABLE company (id INTEGER, name TEXT, enabled TEXT)";
     }
 
     @Override

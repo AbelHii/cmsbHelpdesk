@@ -1,10 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <item name="alt_list" type="color">#E9E9E9</item>
+    <color name="email">#a88888</color>
+    <color name="tel">#588888</color>
+    <color name="actionBar">#FEA000</color>
     <color name="buttonText">#12af83</color>
     <color name="notPressed2">#E5E5E5</color>
     <color name="pressed">#CCCCCC</color>
     <color name="notPressed">#DDDDDD</color>
+    <color name="notPressed3">#EEEEEE</color>
     <color name="White">#FFFFFF</color>
     <color name="Ivory">#FFFFF0</color>
     <color name="LightYellow">#FFFFE0</color>

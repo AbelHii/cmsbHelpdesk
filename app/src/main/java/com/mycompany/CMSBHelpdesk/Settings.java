@@ -24,6 +24,7 @@ import android.widget.Toast;
 
 import com.mycompany.CMSBHelpdesk.helpers.DBController;
 import com.mycompany.CMSBHelpdesk.helpers.JSONParser;
+import com.mycompany.CMSBHelpdesk.helpers.internetCheck;
 import com.mycompany.CMSBHelpdesk.helpers.sharedPreference;
 
 import org.apache.http.NameValuePair;
@@ -38,11 +39,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
-import yuku.ambilwarna.AmbilWarnaDialog;
-
 public class Settings extends ActionBarActivity {
 
-    protected Button mSettingsBtn, mChooseColour;
+    protected Button mSettingsBtn;
     public String username, password, server, loginID;
     //Login class "AttemptLogin" and "JSONParser" is from mrbool.com
     private EditText user;
@@ -62,25 +61,10 @@ public class Settings extends ActionBarActivity {
     private static final String TAG_MESSAGE = "message";
 
     public static final String LOG_TAG = "Requesting";
-    AmbilWarnaDialog dialogColors;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
-
-
-        dialogColors = new AmbilWarnaDialog(this, 16777215,
-                new AmbilWarnaDialog.OnAmbilWarnaListener() {
-                    @Override
-                    public void onCancel(AmbilWarnaDialog ambilWarnaDialog) {
-                        // cancel was selected by the user
-                    }
-
-                    @Override
-                    public void onOk(AmbilWarnaDialog ambilWarnaDialog, int i) {
-                        // color is the color selected by the user.
-                    }
-                });
 
         //set actionbar colour
         android.support.v7.app.ActionBar bar = getSupportActionBar();
@@ -108,74 +92,6 @@ public class Settings extends ActionBarActivity {
         }
 
         addListenerOnButton();
-    }
-
-    public boolean connectionCheck(){
-        //check Internet connection
-        if(isNetworkConnected(this)) {
-            try {
-                if (new checkConnection().execute(this).get()) {
-                    return true;
-                } else {
-                    return false;
-                }
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            } catch (ExecutionException e) {
-                e.printStackTrace();
-            }
-        }else{
-            new AlertDialog.Builder(this)
-                    .setIcon(R.drawable.nowifi)
-                    .setTitle("No internet connection")
-                    .setMessage("Please turn on mobile data or wifi")
-                    .setCancelable(false)
-                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            //code for exit
-                            android.os.Process.killProcess(android.os.Process.myPid());
-                            System.exit(1);
-                            Settings.this.finish();
-                        }
-
-                    })
-                    .show();
-            return false;
-        }
-        return false;
-    }
-
-    //To check if internet is actually connected
-    //Have to run it in AsyncTask or else you'll get a NetworkOnMain exception error
-    class checkConnection extends AsyncTask<Context, Void, Boolean> {
-        @Override
-        protected Boolean doInBackground(Context... contexts) {
-            return hasInternetConnection(contexts[0]);
-        }
-    }
-    public static boolean isNetworkConnected(Context context) {
-        final ConnectivityManager conMgr = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-        final NetworkInfo activeNetwork = conMgr.getActiveNetworkInfo();
-        return activeNetwork != null && activeNetwork.getState() == NetworkInfo.State.CONNECTED;
-    }
-    public static boolean hasInternetConnection(Context context) {
-        if (isNetworkConnected(context)) {
-            try {
-                //TODO: change the url it checks
-                HttpURLConnection urlc = (HttpURLConnection) (new URL("http://www.google.com").openConnection());
-                urlc.setRequestProperty("User-Agent", "Test");
-                urlc.setRequestProperty("Connection", "close");
-                urlc.setConnectTimeout(1500);
-                urlc.connect();
-                return (urlc.getResponseCode() == 200);
-            } catch (IOException e) {
-                Log.e(LOG_TAG, "Error checking internet connection", e);
-            }
-        } else {
-            Log.d(LOG_TAG, "No network available!");
-        }
-        return false;
     }
 
 
@@ -259,14 +175,6 @@ public class Settings extends ActionBarActivity {
 
         final Context context = this;
 
-        mChooseColour = (Button) findViewById(R.id.choose_colour);
-        mChooseColour.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                dialogColors.show();
-            }
-        });
-
         mSettingsBtn = (Button) findViewById(R.id.settingsBtn);
         mSettingsBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -276,7 +184,7 @@ public class Settings extends ActionBarActivity {
                     error();
                 }else {
                     LOGIN_URL = "http://" + ip.getText().toString() + "/chd/public/app/login.php";
-                    if(connectionCheck()) {
+                    if(internetCheck.connectionCheck(Settings.this)) {
                         sharedPreference.setInt(Settings.this, "log", 100);
                         sharedPreference.setString(Settings.this, "username", user.getText().toString());
                         sharedPreference.setString(Settings.this, "password", pass.getText().toString());

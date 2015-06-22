@@ -122,7 +122,7 @@ public class AddNewUser extends AddCase implements View.OnClickListener {
                         //checks if inputted name already exists
                         //if not carry on:
                         if(!nameExists(mNewName.getText().toString(), AddCase.spinnerUsernames)) {
-                            if (isNetworkConnected()) {
+                            if (true) {//isNetworkConnected() is missing
                                 new newUserAdd().execute();
                             } else {
                                 userControl.insertValue("users", "name", mNewName.getText().toString());
