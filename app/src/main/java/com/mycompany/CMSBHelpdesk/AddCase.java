@@ -1,6 +1,7 @@
 package com.mycompany.CMSBHelpdesk;
 
 import android.app.Activity;
+import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
@@ -27,6 +28,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.PopupWindow;
+import android.widget.RelativeLayout;
 import android.widget.Scroller;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -191,7 +193,7 @@ public class AddCase extends ActionBarActivity {
                 break;
         }
     }
-    private class statusAdapter extends ArrayAdapter<String>{
+    private class statusAdapter extends ArrayAdapter<String> {
         private Context context;
         private ArrayList<String> itemList;
         public statusAdapter(Context context, int textViewResourceId, ArrayList<String> itemList) {
@@ -214,6 +216,7 @@ public class AddCase extends ActionBarActivity {
                 v.setBackgroundResource(R.drawable.mycolors2);
             }
             v.setText(itemList.get(position));
+
             return v;
         }
         @Override
@@ -231,7 +234,6 @@ public class AddCase extends ActionBarActivity {
             mSpin.setText(itemList.get(position));
             return view;
         }
-
     }
 
     /*--------------------ADD LISTENER TO BUTTON ---------------------------------------------------------*/

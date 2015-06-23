@@ -2,20 +2,23 @@
 <RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
+    android:layout_height="wrap_content"
     android:padding="15dp">
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textSize="14sp"
-        android:textColor="#222"
+        android:textColor="#333"
+        android:padding="0dp"
         android:text="@string/id"
         android:id="@+id/IDMain"
-        android:layout_marginRight="15dp"/>
+        android:layout_alignParentStart="true"
+        android:layout_alignBottom="@+id/userMain"
+        android:layout_marginEnd="10dp" />
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_toRightOf="@+id/IDMain"
+        android:layout_toEndOf="@+id/IDMain"
         android:textSize="18sp"
         android:singleLine="true"
         android:textColor="@color/Navy"
@@ -24,20 +27,21 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_toLeftOf="@+id/syncStatus"
+        android:layout_toStartOf="@+id/syncStatus"
+        android:layout_alignBottom="@+id/userMain"
         android:textSize="15sp"
         android:singleLine="true"
         android:textColor="#5a5a5a"
         android:text="@string/status"
-        android:id="@+id/statusMain"
-        android:layout_marginRight="5dp"/>
+        android:id="@+id/statusMain"/>
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginStart="10dp"
         android:textSize="15sp"
         android:text="@string/syncStatus"
-        android:textColor="#FFDD00"
+        android:textColor="#90EE90"
         android:gravity="center"
         android:background="@drawable/circle"
         android:id="@+id/syncStatus"/>
@@ -47,8 +51,8 @@
         android:layout_height="wrap_content"
         android:layout_below="@+id/IDMain"
         android:layout_marginTop="15dp"
-        android:layout_marginBottom="5dp"
-        android:textSize="16sp"
+        android:layout_marginBottom="0dp"
+        android:textSize="17sp"
         android:text="@string/desc"
         android:textColor="#990000"
         android:id="@+id/descMain"

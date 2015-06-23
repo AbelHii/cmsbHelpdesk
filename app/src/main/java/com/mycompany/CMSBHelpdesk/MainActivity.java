@@ -556,12 +556,7 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
 
                         jsonParser.makeHttpRequest(
                                 SYNC_URL, "POST", parameters);
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                Toast.makeText(MainActivity.this, "Add Sync "+ count++, Toast.LENGTH_SHORT).show();
-                            }
-                        });
+                        count++;
                     }
                     else if(sync.equals("20")){
                         SYNC_URL = AddCase.UPDATE_CASE_URL;
@@ -575,12 +570,7 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
 
                         jsonParser.makeHttpRequest(
                                 SYNC_URL, "POST", parameters);
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                Toast.makeText(MainActivity.this, "Update Sync "+ count++, Toast.LENGTH_SHORT).show();
-                            }
-                        });
+                        count++;
                     }
 
                 }
@@ -594,7 +584,7 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
             refreshList();
             new getCases().execute();
             refreshAtTop();
-            Toast.makeText(MainActivity.this, "Databases Synced", Toast.LENGTH_SHORT).show();
+            Toast.makeText(MainActivity.this, "Synced "+ count +" Cases", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -607,8 +597,6 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
     }
     //SYNC METHOD
     public void synchronise(){
-        casemap = controller.getAllCases();
-        syncColumn = returnColumn(casemap);
         //"10" is for add case and "20" is for update case:
         if(internetCheck.isNetworkConnected(MainActivity.this) && (syncColumn.contains("10") || syncColumn.contains("20"))){
             if(internetCheck.connectionCheck(MainActivity.this))
@@ -653,6 +641,8 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
             return true;
         }
         else if(id == R.id.synchronise){
+            casemap = controller.getAllCases();
+            syncColumn = returnColumn(casemap);
             synchronise();
             return true;
         }
@@ -689,7 +679,7 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
             try{
                 //get JSON string from URL
                 JSONObject jsonUse = jsonParser.makeHttpRequest(userList.USER_URL, "GET", parameters);
-                if(internetCheck.isNetworkConnected(MainActivity.this) == true) {
+                if(internetCheck.isNetworkConnected(MainActivity.this)) {
                     while(jsonUse == null){
                         try{
                             Thread.sleep(20);

@@ -348,9 +348,9 @@ public class userList extends ActionBarActivity implements SwipeRefreshLayout.On
 
                         User dataNames = items.get(i);
                         String name = dataNames.getName();
-                        String tel = dataNames.getTelephone();
+                        String comp = dataNames.getCompany();
 
-                        if (name.toLowerCase().contains(filterString) || tel.contains(filterString)){
+                        if (name.toLowerCase().contains(filterString) || comp.toLowerCase().contains(filterString)){
                             FilteredArrayNames.add(dataNames);
                         }
                     }
