@@ -74,10 +74,10 @@ public class internetCheck {
         if (isNetworkConnected(context)) {
             try {
                 //TODO: change the url it checks
-                HttpURLConnection urlc = (HttpURLConnection) (new URL("http://www.google.com").openConnection());
+                HttpURLConnection urlc = (HttpURLConnection) (new URL("https://www.google.com").openConnection());
                 urlc.setRequestProperty("User-Agent", "Test");
                 urlc.setRequestProperty("Connection", "close");
-                urlc.setConnectTimeout(1500);
+                urlc.setConnectTimeout(2500);
                 urlc.connect();
                 return (urlc.getResponseCode() == 200);
             } catch (IOException e) {

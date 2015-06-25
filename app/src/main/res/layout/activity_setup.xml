@@ -22,7 +22,7 @@
             android:layout_centerHorizontal="true"
             android:layout_width="260dp"
             android:layout_height="200dp"
-            android:src="@mipmap/cms_logo"
+            android:src="@drawable/cms_logo"
             android:contentDescription="@null"
             android:layout_marginTop="30dp"/>
 

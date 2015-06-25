@@ -133,7 +133,7 @@ public class Settings extends ActionBarActivity {
                     //sending shared preference to keep user logged in even if they close the app
                     sharedPreference.setString(Settings.this, "login", user.getText().toString());
                     sharedPreference.setString(Settings.this, "pass", pass.getText().toString());
-                    sharedPreference.setString(Settings.this, "ip", ip.getText().toString());
+                    sharedPreference.setString(Settings.this, "ip", ip.getText().toString().trim());
                     sharedPreference.setString(Settings.this, MainActivity.TAG_LOGIN_ID, json.getString("loginID"));
 
                     MainActivity.checker = 0;
@@ -183,12 +183,13 @@ public class Settings extends ActionBarActivity {
                     Toast.makeText(Settings.this, "Server Field is empty", Toast.LENGTH_SHORT).show();
                     error();
                 }else {
-                    LOGIN_URL = "http://" + ip.getText().toString() + "/chd/public/app/login.php";
+                    LOGIN_URL = "http://" + ip.getText().toString().trim() + "/chd/public/app/login.php";
                     if(internetCheck.connectionCheck(Settings.this)) {
                         sharedPreference.setInt(Settings.this, "log", 100);
+                        //to keep the values in the text fields:
                         sharedPreference.setString(Settings.this, "username", user.getText().toString());
                         sharedPreference.setString(Settings.this, "password", pass.getText().toString());
-                        sharedPreference.setString(Settings.this, "server", ip.getText().toString());
+                        sharedPreference.setString(Settings.this, "server", ip.getText().toString().trim());
                         //to close the keyboard when going ot mainActivity:
                         InputMethodManager imm = (InputMethodManager)getSystemService(
                                 Context.INPUT_METHOD_SERVICE);
