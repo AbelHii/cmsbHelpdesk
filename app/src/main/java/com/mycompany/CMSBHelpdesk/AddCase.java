@@ -47,8 +47,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
@@ -96,7 +94,7 @@ public class AddCase extends ActionBarActivity {
 
     //Stores the values for AddCase and EditCase
     public static ArrayList<String> spinnerUsernames;
-    public static ArrayList<String> companyV;
+    public static ArrayList<String> companyV, temporaryList;
 
     //DB stuff:
     // JSON parser class
@@ -393,7 +391,8 @@ public class AddCase extends ActionBarActivity {
                             new addCase().execute();
                             if(AddPicture.listOfImages.size() != 0){
                                 Toast.makeText(getApplicationContext(), String.valueOf(Integer.parseInt(case_id)+1), Toast.LENGTH_LONG).show();
-                                new uploadImage().execute(AddPicture.tempList);
+                                temporaryList = AddPicture.tempList;
+                                new uploadImage(caseID).execute(temporaryList);
                             }
                         } else if (!internetCheck.connectionCheck(context)) {
                             Intent intent = new Intent(context, MainActivity.class);
@@ -409,7 +408,8 @@ public class AddCase extends ActionBarActivity {
                             new updateCase().execute();
                             if(AddPicture.listOfImages.size() != 0){
                                 Toast.makeText(getApplicationContext(), case_id, Toast.LENGTH_LONG).show();
-                                new uploadImage().execute(AddPicture.tempList);
+                                temporaryList = AddPicture.tempList;
+                                new uploadImage(caseID).execute(temporaryList);
                             }
                         } else if (!internetCheck.connectionCheck(context) && sync.equals("10")) {
                             updateCaseSQLite("10");
@@ -816,7 +816,7 @@ public class AddCase extends ActionBarActivity {
 
     /*------------------------CODE TO UPLOAD IMAGES TO PHP SERVER------------------------------------*/
     //uploadImages from stunningco.de and stackoverflow
-    static class uploadImage extends AsyncTask<ArrayList<String>, Void, Void>{
+    static class uploadImage extends AsyncTask<ArrayList<String>, Void, Integer>{
         HttpURLConnection connection = null;
         DataOutputStream outputStream = null;
         DataInputStream inputStream = null;
@@ -831,7 +831,12 @@ public class AddCase extends ActionBarActivity {
         int serverResponseCode;
         String serverResponseMessage;
 
-        public Void doInBackground(ArrayList<String>... params){
+        String id_case;
+        public uploadImage(String id_case){
+            this.id_case = id_case;
+        }
+
+        public Integer doInBackground(ArrayList<String>... params){
             try
             {
                 ArrayList<String> pathsToOurFile = params[0];
@@ -860,9 +865,9 @@ public class AddCase extends ActionBarActivity {
                     outputStream.writeBytes("Content-Type: text/plain; charset=UTF-8" + lineEnd);
                     outputStream.writeBytes(lineEnd);
                     if(title.equalsIgnoreCase("add case")) {
-                        outputStream.writeBytes(String.valueOf(Integer.parseInt(case_id) + 1) + lineEnd);
+                        outputStream.writeBytes(String.valueOf(Integer.parseInt(id_case) + 1) + lineEnd);
                     }else if(title.equalsIgnoreCase("edit case")){
-                        outputStream.writeBytes(case_id + lineEnd);
+                        outputStream.writeBytes(id_case + lineEnd);
                     }
                     //image
                     outputStream.writeBytes(twoHyphens + boundary + lineEnd);
@@ -905,7 +910,7 @@ public class AddCase extends ActionBarActivity {
         }
 
         @Override
-        protected void onPostExecute(Void result){
+        protected void onPostExecute(Integer result){
             AddPicture.listOfImages = new ArrayList<>();
         }
     }

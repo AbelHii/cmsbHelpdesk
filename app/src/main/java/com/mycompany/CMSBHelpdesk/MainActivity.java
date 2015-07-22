@@ -45,6 +45,7 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 
 public class MainActivity extends ActionBarActivity implements SwipeRefreshLayout.OnRefreshListener{
@@ -531,22 +532,24 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
     /*-------------------------------------#SYNC--------------------------------------------*/
 
     int count = 0;
+    public static int counter;
     class syncDB extends AsyncTask<String,String,String>{
         @Override
         protected String doInBackground(String... params) {
             int success = 0;
 
             List<NameValuePair> parameters = new ArrayList<NameValuePair>();
-            String image = null;
-            for (int i = syncColumn.size()-1; i >= 0; --i) {
-                if (!syncColumn.get(i).equalsIgnoreCase("") && ((syncColumn.contains("10") || syncColumn.contains("20")))) {
-                    caseID = casemap.get(i).get(TAG_ID);
-                    username = casemap.get(i).get(TAG_USERNAME);
-                    mDescription = casemap.get(i).get(TAG_DESCRIPTION);
-                    actionT = casemap.get(i).get(TAG_ACTION_TAKEN);
-                    assigneeID = casemap.get(i).get(TAG_LOGIN_ID);
-                    statusID = casemap.get(i).get(TAG_STATUS_ID);
-                    sync = String.valueOf(syncColumn.get(i));
+            //syncColumn is the sync column in the cases table from the SQLite
+            counter = syncColumn.size()-1;
+            while(counter >= 0){
+                if (!syncColumn.get(counter).equalsIgnoreCase("") && ((syncColumn.contains("10") || syncColumn.contains("20")))) {
+                    caseID = casemap.get(counter).get(TAG_ID);
+                    username = casemap.get(counter).get(TAG_USERNAME);
+                    mDescription = casemap.get(counter).get(TAG_DESCRIPTION);
+                    actionT = casemap.get(counter).get(TAG_ACTION_TAKEN);
+                    assigneeID = casemap.get(counter).get(TAG_LOGIN_ID);
+                    statusID = casemap.get(counter).get(TAG_STATUS_ID);
+                    sync = String.valueOf(syncColumn.get(counter));
 
                     nameId = controller.getID("users", "userId", username, TAG_NAME, 0);
 
@@ -579,12 +582,20 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
                         count++;
                     }
 
-                    //To sync images too:
+
+                    //To sync images if images exists:
+                    String image = null;
                     image = controller.getValue("cases", "image", caseID);
                     if(image != null){
                         ArrayList<String> paths = AddPicture.getFilePaths(image, "imageArrayAdd");
-                        new AddCase.uploadImage().execute(paths);
+                        AddCase.uploadImage ui = new AddCase.uploadImage(caseID);
+                        ui.execute(paths);
+                        ui.onPostExecute(counter--);
+                    }else{
+                        --counter;
                     }
+                }else{
+                    --counter;
                 }
             }
             return null;

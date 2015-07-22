@@ -195,6 +195,7 @@ public class DBController extends SQLiteOpenHelper{
         if(cursor.moveToFirst())
             s = cursor.getString(0);
 
+        database.close();
         return s;
     }
 

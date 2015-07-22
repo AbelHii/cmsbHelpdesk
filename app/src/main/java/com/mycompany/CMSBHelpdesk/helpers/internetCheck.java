@@ -46,8 +46,8 @@ public class internetCheck {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             //code for exit
-                            android.os.Process.killProcess(android.os.Process.myPid());
-                            System.exit(1);
+                            //android.os.Process.killProcess(android.os.Process.myPid());
+                            //System.exit(0);
                         }
 
                     })
