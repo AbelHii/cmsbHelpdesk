@@ -397,7 +397,13 @@ public class AddPicture extends AddCase {
                     //Reduces the size of the image to be contained in the bitmap
                     options.inSampleSize = 3;
                     //sets the image to the bitmap
-                    photo = BitmapFactory.decodeFile(filePath, options);
+                    try {
+                        photo = new AsyncMethods.getSampleSize(filePath, options).execute().get();//BitmapFactory.decodeFile(filePath, options);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    } catch (ExecutionException e) {
+                        e.printStackTrace();
+                    }
                     photo = getOrientation(photo, filePath);
                     if(listOfImages.size() > 5 || image_list.size() > 5){
                         break;
