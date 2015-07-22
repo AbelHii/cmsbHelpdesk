@@ -28,11 +28,11 @@ public class DBController extends SQLiteOpenHelper{
     //Creates Table
     @Override
     public void onCreate(SQLiteDatabase database) {
-        String cases, users, company;
+        String cases, users, images;
 
         //Cases
         cases = "CREATE TABLE cases (id INTEGER PRIMARY KEY AUTOINCREMENT, assignee TEXT, " +
-                "status TEXT, user TEXT, description TEXT, actiontaken TEXT, login_id TEXT, status_id TEXT, sync TEXT)";
+                "status TEXT, user TEXT, description TEXT, actiontaken TEXT, login_id TEXT, status_id TEXT, sync TEXT, image TEXT)";
         database.execSQL(cases);
 
         //Users
@@ -65,6 +65,7 @@ public class DBController extends SQLiteOpenHelper{
         values.put(MainActivity.TAG_LOGIN_ID, queryValues.get(MainActivity.TAG_LOGIN_ID));
         values.put(MainActivity.TAG_STATUS_ID, queryValues.get(MainActivity.TAG_STATUS_ID));
         values.put(MainActivity.TAG_SYNC, queryValues.get(MainActivity.TAG_SYNC));
+        values.put(MainActivity.TAG_IMAGE, queryValues.get(MainActivity.TAG_IMAGE));
 
         database.insert("cases", null, values);
         database.close();
@@ -116,6 +117,7 @@ public class DBController extends SQLiteOpenHelper{
                 map.put(MainActivity.TAG_LOGIN_ID, cursor.getString(6));
                 map.put(MainActivity.TAG_STATUS_ID, cursor.getString(7));
                 map.put(MainActivity.TAG_SYNC, cursor.getString(8));
+                map.put(MainActivity.TAG_IMAGE, cursor.getString(9));
 
                 caseList.add(map);
 
@@ -182,6 +184,20 @@ public class DBController extends SQLiteOpenHelper{
         return spin;
     }
 
+    //get a value
+    public String getValue(String table, String column, String caseId){
+        SQLiteDatabase database = this.getWritableDatabase();
+        String s = null;
+        String selectQuery = "SELECT "+column+" FROM "+table+" WHERE id ="+caseId;
+
+        Cursor cursor = database.rawQuery(selectQuery, null);
+
+        if(cursor.moveToFirst())
+            s = cursor.getString(0);
+
+        return s;
+    }
+
     //Insert String to table
     public void insertValue(String table, String column, String val){
         SQLiteDatabase database = this.getWritableDatabase();
@@ -194,7 +210,7 @@ public class DBController extends SQLiteOpenHelper{
         database.insert(table, column, values);
     }
 
-    public void insertOneCase(String id, String status, String user, String desc, String aT, String logID, String statID, String sync){
+    public void insertOneCase(String id, String status, String user, String desc, String aT, String logID, String statID, String sync, String image){
         SQLiteDatabase database = this.getWritableDatabase();
         ContentValues values = new ContentValues();
 
@@ -206,12 +222,13 @@ public class DBController extends SQLiteOpenHelper{
         values.put(MainActivity.TAG_LOGIN_ID, logID);
         values.put(MainActivity.TAG_STATUS_ID, statID);
         values.put(MainActivity.TAG_SYNC, sync);
+        values.put(MainActivity.TAG_IMAGE, image);
 
         database.insert("cases", null, values);
         database.close();
     }
 
-    public void updateOneCase(String id, String status, String user, String desc, String aT, String logID, String statID, String sync){
+    public void updateOneCase(String id, String status, String user, String desc, String aT, String logID, String statID, String sync, String image){
         SQLiteDatabase database = this.getWritableDatabase();
         ContentValues values = new ContentValues();
 
@@ -222,10 +239,22 @@ public class DBController extends SQLiteOpenHelper{
         values.put(MainActivity.TAG_LOGIN_ID, logID);
         values.put(MainActivity.TAG_STATUS_ID, statID);
         values.put(MainActivity.TAG_SYNC, sync);
+        values.put(MainActivity.TAG_IMAGE, image);
 
         database.update("cases", values, "id = "+id, null);
         database.close();
     }
+
+    public void updateImage(String id, String image){
+        SQLiteDatabase database = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+
+        values.put(MainActivity.TAG_IMAGE, image);
+
+        database.update("cases", values, "id = "+id, null);
+        database.close();
+    }
+
 
     public void updateSyncValue(String table, String id, String sync, String TAG){
         SQLiteDatabase database = this.getWritableDatabase();
@@ -293,6 +322,7 @@ public class DBController extends SQLiteOpenHelper{
         return id;
     }
 
+
     public void refreshCases(String table){
         SQLiteDatabase database = this.getWritableDatabase();
         String dropQuery = "", refreshQuery= "";
@@ -301,7 +331,7 @@ public class DBController extends SQLiteOpenHelper{
             case "cases":
                 dropQuery = "DROP TABLE IF EXISTS cases";
                 refreshQuery = "CREATE TABLE cases (id INTEGER PRIMARY KEY AUTOINCREMENT, assignee TEXT, " +
-                        "status TEXT, user TEXT, description TEXT, actiontaken TEXT, login_id TEXT, status_id TEXT, sync TEXT)";
+                        "status TEXT, user TEXT, description TEXT, actiontaken TEXT, login_id TEXT, status_id TEXT, sync TEXT, image TEXT)";
                 break;
             case "users":
                 dropQuery = "DROP TABLE IF EXISTS users";

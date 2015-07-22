@@ -20,15 +20,15 @@
         <TextView
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:layout_toRightOf="@+id/usernameMain"
             android:textAlignment="viewEnd"
-            android:textSize="14sp"
+            android:textSize="13sp"
             android:singleLine="true"
             android:textColor="#EE9000"
             android:text="@string/company"
             android:id="@+id/companyMain"
             android:padding="2dp"
-            android:layout_marginTop="6dp"/>
+            android:layout_alignBottom="@+id/usernameMain"
+            android:layout_toEndOf="@+id/usernameMain" />
         <TextView
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"

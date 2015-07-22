@@ -9,6 +9,7 @@
     <color name="pressed">#CCCCCC</color>
     <color name="notPressed">#DDDDDD</color>
     <color name="notPressed3">#EEEEEE</color>
+    <color name="transparent">#00000000</color>
     <color name="White">#FFFFFF</color>
     <color name="Ivory">#FFFFF0</color>
     <color name="LightYellow">#FFFFE0</color>

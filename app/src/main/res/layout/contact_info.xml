@@ -31,16 +31,15 @@
     <!--Company:-->
     <TextView
         android:id="@+id/company"
-        android:layout_below="@+id/contactInfo"
-        android:layout_toRightOf="@id/contactName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="14sp"
+        android:textSize="13sp"
         android:text="@string/company"
         android:textColor="@color/actionBar"
         android:padding="2dp"
-        android:layout_marginTop="6dp"
-        android:layout_marginLeft="5dp"/>
+        android:layout_marginLeft="5dp"
+        android:layout_alignBottom="@+id/contactName"
+        android:layout_toEndOf="@+id/contactName" />
 
     <!--Email:-->
     <TextView

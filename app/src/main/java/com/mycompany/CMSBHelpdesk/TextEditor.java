@@ -7,22 +7,17 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
-import android.text.format.DateFormat;
-import android.text.method.ScrollingMovementMethod;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.Scroller;
 
 import com.mycompany.CMSBHelpdesk.helpers.DBController;
 
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.Date;
-import java.util.Locale;
 
 
 public class TextEditor extends ActionBarActivity {
@@ -131,11 +126,11 @@ public class TextEditor extends ActionBarActivity {
             returnText();
             return true;
         }
-        if (id == R.id.action_settings) {
+        /*if (id == R.id.action_settings) {
             Intent intent = new Intent(context, Settings.class);
             startActivity(intent);
             return true;
-        }
+        }*/
         if (id == android.R.id.home) {
             InputMethodManager imm = (InputMethodManager)getSystemService(
                     Context.INPUT_METHOD_SERVICE);

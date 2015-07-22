@@ -47,7 +47,7 @@ import java.util.HashMap;
 import java.util.List;
 
 
-public class MainActivity extends ActionBarActivity implements SwipeRefreshLayout.OnRefreshListener {
+public class MainActivity extends ActionBarActivity implements SwipeRefreshLayout.OnRefreshListener{
 
     private ListView mCasesLV;
     private SwipeRefreshLayout swipeLayout;
@@ -58,6 +58,7 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
     ArrayList<String> syncColumn;
     //Variables for sync
     private String nameId = "", caseID ="", username="", mDescription="",actionT="", assigneeID="", statusID="", sync="";
+    public String caseid = "0";
 
     // DB Class to perform DB related operations
     DBController controller = new DBController(this);
@@ -88,6 +89,7 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
     public static final String TAG_LOGIN_ID = "login_id";
     public static final String TAG_STATUS_ID = "status_id";
     public static final String TAG_SYNC = "sync";
+    public static final String TAG_IMAGE = "image";
 
     //user stuff
     public static final String TAG_USERID = "userId";
@@ -104,10 +106,11 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
         setContentView(R.layout.activity_main);
 
         android.support.v7.app.ActionBar bar = getSupportActionBar();
+        getSupportActionBar().setIcon(R.drawable.cms_logo);
         bar.setBackgroundDrawable(new ColorDrawable(Color.parseColor(colorAB)));
 
-        checkLog = sharedPreference.getString(this, "login");
-        TAG_IP = sharedPreference.getString(this, "ip");
+        checkLog = sharedPreference.getString(this, "login").trim();
+        TAG_IP = sharedPreference.getString(this, "ip").trim();
         String ending = "'s Cases";
 
 
@@ -190,8 +193,6 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
             }
             adapter.addAll(c);
             setListAdapter(adapter);
-            //lv = (ListView)findViewById(android.R.id.list);
-            //mCasesLV.setAdapter(adapter);
             onListItemClick();
         }
 
@@ -206,9 +207,10 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
+                caseid="0";
                 casemap = controller.getAllCases();
                 syncColumn = returnColumn(casemap);
-                if(internetCheck.connectionCheck(MainActivity.this) && (syncColumn.contains("10") || syncColumn.contains("20"))) {
+                if(internetCheck.isNetworkConnected(MainActivity.this) && (syncColumn.contains("10") || syncColumn.contains("20"))) {
                     Toast.makeText(MainActivity.this, "There are cases that need to be synced", Toast.LENGTH_LONG).show();
 
                     swipeLayout.setRefreshing(false);
@@ -263,12 +265,12 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
             public void onItemClick(AdapterView<?> arg0, View view, int position,
                                     long arg3) {
 
-
                 Intent intent = new Intent(MainActivity.this, AddCase.class);
                 //Check if it needs to be synced or not so as not to update a case that hasn't been added yet
-                intent.putExtra("caller", "editCase");
+                intent.putExtra("caller", "editcase");
                 Bundle bundle = new Bundle();
-                bundle.putString(TAG_ID, controller.getTableValues("cases", 0).get(position));
+                String idd = controller.getTableValues("cases", 0).get(position);
+                bundle.putString(TAG_ID, idd);
                 bundle.putString(TAG_ASSIGNEE, controller.getTableValues("cases", 1).get(position));
                 bundle.putString(TAG_STATUS, controller.getTableValues("cases", 2).get(position));
                 bundle.putString(TAG_USERNAME, controller.getTableValues("cases", 3).get(position));
@@ -277,7 +279,11 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
                 bundle.putString(TAG_LOGIN_ID, controller.getTableValues("cases", 6).get(position));
                 bundle.putString(TAG_STATUS_ID, controller.getTableValues("cases", 7).get(position));
                 bundle.putString(TAG_SYNC, controller.getTableValues("cases", 8).get(position));
+                bundle.putString(TAG_IMAGE, controller.getTableValues("cases", 9).get(position));
                 intent.putExtras(bundle);
+
+                //sets the bitmap image if image exists in sqlite
+                AddPicture.filePathTemp = controller.getValue("cases", MainActivity.TAG_IMAGE, idd);
 
                 startActivity(intent);
 
@@ -310,6 +316,7 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
     @Override
     public void onBackPressed(){
         MainActivity.this.finish();
+        overridePendingTransition(R.anim.abc_fade_in, R.anim.abc_fade_out);
         System.exit(0);
     }
 
@@ -530,6 +537,7 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
             int success = 0;
 
             List<NameValuePair> parameters = new ArrayList<NameValuePair>();
+            String image = null;
             for (int i = syncColumn.size()-1; i >= 0; --i) {
                 if (!syncColumn.get(i).equalsIgnoreCase("") && ((syncColumn.contains("10") || syncColumn.contains("20")))) {
                     caseID = casemap.get(i).get(TAG_ID);
@@ -571,6 +579,12 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
                         count++;
                     }
 
+                    //To sync images too:
+                    image = controller.getValue("cases", "image", caseID);
+                    if(image != null){
+                        ArrayList<String> paths = AddPicture.getFilePaths(image, "imageArrayAdd");
+                        new AddCase.uploadImage().execute(paths);
+                    }
                 }
             }
             return null;
@@ -629,10 +643,19 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
             //To set the case id for adding case if cases are empty
             if(controller.getTableValues("cases", 0).isEmpty())
                 sharedPreference.setString(MainActivity.this, TAG_ID, "0");
-            else if(controller.getTableValues("cases", 0) != null)
-                sharedPreference.setString(MainActivity.this, TAG_ID, controller.getMaxId("cases"));
+            else if(controller.getTableValues("cases", 0) != null) {
+                if(!internetCheck.isNetworkConnected(this)){
+                    if(sharedPreference.getString(this, TAG_ID).equals("")) {
+                        caseid = controller.getMaxId("cases");
+                        sharedPreference.setString(MainActivity.this, TAG_ID, caseid);
+                    }else{
+                        caseid = sharedPreference.getString(MainActivity.this, TAG_ID);
+                        sharedPreference.setString(MainActivity.this, TAG_ID, caseid);
+                    }
+                }
+            }
             Intent intent = new Intent(context, AddCase.class);
-            intent.putExtra("caller", "addCase");
+            intent.putExtra("caller", "addcase");
             startActivity(intent);
             //Animation that slides to next activity
             overridePendingTransition(R.anim.slide_out_left, R.anim.slide_in_right);

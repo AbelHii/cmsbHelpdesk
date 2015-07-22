@@ -16,7 +16,9 @@
             android:hint="@string/search_users"
             android:textSize="22sp"
             android:textStyle="bold"
-            android:inputType="textVisiblePassword"
+            android:inputType="textCapWords|textEmailSubject"
+            android:singleLine="true"
+            android:maxLines="1"
             android:background="#ddd"
             android:paddingStart="13dp"/>
 

@@ -1,16 +1,17 @@
 package com.mycompany.CMSBHelpdesk;
 
 import android.app.Activity;
-import android.app.Dialog;
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.ColorDrawable;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -27,13 +28,14 @@ import android.widget.AbsoluteLayout;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.PopupWindow;
-import android.widget.RelativeLayout;
 import android.widget.Scroller;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.mycompany.CMSBHelpdesk.helpers.AsyncMethods;
 import com.mycompany.CMSBHelpdesk.helpers.DBController;
 import com.mycompany.CMSBHelpdesk.helpers.JSONParser;
 import com.mycompany.CMSBHelpdesk.helpers.internetCheck;
@@ -41,27 +43,53 @@ import com.mycompany.CMSBHelpdesk.helpers.sharedPreference;
 
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 
 public class AddCase extends ActionBarActivity {
 
-    public Button mUser, mCancel;
+    public Button mUser, mCancel, mDelete;
     public ImageButton mInfo;
+    public ImageView mBitmapImage;
     private Spinner mStatus;
-    private String id = "0", name, username = "", description,actionT, assigneeID, statusID, caseID, company, email, telephone, sync = "", id_user;
-    private Button mSubmit;
-    private TextView mIDCase,mAssigneeLabel, mContactName, mCompany, mEmail, mTel;
-    private TextView mActionTaken, mDesc, mActionTakenLabel, mDescLabel, mStatusDivider;
+    public static String case_id = "0";
+    private String name, username = "", description, actionT, assigneeID, statusID, sync = "", id_user, path;
+    private static String caseID;
+    public static String imageFilePath;
+    public Button mSubmit;
+    public TextView mIDCase;
+    private TextView mAssigneeLabel;
+    private TextView mContactName;
+    private TextView mCompany;
+    private TextView mEmail;
+    private TextView mTel;
+    private TextView mActionTaken;
+    private TextView mDesc;
+    private TextView mActionTakenLabel;
+    private TextView mDescLabel;
+    private TextView mStatusDivider;
+    public TextView mFilePath;
     private SharedPreferences sp;
     private SharedPreferences.Editor e;
 
     //To check whether its in addcase or editcase
-    String caller, title = "Add Case";
+    String caller;
+    static String title = "Add Case";
+    String fps;
 
     // DB Class to perform DB related operations
     DBController userControl = new DBController(this);
@@ -72,12 +100,16 @@ public class AddCase extends ActionBarActivity {
 
     //DB stuff:
     // JSON parser class
-    JSONParser jsonParser = new JSONParser();
+    static JSONParser jsonParser = new JSONParser();
 
-    private ProgressDialog pDialog;
+
+    private static ProgressDialog pDialog;
     public static String ADD_CASE_URL = "http://"+ MainActivity.TAG_IP +"/chd/public/app/AddCase.php";
     public static String UPDATE_CASE_URL = "http://"+ MainActivity.TAG_IP +"/chd/public/app/UpdateCase.php";
-    /*----------------------------ON CREATE--------------------------------------------------------*/
+    public static String INSERT_IMAGE_URL = "http://"+ MainActivity.TAG_IP +"/chd/public/app/insertImage.php";
+    public static String CHECK_IMAGE_URL = "http://"+ MainActivity.TAG_IP +"/chd/public/app/checkImages.php";
+    public static String imgExists;
+    /*---------------------------------------------ON CREATE-----------------------------------------------------------------*/
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -104,8 +136,18 @@ public class AddCase extends ActionBarActivity {
                     checkLabel();
                     break;
                 case "addcase":
+                    title = "Add Case";
                     setTitle(title);
-                    mIDCase.setText(String.valueOf(Integer.parseInt(id) + 1));
+                    //getting the most recent case case_id and assignee case_id
+                    if(internetCheck.isNetworkConnected(this)) {
+                        new AsyncMethods.getMaxId(this).execute();
+                        sharedPreference.setString(AddCase.this, MainActivity.TAG_ID, case_id);
+                    }else{
+                        case_id = userControl.getMaxId("cases");
+                        if(sharedPreference.getString(AddCase.this, MainActivity.TAG_ID) == null)
+                            sharedPreference.setString(AddCase.this, MainActivity.TAG_ID, case_id);
+                    }
+                    mIDCase.setText(String.valueOf(Integer.parseInt(case_id) + 1));
                     checkLabel();
                     break;
             }
@@ -121,7 +163,7 @@ public class AddCase extends ActionBarActivity {
             mStatusDivider.setVisibility(View.VISIBLE);
         } else {
             mDescLabel.setVisibility(View.VISIBLE);
-            mDesc.setLines(3);
+            mDesc.setLines(2);
             mStatusDivider.setVisibility(View.GONE);
         }
         if (mActionTaken.getText().toString().trim().equals("")){
@@ -129,7 +171,7 @@ public class AddCase extends ActionBarActivity {
         }
         else{
             mActionTakenLabel.setVisibility(View.VISIBLE);
-            mActionTaken.setLines(3);
+            mActionTaken.setLines(2);
         }
     }
 
@@ -166,14 +208,26 @@ public class AddCase extends ActionBarActivity {
         mDescLabel = (TextView) findViewById(R.id.caseDescLabel);
         mActionTakenLabel = (TextView) findViewById (R.id.actionTakenLabel);
 
-        //getting the most recent case id and assignee id
-        id = sharedPreference.getString(AddCase.this, MainActivity.TAG_ID);
+        case_id = sharedPreference.getString(AddCase.this, MainActivity.TAG_ID);
         assigneeID = sharedPreference.getString(AddCase.this, MainActivity.TAG_LOGIN_ID);
 
+        imgExists = sharedPreference.getString(this, "imgExists");
+        mFilePath = (TextView) findViewById(R.id.filePath);
     }
 
+    public void removeSharedPreferences(){
+        e.remove("filePaths").commit();
+        e.remove("imgExists").commit();
+    }
+    public void clearOnExit(){
+        removeSharedPreferences();
+        //remove the image from json and array;
+        AddPicture.json.remove("imageArray");
+        AddPicture.json.remove("imageArrayAdd");
+        AddPicture.listOfImages = new ArrayList<>();
+    }
 
-    //ADAPTER FOR STATUS SPINNER
+    //------------------------------------ADAPTER FOR STATUS SPINNER-----------------------------------------------------------
     public void chooseStatColour(String s, TextView v){
         switch(s){
             case "Not Started":
@@ -236,7 +290,9 @@ public class AddCase extends ActionBarActivity {
         }
     }
 
-    /*--------------------ADD LISTENER TO BUTTON ---------------------------------------------------------*/
+
+
+    /*-------------------------------------ADD LISTENER TO BUTTON -------------------------------------------------------------------*/
     public void addListenerOnButton() {
         final Context context = this;
 
@@ -283,33 +339,33 @@ public class AddCase extends ActionBarActivity {
         mInfo.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (mUser.getText().toString().equals("") || mUser.getText().toString().equals(null)) {
-                    Toast.makeText(AddCase.this, "Name is Empty", Toast.LENGTH_SHORT).show();
-                } else {
-                    LayoutInflater layoutInflater
-                            = (LayoutInflater) getBaseContext()
-                            .getSystemService(LAYOUT_INFLATER_SERVICE);
-                    View popupView = layoutInflater.inflate(R.layout.contact_info, null);
-                    final PopupWindow popupWindow = new PopupWindow(
-                            popupView,
-                            AbsoluteLayout.LayoutParams.WRAP_CONTENT,
-                            AbsoluteLayout.LayoutParams.WRAP_CONTENT);
+            if (mUser.getText().toString().equals("") || mUser.getText().toString().equals(null)) {
+                Toast.makeText(AddCase.this, "Name is Empty", Toast.LENGTH_SHORT).show();
+            } else {
+                LayoutInflater layoutInflater
+                        = (LayoutInflater) getBaseContext()
+                        .getSystemService(LAYOUT_INFLATER_SERVICE);
+                View popupView = layoutInflater.inflate(R.layout.contact_info, null);
+                final PopupWindow popupWindow = new PopupWindow(
+                        popupView,
+                        AbsoluteLayout.LayoutParams.WRAP_CONTENT,
+                        AbsoluteLayout.LayoutParams.WRAP_CONTENT);
 
-                    setTexts(popupView);
+                setTexts(popupView);
 
-                    mCancel = (Button) popupView.findViewById(R.id.cancelPopup);
-                    mCancel.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                            popupWindow.dismiss();
-                        }
-                    });
-                    popupWindow.setAnimationStyle(R.style.popupAnimation);
-                    popupWindow.setBackgroundDrawable(new BitmapDrawable());
-                    popupWindow.setOutsideTouchable(true);
-                    popupWindow.showAtLocation(popupView, Gravity.CENTER, 0, -300);
-                    //popupWindow.showAsDropDown(mInfo, 50, -100);
-                }
+                mCancel = (Button) popupView.findViewById(R.id.cancelPopup);
+                mCancel.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        popupWindow.dismiss();
+                    }
+                });
+                popupWindow.setAnimationStyle(R.style.popupAnimation);
+                popupWindow.setBackgroundDrawable(new BitmapDrawable());
+                popupWindow.setOutsideTouchable(true);
+                popupWindow.showAtLocation(popupView, Gravity.CENTER, 0, -300);
+                //popupWindow.showAsDropDown(mInfo, 50, -100);
+            }
             }
         });
 
@@ -324,76 +380,63 @@ public class AddCase extends ActionBarActivity {
             mSubmit.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    if (!mUser.getText().toString().trim().equalsIgnoreCase("")) {
-                        mSubmit.setTextAppearance(AddCase.this, R.style.submitButton);
-                        //Logic for adding case:
-                        if (title.trim().equalsIgnoreCase("add Case")) { //ADD
-                            if (internetCheck.connectionCheck(context)) {
-                                id_user = userControl.getID("users", "userId", mUser.getText().toString(), MainActivity.TAG_NAME, 0);
-                                new addCase().execute();
-                            } else if (!internetCheck.connectionCheck(context)) {
-                                Intent intent = new Intent(context, MainActivity.class);
-                                addCaseSQLite("10");
-                                Toast.makeText(AddCase.this, "Adding Case For Sync ", Toast.LENGTH_LONG).show();
-                                startActivity(intent);
-                                finish();
+                for(int i = 0; i < AddPicture.listOfImages.size(); i++){
+                    Toast.makeText(getApplicationContext(), AddPicture.listOfImages.get(i).toString(), Toast.LENGTH_LONG).show();
+                }
+                if (!mUser.getText().toString().trim().equalsIgnoreCase("")) {
+                    mSubmit.setTextAppearance(AddCase.this, R.style.submitButton);
+
+                    //Logic for adding case:
+                    if (title.trim().equalsIgnoreCase("add Case")) {//ADD
+                        if (internetCheck.connectionCheck(context)) {
+                            id_user = userControl.getID("users", "userId", mUser.getText().toString(), MainActivity.TAG_NAME, 0);
+                            new addCase().execute();
+                            if(AddPicture.listOfImages.size() != 0){
+                                Toast.makeText(getApplicationContext(), String.valueOf(Integer.parseInt(case_id)+1), Toast.LENGTH_LONG).show();
+                                new uploadImage().execute(AddPicture.tempList);
                             }
-                            //Logic for editing case:
-                        } else if (title.trim().equalsIgnoreCase("edit Case")) { //EDIT
+                        } else if (!internetCheck.connectionCheck(context)) {
                             Intent intent = new Intent(context, MainActivity.class);
-                            if (internetCheck.connectionCheck(context)) {
-                                new updateCase().execute();
-                            } else if (!internetCheck.connectionCheck(context) && sync.equals("10")) {
-                                updateCaseSQLite("10");
-                                Toast.makeText(AddCase.this, "Updating Case For Sync", Toast.LENGTH_LONG).show();
-                                startActivity(intent);
-                                finish();
-                            } else if (!internetCheck.connectionCheck(context) && (sync.equals("") || sync.equals("20"))) {
-                                updateCaseSQLite("20");
-                                Toast.makeText(AddCase.this, "Updating Case For Sync", Toast.LENGTH_LONG).show();
-                                startActivity(intent);
-                                finish();
-                            }
+                            addCaseSQLite("10");
+                            Toast.makeText(AddCase.this, "Adding Case For Sync ", Toast.LENGTH_LONG).show();
+                            startActivity(intent);
+                            finish();
                         }
-                    } else {
-                        mSubmit.setTextColor(Color.parseColor("#CC0000"));
-                        Toast.makeText(AddCase.this, "Name is Empty", Toast.LENGTH_SHORT).show();
+                        //Logic for editing case:
+                    } else if (title.trim().equalsIgnoreCase("edit Case")) { //EDIT
+                        Intent intent = new Intent(context, MainActivity.class);
+                        if (internetCheck.isNetworkConnected(context)) {
+                            new updateCase().execute();
+                            if(AddPicture.listOfImages.size() != 0){
+                                Toast.makeText(getApplicationContext(), case_id, Toast.LENGTH_LONG).show();
+                                new uploadImage().execute(AddPicture.tempList);
+                            }
+                        } else if (!internetCheck.connectionCheck(context) && sync.equals("10")) {
+                            updateCaseSQLite("10");
+                            Toast.makeText(AddCase.this, "Updating Case For Sync", Toast.LENGTH_LONG).show();
+                            startActivity(intent);
+                            finish();
+                        } else if (!internetCheck.connectionCheck(context) && (sync.equals("") || sync.equals("20"))) {
+                            updateCaseSQLite("20");
+                            Toast.makeText(AddCase.this, "Updating Case For Sync", Toast.LENGTH_LONG).show();
+                            startActivity(intent);
+                            finish();
+                        }
                     }
+                    AddPicture.listOfImages = new ArrayList<>();
+                    removeSharedPreferences();
+                } else {
+                    mSubmit.setTextColor(Color.parseColor("#CC0000"));
+                    Toast.makeText(getApplicationContext(), "Name is Empty", Toast.LENGTH_SHORT).show();
+                }
                 }
             });
-        }
-    }
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        switch(requestCode) {
-            case (1) : {
-                if (resultCode == Activity.RESULT_OK) {
-                    String newText = data.getStringExtra("result");
-                    mDesc.setText(newText);
-                    checkLabel();
-                }
-                break;
-            }case (2) : {
-                if (resultCode == Activity.RESULT_OK) {
-                    String newText = data.getStringExtra("result");
-                    mActionTaken.setText(newText);
-                    checkLabel();
-                }
-                break;
-            }case (3): {
-                if (resultCode == Activity.RESULT_OK) {
-                    setTitle(title);
-                    retrieveUserList(data);
-                    mSubmit.setTextAppearance(AddCase.this, R.style.submitButton);
-                }
-                break;
-            }
         }
     }
 
     @Override
     public void onBackPressed(){
+        clearOnExit();
         this.finish();
         overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
     }
@@ -404,9 +447,13 @@ public class AddCase extends ActionBarActivity {
         if(!internetCheck.isNetworkConnected(this)){
             sync = num;
         }
-        String identification = String.valueOf(Integer.parseInt(id)+1);
+        if(!internetCheck.isNetworkConnected(this) && (case_id.equals("0") || case_id.equals("1"))) {
+            case_id = userControl.getMaxId("cases");
+        }
+        String identification = String.valueOf(Integer.parseInt(case_id)+1);
+        if(AddPicture.listOfImages.size() == 0){
+            AddPicture.filePathsAdd = null; }
 
-        //insertOneCase(String id, String assignee, String status, String user, String desc, String aT, String logID, String statID)
         userControl.insertOneCase(identification,
                 mStatus.getSelectedItem().toString(),
                 mUser.getText().toString(),
@@ -414,13 +461,16 @@ public class AddCase extends ActionBarActivity {
                 mActionTaken.getText().toString(),
                 assigneeID,
                 String.valueOf(mStatus.getSelectedItemId() + 1),
-                sync);
+                sync,
+                AddPicture.filePathsAdd);
     }
     //Updates SQLite Cases
     public void updateCaseSQLite(String num){
         if(!internetCheck.isNetworkConnected(this)){
             sync = num;
         }
+        if(AddPicture.listOfImages.size() == 0){
+            AddPicture.filePathsAdd = null;}
 
         userControl.updateOneCase(caseID,
                 mStatus.getSelectedItem().toString(),
@@ -429,7 +479,8 @@ public class AddCase extends ActionBarActivity {
                 mActionTaken.getText().toString(),
                 assigneeID,
                 String.valueOf(mStatus.getSelectedItemPosition() + 1),
-                sync);
+                sync,
+                AddPicture.filePathsAdd);
     }
 
 
@@ -454,13 +505,14 @@ public class AddCase extends ActionBarActivity {
         caseID = bund.getString(MainActivity.TAG_ID);
 
         String assignee = bund.getString(MainActivity.TAG_ASSIGNEE);
-        id = bund.getString(MainActivity.TAG_ID);
+        case_id = bund.getString(MainActivity.TAG_ID);
         description = bund.getString(MainActivity.TAG_DESCRIPTION);
         actionT = bund.getString(MainActivity.TAG_ACTION_TAKEN);
         username = bund.getString(MainActivity.TAG_USERNAME);
         statusID = bund.getString(MainActivity.TAG_STATUS_ID);
         assigneeID = bund.getString(MainActivity.TAG_LOGIN_ID);
         sync = bund.getString(MainActivity.TAG_SYNC);
+        imageFilePath = bund.getString(MainActivity.TAG_IMAGE);
 
         //This just sets the static values according to the user
         //SET TEXT
@@ -469,21 +521,44 @@ public class AddCase extends ActionBarActivity {
         mDesc.setText(description);
         mActionTaken.setText(actionT);
         mStatus.setSelection(Integer.parseInt(statusID) - 1);
-        mIDCase.setText(id);
+        mIDCase.setText(case_id);
 
         id_user = userControl.getID("users", "userId", mUser.getText().toString(), MainActivity.TAG_NAME, 0);
 
-        if(MainActivity.checkLog.equals("admin")){
+        if(MainActivity.checkLog.equalsIgnoreCase("admin")){
             mAssigneeLabel = (TextView) findViewById(R.id.assigneeLabel);
             mAssigneeLabel.setText("Assignee: "+assignee);
+        }
+
+        mBitmapImage = (ImageView)findViewById(R.id.bitmapImage);
+        mFilePath = (TextView) findViewById(R.id.filePath);
+
+        if(AddPicture.filePathTemp != null) {
+            ArrayList<String> files = AddPicture.getFilePaths(AddPicture.filePathTemp, "imageArrayAdd");
+            String filepath = files.get(0);
+            //Reduces the size of the image to be contained in the bitmap
+            AddPicture.options.inSampleSize = 7;
+            Bitmap img = BitmapFactory.decodeFile(filepath, AddPicture.options);
+            mBitmapImage.setImageBitmap(AddPicture.getOrientation(img, filepath));
+            mFilePath.setText(filepath);
+        }
+        if(internetCheck.isNetworkConnected(this)){
+            //To check if images for this case exist in the server:
+            checkImages check = new checkImages(this);
+            check.execute();
+            try {
+                AddPicture.imageList = check.get();
+            } catch (InterruptedException e1) {
+                e1.printStackTrace();
+            } catch (ExecutionException e1) {
+                e1.printStackTrace();
+            }
         }
     }
 
     public void retrieveUserList(Intent data){
         Bundle b = data.getExtras();
-
         name = b.getString(MainActivity.TAG_NAME);
-
         //SET TEXT
         mUser.setText(name);
         mUser.setTextAppearance(this, R.style.bigFont);
@@ -513,6 +588,31 @@ public class AddCase extends ActionBarActivity {
             overridePendingTransition(R.anim.abc_slide_in_top, R.anim.abc_slide_out_bottom);
             return true;
         }
+        if(id == R.id.add_picture){
+            Intent intent = new Intent(AddCase.this, AddPicture.class);
+            intent.putExtra("caseIdKey", case_id);
+            intent.putExtra("call", caller);
+            fps = sharedPreference.getString(AddCase.this, "filePaths");
+            intent.putExtra("filez", fps);
+            //attempt to save case_id
+            if(title.trim().equalsIgnoreCase("addcase")){
+                if(internetCheck.isNetworkConnected(context))
+                sharedPreference.setString(AddCase.this, MainActivity.TAG_ID, String.valueOf(Integer.parseInt(case_id)+1));
+            }else{
+                sharedPreference.setString(AddCase.this, MainActivity.TAG_ID, case_id);
+            }
+
+            imgExists = sharedPreference.getString(this, "imgExists");
+            if(imgExists.equals("true")){
+                intent.putExtra("imgExists", imgExists);
+            }else{
+                intent.putExtra("imgExists", "false");
+            }
+
+            startActivity(intent);
+            overridePendingTransition(R.anim.abc_slide_in_bottom, R.anim.abc_slide_out_top);
+            return true;
+        }
         if(id==R.id.mainMenu){
             Intent intent = new Intent(context, MainActivity.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
@@ -521,13 +621,45 @@ public class AddCase extends ActionBarActivity {
             //Animation that slides to next activity
             overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
             return true;
-        }if (id == android.R.id.home) {
+        }
+        if (id == android.R.id.home) {
+            clearOnExit();
             this.finish();
             //Animation that slides to next activity
             overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    /*---------------ON ACTIVITY RESULT--------------------------------------------*/
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        switch(requestCode) {
+            case (1) : {
+                if (resultCode == Activity.RESULT_OK) {
+                    String newText = data.getStringExtra("result");
+                    mDesc.setText(newText);
+                    checkLabel();
+                }
+                break;
+            }case (2) : {
+                if (resultCode == Activity.RESULT_OK) {
+                    String newText = data.getStringExtra("result");
+                    mActionTaken.setText(newText);
+                    checkLabel();
+                }
+                break;
+            }case (3): {
+                if (resultCode == Activity.RESULT_OK) {
+                    setTitle(title);
+                    retrieveUserList(data);
+                    mSubmit.setTextAppearance(AddCase.this, R.style.submitButton);
+                }
+                break;
+            }
+        }
     }
 
 /*------------------------------------------ASYNC TASK to connect to MYSQL SB----------------------------------------------------------------------*/
@@ -569,6 +701,7 @@ public class AddCase extends ActionBarActivity {
 
             JSONObject json = jsonParser.makeHttpRequest(
                     ADD_CASE_URL, "POST", parameters);
+
             try {
 
                 //check log cat for JSON response
@@ -587,6 +720,7 @@ public class AddCase extends ActionBarActivity {
                     finish();
                     return json.getString(MainActivity.TAG_MESSAGE);
                 } else {
+                    pDialog.dismiss();
                     return json.getString(MainActivity.TAG_MESSAGE);
                 }
             } catch (JSONException e) {
@@ -605,8 +739,8 @@ public class AddCase extends ActionBarActivity {
         }
     }
 
-    /*---------------------------IMPORTANT CODE!---------------------------------------------------------*/
-    //update Case to MySQL DB
+    /*---------------------------UPDATE CASE TO MYSQL DB---------------------------------------------------------*/
+
     class updateCase extends AsyncTask<String, String, String> {
         //Before starting background thread Show Progress Dialog
         @Override
@@ -641,6 +775,7 @@ public class AddCase extends ActionBarActivity {
 
             JSONObject json = jsonParser.makeHttpRequest(
                     UPDATE_CASE_URL, "POST", parameters);
+
             try {
                 //check log cat for JSON response
                 Log.d("Updating... ", json.toString());
@@ -658,7 +793,8 @@ public class AddCase extends ActionBarActivity {
                     finish();
                     return json.getString(MainActivity.TAG_MESSAGE);
                 }else if(success == 0){
-
+                    pDialog.dismiss();
+                    return json.getString(MainActivity.TAG_MESSAGE);
                 } else {
                     return json.getString(MainActivity.TAG_MESSAGE);
                 }
@@ -671,12 +807,236 @@ public class AddCase extends ActionBarActivity {
 
         protected void onPostExecute(String message) {
             // dismiss the dialog after getting all products
+            pDialog.dismiss();
             if (message != null) {
                 Toast.makeText(AddCase.this, message, Toast.LENGTH_LONG).show();
             }
-            pDialog.dismiss();
         }
     }
+
+    /*------------------------CODE TO UPLOAD IMAGES TO PHP SERVER------------------------------------*/
+    //uploadImages from stunningco.de and stackoverflow
+    static class uploadImage extends AsyncTask<ArrayList<String>, Void, Void>{
+        HttpURLConnection connection = null;
+        DataOutputStream outputStream = null;
+        DataInputStream inputStream = null;
+        String urlServer = INSERT_IMAGE_URL;
+        String lineEnd = "\r\n";
+        String twoHyphens = "--";
+        String boundary =  "*****";
+
+        int bytesRead, bytesAvailable, bufferSize;
+        byte[] buffer;
+        int maxBufferSize = 1*1024*1024;
+        int serverResponseCode;
+        String serverResponseMessage;
+
+        public Void doInBackground(ArrayList<String>... params){
+            try
+            {
+                ArrayList<String> pathsToOurFile = params[0];
+                for(int i = pathsToOurFile.size()-1; i >= 0 ; --i) {
+                    FileInputStream fileInputStream = new FileInputStream(new File(pathsToOurFile.get(i)));
+
+                    URL url = new URL(urlServer);
+                    connection = (HttpURLConnection) url.openConnection();
+
+                    // Allow Inputs &amp; Outputs.
+                    connection.setDoInput(true);
+                    connection.setDoOutput(true);
+                    connection.setUseCaches(false);
+
+                    // Set HTTP method to POST.
+                    connection.setRequestMethod("POST");
+
+                    connection.setRequestProperty("Connection", "Keep-Alive");
+                    connection.setRequestProperty("Content-Type", "multipart/form-data;boundary=" + boundary);
+
+
+                    outputStream = new DataOutputStream(connection.getOutputStream());
+                    //text to create a folder for the image(s)
+                    outputStream.writeBytes("--" + boundary+lineEnd);
+                    outputStream.writeBytes("Content-Disposition: form-data; name=\"id\"" + lineEnd);
+                    outputStream.writeBytes("Content-Type: text/plain; charset=UTF-8" + lineEnd);
+                    outputStream.writeBytes(lineEnd);
+                    if(title.equalsIgnoreCase("add case")) {
+                        outputStream.writeBytes(String.valueOf(Integer.parseInt(case_id) + 1) + lineEnd);
+                    }else if(title.equalsIgnoreCase("edit case")){
+                        outputStream.writeBytes(case_id + lineEnd);
+                    }
+                    //image
+                    outputStream.writeBytes(twoHyphens + boundary + lineEnd);
+                    outputStream.writeBytes("Content-Disposition: form-data; name=\"uploadedfile\";filename=\"" + pathsToOurFile.get(i) + "\"" + lineEnd);
+                    outputStream.writeBytes(lineEnd);
+
+
+                    bytesAvailable = fileInputStream.available();
+                    bufferSize = Math.min(bytesAvailable, maxBufferSize);
+                    buffer = new byte[bufferSize];
+
+                    // Read file
+                    bytesRead = fileInputStream.read(buffer, 0, bufferSize);
+
+                    while (bytesRead > 0) {
+                        outputStream.write(buffer, 0, bufferSize);
+                        bytesAvailable = fileInputStream.available();
+                        bufferSize = Math.min(bytesAvailable, maxBufferSize);
+                        bytesRead = fileInputStream.read(buffer, 0, bufferSize);
+                    }
+
+                    outputStream.writeBytes(lineEnd);
+                    outputStream.writeBytes(twoHyphens + boundary + twoHyphens + lineEnd);
+
+                    // Responses from the server (code and message)
+                    serverResponseCode = connection.getResponseCode();
+                    serverResponseMessage = connection.getResponseMessage();
+
+                    fileInputStream.close();
+                    outputStream.flush();
+                    outputStream.close();
+                }
+            }
+            catch (final Exception ex)
+            {
+                Log.e("Upload Image Failed: ", String.valueOf(ex));
+            }
+
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void result){
+            AddPicture.listOfImages = new ArrayList<>();
+        }
+    }
+
+    /*-----------------------CHECK IF IMAGES EXIST------------------------------------------------*/
+    class checkImages extends AsyncTask<String, Void, ArrayList<String>>{
+        ArrayList<String> arrList;
+        Context context;
+        public checkImages(Context context){
+            this.context = context;
+        }
+
+        @Override
+        protected ArrayList<String> doInBackground(String... voids) {
+            int success = 0;
+            //Building Parameters
+            List<NameValuePair> parameters = new ArrayList<NameValuePair>();
+            parameters.add(new BasicNameValuePair("id", case_id));
+
+            Log.d("REQUEST!", "checking if images exists");
+
+            JSONObject json = jsonParser.makeHttpRequest(
+                    CHECK_IMAGE_URL, "POST", parameters);
+            if(json != null) {
+                try {
+                    success = json.getInt(MainActivity.TAG_SUCCESS);
+                    if (success == 1) {
+                        JSONArray paths = json.getJSONArray("image_paths");
+                        arrList = new ArrayList<>();
+                        //add the image paths to array list
+                        for (int i = 0; i < paths.length(); i++) {
+                            String fixedPath = fixStringPath(paths.getString(i), AddCase.this);
+                            arrList.add(fixedPath);
+                        }
+
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                Toast.makeText(AddCase.this, "images exists", Toast.LENGTH_SHORT).show();
+                            }
+                        });
+
+                        return arrList;
+                    } else {
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                Toast.makeText(AddCase.this, "images don't exist", Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                        return null;
+                    }
+                } catch (JSONException e1) {
+                    e1.printStackTrace();
+                }
+            }else{
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        new AlertDialog.Builder(AddCase.this)
+                                .setIcon(R.drawable.nowifi)
+                                .setTitle("Something is wrong with the connection")
+                                .setMessage("Please check your internet connection to retrieve images \n " +
+                                        "or turn off the wifi to use in offline mode")
+                                .setCancelable(false)
+                                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        //code for exit
+                                        //android.os.Process.killProcess(android.os.Process.myPid());
+                                        //System.exit(1);
+                                        finish();
+                                    }
+                                })
+                                .show();
+                    }
+                });
+            }
+
+
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(ArrayList<String> result) {
+            if(result != null && result.size() != 0 && context != null) {
+                path = fixStringPath(result.get(0), AddCase.this);
+                new AsyncMethods.DownloadImageTask(mBitmapImage)
+                        .execute(path);
+                mFilePath.setText(path);
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        sharedPreference.setString(AddCase.this, "imgExists", "true");
+                    }
+                });
+            }else if(result != null && result.size() != 0){
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        sharedPreference.setString(AddCase.this, "imgExists", "true");
+                    }
+                });
+            }else{
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        sharedPreference.setString(AddCase.this, "imgExists", "false");
+                    }
+                });
+            }
+            /*if(result != null && context != null){
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        //AddPicture ap = (AddPicture) context;
+                        AddPicture.listOfImages = result;
+                        Toast.makeText(context, "wooooork", Toast.LENGTH_LONG).show();
+                        Toast.makeText(context, String.valueOf(result.size())+" work please", Toast.LENGTH_LONG).show();
+                        Toast.makeText(context, String.valueOf(AddPicture.listOfImages.size())+" worksadads please", Toast.LENGTH_LONG).show();
+                    }
+                });
+            }*/
+        }
+    }
+    //Fixes the path to make it a valid URL
+    public static String fixStringPath(String path, Context c){
+        path = path.replaceAll("[+^,\\\\\"\\]\\[]", "").replace("../../", "http://"+ MainActivity.TAG_IP +"/chd/");
+        return path;
+    }
+
 }
 
 

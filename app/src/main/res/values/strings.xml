@@ -103,5 +103,7 @@
     <string name="search_users">Search Users..</string>
     <string name="enter_server_address">Enter Server Address</string>
     <string name="enter_username">Enter Username</string>
+    <string name="title_activity_add_picture">AddPicture</string>
+    <string name="attachImage">Attach Image</string>
 
 </resources>

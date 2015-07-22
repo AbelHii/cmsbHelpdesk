@@ -11,7 +11,12 @@
         android:title="@string/title_activity_logout"
         android:orderInCategory="101"
         app:showAsAction="never" />-->
-
+    <item android:id="@+id/add_picture"
+        android:title="Attach Image"
+        android:orderInCategory="1"
+        android:icon="@drawable/camera_white"
+        app:showAsAction="ifRoom"
+        />
     <item android:id="@+id/mainMenu"
         android:title="@string/main"
         android:orderInCategory="2"

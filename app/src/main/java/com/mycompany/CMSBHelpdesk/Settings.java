@@ -32,12 +32,8 @@ import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 
 public class Settings extends ActionBarActivity {
 
@@ -131,6 +127,7 @@ public class Settings extends ActionBarActivity {
                 if (success == 1) {
                     Log.d("Successful Login", json.toString());
                     //sending shared preference to keep user logged in even if they close the app
+                    sharedPreference.setString(Settings.this, "oneTS", "true");
                     sharedPreference.setString(Settings.this, "login", user.getText().toString());
                     sharedPreference.setString(Settings.this, "pass", pass.getText().toString());
                     sharedPreference.setString(Settings.this, "ip", ip.getText().toString().trim());

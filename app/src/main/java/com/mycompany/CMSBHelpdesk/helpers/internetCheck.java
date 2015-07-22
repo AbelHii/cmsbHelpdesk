@@ -73,7 +73,7 @@ public class internetCheck {
     public static boolean hasInternetConnection(Context context) {
         if (isNetworkConnected(context)) {
             try {
-                //TODO: change the url it checks
+                //TODO: change the URL it checks
                 HttpURLConnection urlc = (HttpURLConnection) (new URL("https://www.google.com").openConnection());
                 urlc.setRequestProperty("User-Agent", "Test");
                 urlc.setRequestProperty("Connection", "close");

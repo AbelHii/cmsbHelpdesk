@@ -6,8 +6,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
@@ -137,6 +135,7 @@ public class userList extends ActionBarActivity implements SwipeRefreshLayout.On
             @Override
             public void run() {
                 //Drop old table:
+                inputSearch.setText("");
                 controlUser.refreshCases("users");
                 refreshList();
                 new getUsers().execute();
@@ -346,11 +345,13 @@ public class userList extends ActionBarActivity implements SwipeRefreshLayout.On
                     // perform your search here using the searchConstraint String.
                     for (int i = 0; i < items.size(); i++) {
 
+                        //Allow users to search data:
                         User dataNames = items.get(i);
                         String name = dataNames.getName();
                         String comp = dataNames.getCompany();
+                        String tel = dataNames.getTelephone();
 
-                        if (name.toLowerCase().contains(filterString) || comp.toLowerCase().contains(filterString)){
+                        if (name.toLowerCase().contains(filterString) || comp.toLowerCase().contains(filterString) || tel.toLowerCase().contains(filterString)){
                             FilteredArrayNames.add(dataNames);
                         }
                     }
@@ -501,11 +502,11 @@ public class userList extends ActionBarActivity implements SwipeRefreshLayout.On
         final Context context = this;
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
+        /*if (id == R.id.action_settings) {
             Intent intent = new Intent(context, Settings.class);
             startActivity(intent);
             return true;
-        }
+        }*/
         if (id == android.R.id.home) {
             InputMethodManager imm = (InputMethodManager)getSystemService(
                     Context.INPUT_METHOD_SERVICE);
