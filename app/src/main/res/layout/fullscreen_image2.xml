@@ -6,20 +6,13 @@
     android:layout_margin="0dp"
     android:background="#ee000000">
 
-    <WebView
+    <ImageView
         android:layout_height="match_parent"
         android:layout_width="match_parent"
         android:scaleType="fitCenter"
         android:layout_alignParentTop="true"
         android:id="@+id/fullImage"
         />
-    <ImageView
-        android:layout_height="match_parent"
-        android:layout_width="match_parent"
-        android:scaleType="fitCenter"
-        android:layout_alignParentTop="true"
-        android:id="@+id/fullImageView"
-    />
     <LinearLayout
         android:id="@+id/buttonLayout"
         android:layout_width="match_parent"
@@ -32,21 +25,6 @@
             android:layout_height="wrap_content"
             android:text="@string/cancel"
             android:textColor="@color/White"
-            android:textStyle="bold"
-            android:layout_weight="1"
-            android:background="@drawable/mycolors3"/>
-        <TextView
-            android:layout_width="1dp"
-            android:layout_height="match_parent"
-            android:layout_gravity="center_vertical"
-            android:background="@color/White"
-            android:layout_centerInParent="true"/>
-        <Button
-            android:id="@+id/delete"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textColor="@color/White"
-            android:text="Delete"
             android:textStyle="bold"
             android:layout_weight="1"
             android:background="@drawable/mycolors3"/>

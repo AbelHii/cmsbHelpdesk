@@ -1,11 +1,13 @@
 package com.mycompany.CMSBHelpdesk.helpers;
 
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.util.Log;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 
 import com.mycompany.CMSBHelpdesk.AddCase;
 import com.mycompany.CMSBHelpdesk.AddPicture;
@@ -16,6 +18,7 @@ import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -70,10 +73,11 @@ public class AsyncMethods {
     /*----------------------------LOAD IMAGE FROM URL------------------------------------*/
     public static class DownloadImageTask extends AsyncTask<String, Void, Bitmap> {
         ImageView bmImage;
-
-        public DownloadImageTask(ImageView bmImage)
+        ProgressDialog pDialog;
+        public DownloadImageTask(ImageView bmImage, ProgressDialog pDialog)
         {
             this.bmImage = bmImage;
+            this.pDialog = pDialog;
         }
 
         protected Bitmap doInBackground(String... urls) {
@@ -126,6 +130,9 @@ public class AsyncMethods {
         }
 
         protected void onPostExecute(Bitmap result) {
+            if(pDialog != null) {
+                AddCase.pDialog.dismiss();
+            }
             if(bmImage != null) {
                 bmImage.setImageBitmap(result);
             }
@@ -155,10 +162,12 @@ public class AsyncMethods {
     public static class getSampleSize extends AsyncTask<String, Bitmap, Bitmap>{
         String filePath;
         BitmapFactory.Options options;
+        ProgressDialog pDialog;
 
-        public getSampleSize(String filePath, BitmapFactory.Options options){
+        public getSampleSize(String filePath, BitmapFactory.Options options, ProgressDialog pDialog){
             this.filePath = filePath;
             this.options = options;
+            this.pDialog = pDialog;
         }
 
         @Override
@@ -170,22 +179,24 @@ public class AsyncMethods {
         public static Bitmap getSize(String filePath, BitmapFactory.Options options){
             Bitmap image = null;
             int inSampleSize = 2;
+            int height, width;
             options.inJustDecodeBounds = true;
+
             BitmapFactory.decodeFile(filePath, options);
 
-            int height = options.outHeight;
-            int width = options.outWidth;
+            height = options.outHeight;
+            width = options.outWidth;
 
             options = new BitmapFactory.Options();
 
-            if(height > 200 || width > 400){
+            if (height > 150 || width > 350) {
                 final int halfHeight = height / 2;
                 final int halfWidth = width / 2;
 
                 // Calculate the largest inSampleSize value that is a power of 2 and keeps both
                 // height and width larger than the requested height and width.
-                while ((halfHeight / inSampleSize) > 200
-                        && (halfWidth / inSampleSize) > 400) {
+                while ((halfHeight / inSampleSize) > 150
+                        && (halfWidth / inSampleSize) > 350) {
                     inSampleSize *= 2;
                 }
             }
@@ -194,6 +205,13 @@ public class AsyncMethods {
 
             image = BitmapFactory.decodeFile(filePath, options);
             return image;
+        }
+
+        @Override
+        public void onPostExecute(Bitmap result){
+            if(pDialog != null){
+                pDialog.dismiss();
+            }
         }
     }
 

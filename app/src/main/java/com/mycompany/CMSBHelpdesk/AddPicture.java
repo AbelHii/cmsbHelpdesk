@@ -13,6 +13,7 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.ColorDrawable;
 import android.media.ExifInterface;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.os.Bundle;
@@ -22,6 +23,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.WebView;
 import android.widget.AbsoluteLayout;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -41,10 +43,10 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -54,7 +56,10 @@ import java.util.concurrent.ExecutionException;
 public class AddPicture extends AddCase {
 
     private ImageButton mTakePic, mChoosePic;
-    public ImageView mImageBitmap, mDefaultBitmap, mFullImage;
+    public ImageView mImageBitmap;
+    public ImageView mDefaultBitmap;
+    public static WebView mFullImage;
+    public static ImageView mFullImageView;
     private ListView mImageLV;
     public static String filePath = null, filePathTemp = null, filePaths, filePathsAdd;
     String caseId, call;
@@ -65,7 +70,6 @@ public class AddPicture extends AddCase {
     ArrayList<Bitmap> image_list;
     public static ArrayList<String> listOfImages = new ArrayList<>(), imageList = new ArrayList<>(), tempList = new ArrayList<>();
     public static JSONObject json = new JSONObject(), jsonAdd = new JSONObject();
-    File newDir;
 
     static final int REQUEST_IMAGE_CAPTURE = 1;
     static final int REQUEST_IMAGE = 2;
@@ -84,21 +88,19 @@ public class AddPicture extends AddCase {
 
         //Retrieve and display the images from the server
         if(imgExists.equalsIgnoreCase("true") && internetCheck.isNetworkConnected(this)){
-            Toast.makeText(this, "ONE", Toast.LENGTH_LONG).show();
             //add the images from the server to the list of images:
             listOfImages.addAll(imageList);
             //clear image list to prevent duplicates:
             imageList.clear();
 
             if(listOfImages.size()!=0){
-                Toast.makeText(this, String.valueOf(listOfImages.size()), Toast.LENGTH_LONG).show();
                 for (int i = 0; i < listOfImages.size(); ++i) {
                     String path = listOfImages.get(i);
+                    options.inSampleSize = 5;
+                    //if image path is a URL then download from server:
                     if(path.contains("http")) {
-                        options.inSampleSize = 5;
-                        Toast.makeText(this, "1.1", Toast.LENGTH_LONG).show();
                         try {
-                            photo = new AsyncMethods.DownloadImageTask(null).execute(path).get();
+                            photo = new AsyncMethods.DownloadImageTask(null, pDialog).execute(path).get();
                             if (photo != null) {
                                 addImage(getOrientation(photo, path));
                             }else{
@@ -110,11 +112,9 @@ public class AddPicture extends AddCase {
                         } catch (ExecutionException e) {
                             e.printStackTrace();
                         }
-                    }else{
-                        options.inSampleSize = 5;
-                        Toast.makeText(this, "1.2", Toast.LENGTH_LONG).show();
+                    }else{ //if its from SQLite then load this way:
                         try {
-                            photo = new AsyncMethods.getSampleSize(filePath, options).execute().get();//BitmapFactory.decodeFile(filePath, options);
+                            photo = new AsyncMethods.getSampleSize(filePath, options, pDialog).execute().get();//BitmapFactory.decodeFile(filePath, options);
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         } catch (ExecutionException e) {
@@ -127,17 +127,16 @@ public class AddPicture extends AddCase {
                             addImage(photo);
                         }
                     }
-                    Toast.makeText(this, String.valueOf(path), Toast.LENGTH_LONG).show();
                 }
             }
         }else if(listOfImages.size() != 0){
-            Toast.makeText(this, "TWO", Toast.LENGTH_LONG).show();
+            //this is for when the app is offline or for the temporary list (user haven't clicked submit yet)
             //Gets the local images from sq lite paths:
             options.inSampleSize = 2;
             for (int i = 0; i < listOfImages.size(); i++) {
                 filePath=listOfImages.get(i);
                 try {
-                    photo = new AsyncMethods.getSampleSize(filePath, options).execute().get();//BitmapFactory.decodeFile(filePath, options);
+                    photo = new AsyncMethods.getSampleSize(filePath, options, pDialog).execute().get();//BitmapFactory.decodeFile(filePath, options);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 } catch (ExecutionException e) {
@@ -147,9 +146,10 @@ public class AddPicture extends AddCase {
                     addImage(getOrientation(photo, filePath));
                 }
             }
-            Toast.makeText(this, listOfImages.size()+" from sq lite", Toast.LENGTH_LONG).show();
-
+            Toast.makeText(getApplicationContext(), listOfImages.size()+" image(s) from sq lite", Toast.LENGTH_SHORT).show();
         }else{//If both don't exist
+            if(pDialog != null)
+                pDialog.dismiss();
             listOfImages = new ArrayList<>();
             mDefaultBitmap.setImageResource(R.drawable.cms_logo);
             mDefaultBitmap.setAlpha(127);
@@ -174,13 +174,11 @@ public class AddPicture extends AddCase {
         }
         else if(oPaths != null && oPaths.length() != 0){
             getFilePaths(oPaths, "imageArray");
-            Toast.makeText(this, "getFilePathsO", Toast.LENGTH_LONG).show();
         }
         else{
             mDefaultBitmap.setImageResource(R.drawable.cms_logo);
             mDefaultBitmap.setAlpha(127);
         }
-
     }
 
     //this reads the json object and stores the file paths in the listOfImages ArrayList.
@@ -221,7 +219,7 @@ public class AddPicture extends AddCase {
                 if(image_list.size() < 5) {
                     takePictureIntent();
                 }else{
-                    Toast.makeText(AddPicture.this, "Max number of images reached", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(), "Max number of images reached", Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -231,7 +229,7 @@ public class AddPicture extends AddCase {
                 if(image_list.size() < 5) {
                     choosePicture();
                 }else{
-                    Toast.makeText(AddPicture.this, "Max number of images reached", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(), "Max number of images reached", Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -247,8 +245,25 @@ public class AddPicture extends AddCase {
                         popupView, AbsoluteLayout.LayoutParams.FILL_PARENT, AbsoluteLayout.LayoutParams.FILL_PARENT, true);
 
 
-                mFullImage = (ImageView) popupView.findViewById(R.id.fullImage);
-                mFullImage.setImageBitmap(image_list.get(i));
+                mFullImage = (WebView) popupView.findViewById(R.id.fullImage);
+                mFullImageView = (ImageView) popupView.findViewById(R.id.fullImageView);
+                //This is to allow zoom by loading in a webview:
+                mFullImage.setInitialScale(1);
+                mFullImage.getSettings().setLoadWithOverviewMode(true);
+                mFullImage.getSettings().setUseWideViewPort(true);
+                mFullImage.getSettings().setDisplayZoomControls(false);
+                mFullImage.getSettings().setBuiltInZoomControls(true);
+
+                String imagePath = listOfImages.get(i);
+                String html = "<html><head></head><body><img src=\""+ imagePath + "\"></body></html>";
+                if(!imagePath.contains("http")){
+                    //to load local images in imageview:
+                    mFullImageView.setImageBitmap(image_list.get(i));
+                }else {
+                    mFullImage.loadDataWithBaseURL("", html, "text/html", "utf-8", "");
+                }
+                //to make background transparent:
+                mFullImage.setBackgroundColor(0);
 
                 final int position = i;
                 mDelete = (Button) popupView.findViewById(R.id.delete);
@@ -270,7 +285,7 @@ public class AddPicture extends AddCase {
                                 .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                                     @Override
                                     public void onClick(DialogInterface dialog, int which) {
-                                        //code for exit
+                                        //code for exit dialog
                                         dialog.dismiss();
                                     }
                                 })
@@ -368,46 +383,53 @@ public class AddPicture extends AddCase {
         switch(requestCode) {
             case (REQUEST_IMAGE_CAPTURE): {
                 if (resultCode == RESULT_OK) {
-                    File myFile = new File(filePath);
+                    galleryAddPic();
+
                     options.inSampleSize = 3;
-                    Bitmap mBitmap = BitmapFactory.decodeFile(myFile.getAbsolutePath(), options);
-                    mBitmap = getOrientation(mBitmap, filePath);
-
-                    if(listOfImages.size() > 5 || image_list.size() > 5){
-                        break;
-                    }
-                    addImage(mBitmap);
-                    //add the filePaths to an ArrayList:
-                    listOfImages.add(filePath);
-                    break;
-                }
-            }
-            case (REQUEST_IMAGE):{
-                if (resultCode == RESULT_OK) {
-                    Uri selectedImage = data.getData();
-                    String[] filePathColumn = {MediaStore.Images.Media.DATA};
-
-                    Cursor cursor = getContentResolver().query(selectedImage, filePathColumn, null, null, null);
-                    cursor.moveToFirst();
-
-                    int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
-                    filePath = cursor.getString(columnIndex);
-                    cursor.close();
-
-                    //Reduces the size of the image to be contained in the bitmap
-                    options.inSampleSize = 3;
-                    //sets the image to the bitmap
+                    Bitmap mBitmap = null;
                     try {
-                        photo = new AsyncMethods.getSampleSize(filePath, options).execute().get();//BitmapFactory.decodeFile(filePath, options);
+                        mBitmap = new AsyncMethods.getSampleSize(filePath, options, null).execute().get();
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     } catch (ExecutionException e) {
                         e.printStackTrace();
                     }
-                    photo = getOrientation(photo, filePath);
-                    if(listOfImages.size() > 5 || image_list.size() > 5){
-                        break;
+                    mBitmap = getOrientation(mBitmap, filePath);
+
+                    addImage(mBitmap);
+                    //add the filePaths to an ArrayList:
+                    listOfImages.add(filePath);
+                    break;
+                }else{
+                    break;
+                }
+            }
+            case (REQUEST_IMAGE):{
+                if (resultCode == RESULT_OK) {
+                    InputStream is = null;
+                    Uri selectedImage = data.getData();
+                    //Do this to get the file path
+                    //cursor selects only the file path because images store stuff like geo tag and stuff
+                    String[] filePathColumn = {MediaStore.Images.Media.DATA};
+                    Cursor cursor = this.getContentResolver().query(selectedImage, filePathColumn, null, null, null);
+                    cursor.moveToFirst();
+                    int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
+                    filePath = cursor.getString(columnIndex);
+                    cursor.close();
+                    //Reduces the size of the image to be contained in the bitmap
+                    options.inSampleSize = 4;
+                    //sets the image to the bitmap
+                    try {
+                        is = new getCR(AddPicture.this).execute(selectedImage).get();
+                        photo = BitmapFactory.decodeStream(is, null, options);
+                        is.close(); //can't reuse input streams!
+                        photo = getOrientation(photo, filePath);
+                    }catch(Exception ex){
+                        Toast.makeText(getApplicationContext(), ex+" There was an error loading the image please try again", Toast.LENGTH_LONG).show();
+                        photo = BitmapFactory.decodeResource(this.getResources(), R.drawable.cms_logo, options);
+                        addImage(photo);
                     }
+
                     addImage(photo);
                     //add the filePaths to an ArrayList:
                     listOfImages.add(filePath);
@@ -428,12 +450,12 @@ public class AddPicture extends AddCase {
                 photoFile = createImageFile();
             } catch (IOException ex) {
                 // Error occurred while creating the File
-                Toast.makeText(this, "error occurred while creating the file", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, ex + " error occurred while creating the file", Toast.LENGTH_SHORT).show();
             }
             // Continue only if the File was successfully created
             if (photoFile != null) {
-                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT,
-                        Uri.fromFile(photoFile));
+                //to access the camera
+                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(photoFile));
                 startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
             }
         }else{
@@ -443,22 +465,40 @@ public class AddPicture extends AddCase {
 
     //method for choosing an existing picture from your gallery
     private void choosePicture(){
-        Intent galleryIntent = new Intent(Intent.ACTION_GET_CONTENT);
-        galleryIntent.setType("image/*");// Create the File where the photo should go
-        galleryIntent.setAction(Intent.ACTION_GET_CONTENT);
-        startActivityForResult(galleryIntent, REQUEST_IMAGE);
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        intent.setType("image/*");
+        startActivityForResult(Intent.createChooser(intent, "Select Picture"), REQUEST_IMAGE);
+        /*Intent galleryIntent = new Intent(Intent.ACTION_PICK,
+                MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        startActivityForResult(galleryIntent, REQUEST_IMAGE);*/
+    }
+
+    //getContentResolver on a background thread
+    public class getCR extends AsyncTask<Uri, Void, InputStream>{
+        Context c;
+        public getCR(Context c){
+            this.c = c;
+        }
+        @Override
+        protected InputStream doInBackground(Uri... uris) {
+            InputStream is = null;
+            try {
+                is = c.getContentResolver().openInputStream(uris[0]);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+            return is;
+        }
     }
 
     //This creates a new file for the image to go in
     private File createImageFile() throws IOException {
         // Create an image file name
-        String timeStamp = new SimpleDateFormat("dd-MM-yy_HH:mm:ss").format(new Date());
+        String timeStamp = new SimpleDateFormat("dd-MM-yy_HH-mm-ss").format(new Date());
         String imageFileName = "CHD_" + timeStamp + "_";
-        if(newDir == null) {
-            newDir = new File(Environment.getExternalStorageDirectory() + "/CHDImgs/");
-            if(newDir.mkdir()){
-                Toast.makeText(this, "created new directory /CHDImgs/", Toast.LENGTH_SHORT).show();
-            }
+        final File newDir = new File(Environment.getExternalStorageDirectory() + "/CHDImages/");
+        if(newDir.mkdir()){
+           Toast.makeText(this, "created new directory /CHDImages/", Toast.LENGTH_SHORT).show();
         }
         File storageDir = newDir;
         File image = File.createTempFile(
@@ -471,7 +511,14 @@ public class AddPicture extends AddCase {
         filePath = image.getAbsolutePath();
         return image;
     }
-
+    //to save the image to the default photo gallery/media providers database (so other apps and androids gallery can view it)
+    private void galleryAddPic() {
+        Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
+        File f = new File(filePath);
+        Uri contentUri = Uri.fromFile(f);
+        mediaScanIntent.setData(contentUri);
+        this.sendBroadcast(mediaScanIntent);
+    }
 
 
     /*---------------TO GET CORRECT ORIENTATION OF IMAGE---------------------------------*/
@@ -549,9 +596,7 @@ public class AddPicture extends AddCase {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
-
         int id = item.getItemId();
-        final Context context = this;
 
         //noinspection SimplifiableIfStatement
         if (id == android.R.id.home) {
@@ -573,6 +618,8 @@ public class AddPicture extends AddCase {
             json.put("imageArray", new JSONArray(listOfImages));
             filePaths = json.toString();
 
+            //tempList is for seperating the http URL paths from the local paths
+            //because you don't can't upload the URL paths to the server
             tempList.clear();
             tempList = listOfImages;
             for(int i = tempList.size()-1; i >= 0; i--){
@@ -590,6 +637,9 @@ public class AddPicture extends AddCase {
             sharedPreference.setString(AddPicture.this, "filePaths", filePaths);
         }
 
+        if(tempList.size() > 0)
+            hook = true;
+
         //Photo.recycle() is just to make sure the app doesn't go out of memory
         if(photo != null)
             photo.recycle();
@@ -599,3 +649,4 @@ public class AddPicture extends AddCase {
     }
 
 }
+

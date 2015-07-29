@@ -7,6 +7,8 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -24,9 +26,8 @@ public class TextEditor extends ActionBarActivity {
 
     EditText mTextEdit;
     Button mDone, mCancel;
-    // DB Class to perform DB related operations
-    DBController control = new DBController(this);
-    int requestCode;
+    Boolean textChanged = false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -49,6 +50,24 @@ public class TextEditor extends ActionBarActivity {
                 break;
         }
         mTextEdit = (EditText) findViewById(R.id.textEdit);
+        getText();
+        mTextEdit.addTextChangedListener(new TextWatcher() {
+            String oldText = mTextEdit.getText().toString();
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i2, int i3) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i2, int i3) {
+                if(!charSequence.toString().equals(oldText)){
+                    textChanged = true;
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+            }
+        });
         mDone = (Button) findViewById(R.id.done);
         mDone.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -66,7 +85,6 @@ public class TextEditor extends ActionBarActivity {
                 TextEditor.this.finish();
             }
         });
-        getText();
     }
 
     public void getText(){
@@ -77,16 +95,23 @@ public class TextEditor extends ActionBarActivity {
     public void returnText(){
         Intent returnIntent = new Intent();
         returnIntent.putExtra("result", mTextEdit.getText().toString());
+        if(textChanged == true){
+            returnIntent.putExtra("textChanged", "true");
+        }
         setResult(Activity.RESULT_OK, returnIntent);
         InputMethodManager imm = (InputMethodManager)getSystemService(
                 Context.INPUT_METHOD_SERVICE);
         imm.hideSoftInputFromWindow(mTextEdit.getWindowToken(), 0);
         finish();
+        textChanged = false;
     }
 
     @Override
     public void onBackPressed(){
-        returnText();
+        InputMethodManager imm = (InputMethodManager)getSystemService(
+                Context.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(mTextEdit.getWindowToken(), 0);
+        this.finish();
     }
 
     public void setTimeStamp(){
@@ -126,11 +151,6 @@ public class TextEditor extends ActionBarActivity {
             returnText();
             return true;
         }
-        /*if (id == R.id.action_settings) {
-            Intent intent = new Intent(context, Settings.class);
-            startActivity(intent);
-            return true;
-        }*/
         if (id == android.R.id.home) {
             InputMethodManager imm = (InputMethodManager)getSystemService(
                     Context.INPUT_METHOD_SERVICE);

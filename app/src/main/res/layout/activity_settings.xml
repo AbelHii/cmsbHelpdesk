@@ -28,12 +28,13 @@
             android:layout_width="fill_parent"
             android:layout_height="1dip"
             android:background="#ddd"
-            android:layout_below="@+id/accSetup"/>
+            android:layout_below="@+id/accSetup"
+            android:id="@+id/divider"/>
 
         <!--USERNAME-->
         <TextView
             android:id="@+id/usernameLabel"
-            android:layout_below="@+id/accSetup"
+            android:layout_below="@+id/divider"
             android:layout_height="wrap_content"
             android:layout_width="wrap_content"
             android:text="@string/user"
@@ -44,7 +45,7 @@
         <EditText
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/accSetup"
+            android:layout_below="@+id/divider"
             android:layout_toEndOf="@+id/usernameLabel"
             android:hint="@string/enter_username"
             android:textSize="15sp"
@@ -59,12 +60,13 @@
             android:layout_width="fill_parent"
             android:layout_height="1dip"
             android:background="#ddd"
-            android:layout_below="@+id/username"/>
+            android:layout_below="@+id/username"
+            android:id="@+id/divider1"/>
 
         <!--PASSWORD-->
         <TextView
             android:id="@+id/passwordLabel"
-            android:layout_below="@+id/usernameLabel"
+            android:layout_below="@+id/divider1"
             android:layout_height="wrap_content"
             android:layout_width="wrap_content"
             android:text="@string/password"
@@ -73,11 +75,9 @@
             android:textColor="#333"
             android:textStyle="bold"/>
         <EditText
-            android:layout_toRightOf="@+id/passwordLabel"
-            android:layout_below="@+id/usernameLabel"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:password="true"
+            android:inputType="textPassword"
             android:hint="Enter Password"
             android:textSize="15sp"
             android:ems="10"
@@ -85,22 +85,22 @@
             android:imeOptions="actionNext"
             android:singleLine="true"
             android:background="@null"
-            android:paddingRight="10dp"
-            android:paddingTop="10dp"
-            android:paddingLeft="12dp"
-            android:paddingBottom="10dp"/>
+            android:padding="10dp"
+            android:layout_below="@+id/divider1"
+            android:layout_toEndOf="@+id/usernameLabel" />
 
 
         <TextView
             android:layout_width="fill_parent"
             android:layout_height="1dip"
             android:background="#ddd"
-            android:layout_below="@+id/password"/>
+            android:layout_below="@+id/password"
+            android:id="@+id/divider2"/>
 
         <!--SERVER-->
         <TextView
             android:id="@+id/serverLabel"
-            android:layout_below="@+id/passwordLabel"
+            android:layout_below="@+id/divider2"
             android:layout_height="wrap_content"
             android:layout_width="wrap_content"
             android:text="@string/server"
@@ -109,9 +109,6 @@
             android:textColor="#333"
             android:textStyle="bold"/>
         <EditText
-            android:layout_alignParentEnd="true"
-            android:layout_toEndOf="@+id/serverLabel"
-            android:layout_below="@+id/passwordLabel"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="@string/enter_server_address"
@@ -121,10 +118,10 @@
             android:imeOptions="actionDone"
             android:singleLine="true"
             android:background="@null"
-            android:paddingEnd="10dp"
-            android:paddingTop="10dp"
-            android:paddingStart="35dp"
-            android:paddingBottom="10dp"/>
+            android:padding="10dp"
+            android:layout_below="@+id/divider2"
+            android:layout_alignStart="@+id/password"
+            android:layout_toEndOf="@+id/usernameLabel"/>
 
 
         <TextView

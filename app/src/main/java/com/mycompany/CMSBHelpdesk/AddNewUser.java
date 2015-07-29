@@ -18,6 +18,7 @@ import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.mycompany.CMSBHelpdesk.helpers.JSONParser;
+import com.mycompany.CMSBHelpdesk.helpers.internetCheck;
 
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
@@ -28,28 +29,32 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 
-public class AddNewUser extends AddCase implements View.OnClickListener {
+public class AddNewUser extends AddCase{
 
     Button mcancel, addUser;
     EditText mNewName, mNewEmail, mNewTel;
     Spinner mNewCompany;
+
+    public static ArrayList<String> usernamesList, companyV;
 
     Set<String> companyList;
 
     ProgressDialog pDialog;
     JSONParser jsonParser = new JSONParser();
 
-    private static String ADD_NEW_USER_URL = "http://10.1.2.52/chd/public/abel/addNewUser.php";//http://abelhii.comli.com/addNewUser.php";
+    private static String ADD_NEW_USER_URL = "http://"+MainActivity.TAG_IP+"/chd/public/app/addNewUser.php";//http://abelhii.comli.com/addNewUser.php";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_new_user);
+        setTitle("Add New User");
 
         //getSQLiteUsers();
         initialise();
@@ -57,17 +62,17 @@ public class AddNewUser extends AddCase implements View.OnClickListener {
         populateSpinner(mNewCompany, companyList);
         mNewCompany.setSelection(1);
 
-        backToMain(mcancel);
-        backToMain(addUser);
+        onClickListener();
     }
 
     public void initialise(){
-        //converting companyV to Set because it doesn't allow duplicates:
-        ArrayList<String> companyV1 = companyV;
-        companyList = new HashSet<>(companyV1);
+        //converting companyV to Set because it gets rid of duplicates:
+        companyV = userControl.getColumn("users", MainActivity.TAG_COMPANY);
+        companyList = new HashSet<>(companyV);
 
         mcancel = (Button)findViewById(R.id.cancelBtn);
         addUser = (Button)findViewById(R.id.addNewUser);
+
         mNewName = (EditText) findViewById(R.id.newName);
         mNewEmail = (EditText) findViewById(R.id.newEmail);
         mNewTel = (EditText) findViewById(R.id.newTel);
@@ -98,43 +103,38 @@ public class AddNewUser extends AddCase implements View.OnClickListener {
             Toast.makeText(getApplicationContext(),
                     "Company: is empty", Toast.LENGTH_SHORT).show();
             return true;
+        }else if(mNewEmail.getText().toString().trim().equals("")){
+            Toast.makeText(getApplicationContext(),
+                    "Email: is empty", Toast.LENGTH_SHORT).show();
+            return true;
         }
         return false;
     }
 
-    public void backToMain(View button){
-        final Context context = this;
+    private void onClickListener(){
+        mcancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                AddNewUser.this.finish();
+            }
+        });
 
-        switch(button.getId()){
-            case R.id.cancelBtn:
-                mcancel.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        Intent intent = new Intent(context, AddCase.class);
-                        startActivity(intent);
-                        finish();
-                    }
-                });
-            case R.id.addNewUser:
-                addUser.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        //checks if inputted name already exists
-                        //if not carry on:
-                        if(!nameExists(mNewName.getText().toString(), AddCase.spinnerUsernames)) {
-                            if (true) {//isNetworkConnected() is missing
-                                new newUserAdd().execute();
-                            } else {
-                                userControl.insertValue("users", "name", mNewName.getText().toString());
-                                Intent intent = new Intent(getApplicationContext(), AddCase.class);
-                                intent.putExtra("caller", "addCase");
-                                AddNewUser.this.finish();
-                                startActivity(intent);
-                            }
-                        }
-                    }
-                });
-        }
+        addUser.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //checks if inputted name already exists
+                //if not carry on:
+                if(!nameExists(mNewName.getText().toString(), usernamesList) && internetCheck.isNetworkConnected(AddNewUser.this)){
+                    new newUserAdd().execute();
+                }/*else {
+                    userControl.insertValue("users", "name", mNewName.getText().toString());
+                    Intent intent = new Intent(getApplicationContext(), AddCase.class);
+                    intent.putExtra("caller", "addCase");
+                    AddNewUser.this.finish();
+                    startActivity(intent);
+                }*/
+            }
+        });
     }
 
 
@@ -156,11 +156,11 @@ public class AddNewUser extends AddCase implements View.OnClickListener {
             int success = 0;
 
             String name = mNewName.getText().toString();
-            String company = mNewCompany.getSelectedItem().toString();
+            String company = userControl.getID("users", MainActivity.TAG_DIVISION_ID, mNewCompany.getSelectedItem().toString(), MainActivity.TAG_COMPANY);
+            //String.valueOf(mNewCompany.getSelectedItemPosition()+1);
             String email = mNewEmail.getText().toString();
             String telephone = mNewTel.getText().toString();
 
-            try {
             //Building Parameters
             List<NameValuePair> parameters = new ArrayList<NameValuePair>();
             parameters.add(new BasicNameValuePair("name", name));
@@ -168,15 +168,20 @@ public class AddNewUser extends AddCase implements View.OnClickListener {
             parameters.add(new BasicNameValuePair("email", email));
             parameters.add(new BasicNameValuePair("company", company));
 
+            //create a new HashMap
+            HashMap<String, String> maps = new HashMap<String, String>();
+
+            maps.put(MainActivity.TAG_NAME, name);
+            maps.put(MainActivity.TAG_TELEPHONE, telephone);
+            maps.put(MainActivity.TAG_EMAIL, email);
+            maps.put(MainActivity.TAG_COMPANY, mNewCompany.getSelectedItem().toString());
+
             Log.d("request!", "starting");
 
             //make HTTP request
             JSONObject json = jsonParser.makeHttpRequest(
-                    ADD_NEW_USER_URL, "GET", parameters);
-
-            //check log cat for JSON response
-            Log.d("Inserting... ", json.toString());
-
+                    ADD_NEW_USER_URL, "POST", parameters);
+            try {
                 //Check for SUCCESS TAG
                 success = json.getInt(MainActivity.TAG_SUCCESS);
                 if (success == 1) {
@@ -188,10 +193,10 @@ public class AddNewUser extends AddCase implements View.OnClickListener {
                     Intent intent = new Intent(getApplicationContext(), AddCase.class);
                     intent.putExtra("caller", "addCase");
                     userControl.openDB();
-                    userControl.insertValue("users", "name", name);
+                    userControl.insertUser(maps);
                     userControl.close();
                     startActivity(intent);
-                    finish();
+                    AddNewUser.this.finish();
                     return json.getString(MainActivity.TAG_MESSAGE);
                 } else {
                     return json.getString(MainActivity.TAG_MESSAGE);
@@ -208,6 +213,8 @@ public class AddNewUser extends AddCase implements View.OnClickListener {
             pDialog.dismiss();
             if (message != null){
                 Toast.makeText(AddNewUser.this, message, Toast.LENGTH_LONG).show();
+                userControl.refreshCases("users");
+                userList.check = 0;
             }
         }
     }
@@ -229,7 +236,7 @@ public class AddNewUser extends AddCase implements View.OnClickListener {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_settings, menu);
+        //getMenuInflater().inflate(R.menu.menu_settings, menu);
         return true;
     }
 
@@ -242,32 +249,16 @@ public class AddNewUser extends AddCase implements View.OnClickListener {
 
         final Context context = this;
 
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            Intent intent = new Intent(context, Settings.class);
-            startActivity(intent);
-            return true;
-        }
-        else if(id == R.id.backBtn){
-            Intent intent = new Intent(context, AddCase.class);
-            AddNewUser.this.finish();
-            startActivity(intent);
-            return true;
-        }
-        if(id==R.id.mainMenu){
-            Intent intent = new Intent(context, MainActivity.class);
-            AddNewUser.this.finish();
-            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-            startActivity(intent);
+        if (id == android.R.id.home) {
+            InputMethodManager imm = (InputMethodManager)getSystemService(
+                    Context.INPUT_METHOD_SERVICE);
+            if(imm != null)
+                imm.hideSoftInputFromWindow(null, 0);
+            this.finish();
             return true;
         }
 
         return super.onOptionsItemSelected(item);
-    }
-
-    @Override
-    public void onClick(View v) {
-
     }
 
     //Closes the keyboard of you tap anywhere else on the screen

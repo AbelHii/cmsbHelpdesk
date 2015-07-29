@@ -37,7 +37,7 @@ public class DBController extends SQLiteOpenHelper{
 
         //Users
         users = "CREATE TABLE users (userId INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, company TEXT, " +
-                "email TEXT, telephone TEXT)";
+                "email TEXT, telephone TEXT, division_id TEXT)";
         database.execSQL(users);
     }
 
@@ -84,6 +84,7 @@ public class DBController extends SQLiteOpenHelper{
         values.put(MainActivity.TAG_COMPANY, queryValues.get(MainActivity.TAG_COMPANY));
         values.put(MainActivity.TAG_EMAIL, queryValues.get(MainActivity.TAG_EMAIL));
         values.put(MainActivity.TAG_TELEPHONE, queryValues.get(MainActivity.TAG_TELEPHONE));
+        values.put(MainActivity.TAG_DIVISION_ID, queryValues.get(MainActivity.TAG_DIVISION_ID));
         database.insert("users", null, values);
         database.close();
     }
@@ -155,6 +156,7 @@ public class DBController extends SQLiteOpenHelper{
                 map.put(MainActivity.TAG_COMPANY, cursor.getString(2));
                 map.put(MainActivity.TAG_EMAIL, cursor.getString(3));
                 map.put(MainActivity.TAG_TELEPHONE, cursor.getString(4));
+                map.put(MainActivity.TAG_DIVISION_ID, cursor.getString(5));
                 userList.add(map);
 
             } while (cursor.moveToNext());
@@ -197,6 +199,22 @@ public class DBController extends SQLiteOpenHelper{
 
         database.close();
         return s;
+    }
+
+    public ArrayList<String> getColumn(String table, String column){
+        SQLiteDatabase database = this.getWritableDatabase();
+        ArrayList<String> list = new ArrayList();
+        String selectQuery = "SELECT "+column+" FROM "+table;
+        Cursor cursor = database.rawQuery(selectQuery, null);
+
+        if(cursor.moveToFirst()) {
+            do {
+                list.add(cursor.getString(0).toString());
+            }while(cursor.moveToNext());
+        }
+
+        database.close();
+        return list;
     }
 
     //Insert String to table
@@ -284,14 +302,14 @@ public class DBController extends SQLiteOpenHelper{
         return data;
     }
 
-    public String getID(String table, String id, String name, String columnName, int columnNum){
+    public String getID(String table, String id, String name, String columnName){
         SQLiteDatabase database = this.getWritableDatabase();
         String value = "";
         String query = "SELECT "+id+" FROM "+table+" WHERE "+columnName+" = '"+name+"'";
 
         Cursor cursor = database.rawQuery(query, null);
         if(cursor.moveToFirst()){
-            value = cursor.getString(columnNum);
+            value = cursor.getString(0);
         }
 
         database.close();
@@ -337,7 +355,7 @@ public class DBController extends SQLiteOpenHelper{
             case "users":
                 dropQuery = "DROP TABLE IF EXISTS users";
                 refreshQuery = "CREATE TABLE users (userId INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, company TEXT, " +
-                        "email TEXT, telephone TEXT)";
+                        "email TEXT, telephone TEXT, division_id TEXT)";
                 break;
         }
         database.execSQL(dropQuery);

@@ -5,6 +5,11 @@ package com.mycompany.CMSBHelpdesk;
  *
  * SQLite Tutorial from: http://programmerguru.com/android-tutorial/how-to-sync-remote-mysql-db-to-sqlite-on-android/
  *
+ * Note: Everything from AsyncMethods class and anything using AsyncTask
+ *       runs on a seperate thread from the main (runs in the background, while main continues)
+ *       So if you want to get a return value or something from one of those methods you need to wait for the task to complete
+ *       and get it in the "onPostExecute" method.
+ *
  */
 
 import android.app.ProgressDialog;
@@ -59,7 +64,7 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
     ArrayList<String> syncColumn;
     //Variables for sync
     private String nameId = "", caseID ="", username="", mDescription="",actionT="", assigneeID="", statusID="", sync="";
-    public String caseid = "0";
+    public static String caseid = "0";
 
     // DB Class to perform DB related operations
     DBController controller = new DBController(this);
@@ -98,6 +103,7 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
     public static final String TAG_COMPANY = "company";
     public static final String TAG_EMAIL = "email";
     public static final String TAG_TELEPHONE = "telephone";
+    public static final String TAG_DIVISION_ID = "division_id";
 
     public static String colorAB = "#FEA000";
 
@@ -162,11 +168,11 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
                     sharedPreference.setInt(this, "log", 0);
                 }else {
                     swipeLayout.setEnabled(false);
-                    //Retrieve previously saved data
                     Toast.makeText(this, "No Internet Connection!" +
                                     "\nPlease Connect to the internet and restart the app",
                             Toast.LENGTH_LONG).show();
                 }
+            //Retrieve previously saved data from SQLite
             } else if (internetCheck.isNetworkConnected(this) && checker > 0) {
                 getSQLiteList();
                 refreshAtTop();
@@ -212,7 +218,7 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
                 casemap = controller.getAllCases();
                 syncColumn = returnColumn(casemap);
                 if(internetCheck.isNetworkConnected(MainActivity.this) && (syncColumn.contains("10") || syncColumn.contains("20"))) {
-                    Toast.makeText(MainActivity.this, "There are cases that need to be synced", Toast.LENGTH_LONG).show();
+                    Toast.makeText(getApplicationContext(), "There are cases that need to be synced", Toast.LENGTH_LONG).show();
 
                     swipeLayout.setRefreshing(false);
                 }else {
@@ -434,7 +440,7 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
-                                    Toast.makeText(MainActivity.this,"Error check your internet connection", Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(getApplicationContext(),"Error check your internet connection", Toast.LENGTH_SHORT).show();
                                     finish();
                                     System.exit(0);
                                 }
@@ -551,7 +557,7 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
                     statusID = casemap.get(counter).get(TAG_STATUS_ID);
                     sync = String.valueOf(syncColumn.get(counter));
 
-                    nameId = controller.getID("users", "userId", username, TAG_NAME, 0);
+                    nameId = controller.getID("users", "userId", username, TAG_NAME);
 
                     if(sync.equals("10")){
                         SYNC_URL = AddCase.ADD_CASE_URL;
@@ -588,7 +594,7 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
                     image = controller.getValue("cases", "image", caseID);
                     if(image != null){
                         ArrayList<String> paths = AddPicture.getFilePaths(image, "imageArrayAdd");
-                        AddCase.uploadImage ui = new AddCase.uploadImage(caseID);
+                        AddCase.uploadImage ui = new AddCase.uploadImage(null, caseID);
                         ui.execute(paths);
                         ui.onPostExecute(counter--);
                     }else{
@@ -607,7 +613,7 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
             refreshList();
             new getCases().execute();
             refreshAtTop();
-            Toast.makeText(MainActivity.this, "Synced "+ count +" Cases", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(), "Synced "+ count +" Cases", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -625,9 +631,9 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
             if(internetCheck.connectionCheck(MainActivity.this))
             new syncDB().execute();
         }else if(!(syncColumn.contains("10") || syncColumn.contains("20"))){
-            Toast.makeText(this, "Databases are in Sync", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(), "Databases are in Sync", Toast.LENGTH_SHORT).show();
         }else if(!internetCheck.connectionCheck(MainActivity.this)){
-            Toast.makeText(this, "No Internet Connection", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(), "No Internet Connection", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -651,21 +657,7 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
 
         //noinspection SimplifiableIfStatement
         if(id == R.id.add_case){
-            //To set the case id for adding case if cases are empty
-            if(controller.getTableValues("cases", 0).isEmpty())
-                sharedPreference.setString(MainActivity.this, TAG_ID, "0");
-            else if(controller.getTableValues("cases", 0) != null) {
-                if(!internetCheck.isNetworkConnected(this)){
-                    if(sharedPreference.getString(this, TAG_ID).equals("")) {
-                        caseid = controller.getMaxId("cases");
-                        sharedPreference.setString(MainActivity.this, TAG_ID, caseid);
-                    }else{
-                        caseid = sharedPreference.getString(MainActivity.this, TAG_ID);
-                        sharedPreference.setString(MainActivity.this, TAG_ID, caseid);
-                    }
-                }
-            }
-            Intent intent = new Intent(context, AddCase.class);
+            Intent intent = new Intent(context, userList.class);
             intent.putExtra("caller", "addcase");
             startActivity(intent);
             //Animation that slides to next activity
@@ -720,7 +712,7 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
                                 runOnUiThread(new Runnable() {
                                     @Override
                                     public void run() {
-                                        Toast.makeText(MainActivity.this,"Error connecting to the Database \n Check your internet connection", Toast.LENGTH_SHORT).show();
+                                        Toast.makeText(getApplicationContext(),"Error connecting to the Database \n Check your internet connection", Toast.LENGTH_SHORT).show();
                                         MainActivity.this.finish();
                                     }
                                 });
@@ -747,6 +739,7 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
                         String company = u.getString(MainActivity.TAG_COMPANY);
                         String email = u.getString(MainActivity.TAG_EMAIL);
                         String telephone = u.getString(MainActivity.TAG_TELEPHONE);
+                        String division_id = u.getString(MainActivity.TAG_DIVISION_ID);
 
                         //create a new HashMap
                         HashMap<String, String> maps = new HashMap<String, String>();
@@ -756,6 +749,7 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
                         maps.put(MainActivity.TAG_COMPANY, company);
                         maps.put(MainActivity.TAG_EMAIL, email);
                         maps.put(MainActivity.TAG_TELEPHONE, telephone);
+                        maps.put(MainActivity.TAG_DIVISION_ID, division_id);
 
                         //add this map to SQLite too
                         controller.insertUser(maps);

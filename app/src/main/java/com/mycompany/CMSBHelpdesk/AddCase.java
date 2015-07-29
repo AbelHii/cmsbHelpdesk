@@ -12,6 +12,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -25,11 +26,13 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AbsoluteLayout;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.PopupWindow;
+import android.widget.ProgressBar;
 import android.widget.Scroller;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -67,45 +70,36 @@ public class AddCase extends ActionBarActivity {
     public static String case_id = "0";
     private String name, username = "", description, actionT, assigneeID, statusID, sync = "", id_user, path;
     private static String caseID;
-    public static String imageFilePath;
     public Button mSubmit;
-    public TextView mIDCase;
-    private TextView mAssigneeLabel;
-    private TextView mContactName;
-    private TextView mCompany;
-    private TextView mEmail;
-    private TextView mTel;
-    private TextView mActionTaken;
-    private TextView mDesc;
-    private TextView mActionTakenLabel;
-    private TextView mDescLabel;
-    private TextView mStatusDivider;
-    public TextView mFilePath;
+    public TextView mIDCase, mFilePath;
+    private TextView mAssigneeLabel, mContactName, mCompany, mEmail, mTel, mActionTaken, mDesc, mActionTakenLabel, mDescLabel, mStatusDivider;
     private SharedPreferences sp;
     private SharedPreferences.Editor e;
 
     //To check whether its in addcase or editcase
-    String caller;
+    static String caller, fps;
     static String title = "Add Case";
-    String fps;
+
+    //used to check if any changes were made while editing or adding
+    String oldDesc, oldAT;
+    static Boolean hook = false;
 
     // DB Class to perform DB related operations
     DBController userControl = new DBController(this);
 
     //Stores the values for AddCase and EditCase
-    public static ArrayList<String> spinnerUsernames;
-    public static ArrayList<String> companyV, temporaryList;
+    public static ArrayList<String> temporaryList;
 
     //DB stuff:
     // JSON parser class
     static JSONParser jsonParser = new JSONParser();
 
 
-    private static ProgressDialog pDialog;
+    public static ProgressDialog pDialog;
     public static String ADD_CASE_URL = "http://"+ MainActivity.TAG_IP +"/chd/public/app/AddCase.php";
     public static String UPDATE_CASE_URL = "http://"+ MainActivity.TAG_IP +"/chd/public/app/UpdateCase.php";
     public static String INSERT_IMAGE_URL = "http://"+ MainActivity.TAG_IP +"/chd/public/app/insertImage.php";
-    public static String CHECK_IMAGE_URL = "http://"+ MainActivity.TAG_IP +"/chd/public/app/checkImages.php";
+    public static final String CHECK_IMAGE_URL = "http://"+ MainActivity.TAG_IP +"/chd/public/app/checkImages.php";
     public static String imgExists;
     /*---------------------------------------------ON CREATE-----------------------------------------------------------------*/
     @Override
@@ -147,6 +141,7 @@ public class AddCase extends ActionBarActivity {
                     }
                     mIDCase.setText(String.valueOf(Integer.parseInt(case_id) + 1));
                     checkLabel();
+                    retrieveUserList(getIntent());
                     break;
             }
         }
@@ -206,24 +201,63 @@ public class AddCase extends ActionBarActivity {
         mDescLabel = (TextView) findViewById(R.id.caseDescLabel);
         mActionTakenLabel = (TextView) findViewById (R.id.actionTakenLabel);
 
+        mBitmapImage = (ImageView)findViewById(R.id.bitmapImage);
+        mFilePath = (TextView) findViewById(R.id.filePath);
+
         case_id = sharedPreference.getString(AddCase.this, MainActivity.TAG_ID);
         assigneeID = sharedPreference.getString(AddCase.this, MainActivity.TAG_LOGIN_ID);
 
         imgExists = sharedPreference.getString(this, "imgExists");
         mFilePath = (TextView) findViewById(R.id.filePath);
+
+        //used to check if any changes were made:
+        oldDesc = mDesc.getText().toString();
+        oldAT = mActionTaken.getText().toString();
     }
 
     public void removeSharedPreferences(){
         e.remove("filePaths").commit();
         e.remove("imgExists").commit();
     }
-    public void clearOnExit(){
-        removeSharedPreferences();
-        //remove the image from json and array;
-        AddPicture.json.remove("imageArray");
-        AddPicture.json.remove("imageArrayAdd");
-        AddPicture.listOfImages = new ArrayList<>();
+    public void clearOnExit(final Intent i){
+        if(hook == true){
+            new AlertDialog.Builder(this)
+                    .setMessage("Are you sure you want to discard the changes made?")
+                    .setCancelable(true)
+                    .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            removeSharedPreferences();
+                            //remove the image from json and array;
+                            AddPicture.json.remove("imageArray");
+                            AddPicture.json.remove("imageArrayAdd");
+                            AddPicture.listOfImages = new ArrayList<>();
+                            AddPicture.tempList = new ArrayList<>();
+                            AddCase.this.finish();
+                            if(i != null)
+                                startActivity(i);
+                            hook = false;
+                        }
+
+                    })
+                    .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.dismiss();
+                        }
+                    })
+                    .show();
+        }else{
+            removeSharedPreferences();
+            //remove the image from json and array;
+            AddPicture.json.remove("imageArray");
+            AddPicture.json.remove("imageArrayAdd");
+            AddPicture.listOfImages = new ArrayList<>();
+            AddPicture.tempList = new ArrayList<>();
+            AddCase.this.finish();
+        }
     }
+
 
     //------------------------------------ADAPTER FOR STATUS SPINNER-----------------------------------------------------------
     public void chooseStatColour(String s, TextView v){
@@ -274,6 +308,7 @@ public class AddCase extends ActionBarActivity {
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
             View view = convertView;
+
             if(view == null){
                 LayoutInflater vi;
                 vi = LayoutInflater.from(getContext());
@@ -299,6 +334,7 @@ public class AddCase extends ActionBarActivity {
             public void onClick(View view) {
                 Intent intent = new Intent(AddCase.this, userList.class);
                 intent.putExtra("user", mUser.getText().toString());
+                sharedPreference.setString(AddCase.this, "oldUser", mUser.getText().toString());
                 startActivityForResult(intent, 3);
             }
         });
@@ -307,6 +343,22 @@ public class AddCase extends ActionBarActivity {
         mActionTaken.setBackgroundResource(R.drawable.on_btn_click3);
 
         mStatus.setBackgroundResource(R.drawable.on_btn_click2);
+        final int oldStatus = mStatus.getSelectedItemPosition();
+        mStatus.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                //check if there are any changes made
+                if(oldStatus != i){
+                    hook = true;
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+
+            }
+        });
+
         mDesc.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -367,6 +419,50 @@ public class AddCase extends ActionBarActivity {
             }
         });
 
+        mBitmapImage.setBackgroundResource(R.drawable.on_btn_click3);
+        mFilePath.setBackgroundResource(R.drawable.on_btn_click3);
+        mBitmapImage.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {LayoutInflater layoutInflater
+                    = (LayoutInflater) getBaseContext()
+                    .getSystemService(LAYOUT_INFLATER_SERVICE);
+                View popupView = layoutInflater.inflate(R.layout.fullscreen_image2, null);
+                final PopupWindow popupWindow = new PopupWindow(
+                        popupView, AbsoluteLayout.LayoutParams.FILL_PARENT, AbsoluteLayout.LayoutParams.FILL_PARENT, true);
+
+
+                ImageView mFullImage = (ImageView) popupView.findViewById(R.id.fullImage);
+                Drawable draw = mBitmapImage.getDrawable();
+                if(draw == null){
+                    AddPicture.options.inSampleSize = 3;
+                    draw = getResources().getDrawable(R.drawable.cms_logo);
+                    draw.setAlpha(175);
+                }
+                mFullImage.setImageDrawable(draw);
+
+                mCancel = (Button) popupView.findViewById(R.id.cancelPopup);
+                mCancel.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        popupWindow.dismiss();
+                    }
+                });
+                popupWindow.setAnimationStyle(R.style.popupAnimation);
+                popupWindow.setBackgroundDrawable(new BitmapDrawable());
+                popupWindow.setOutsideTouchable(true);
+                popupWindow.showAtLocation(popupView, Gravity.CENTER, 0, 0);
+            }
+        });
+        mFilePath.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                addPic();
+            }
+        });
+        mFilePath.setScroller(new Scroller(this));
+        mFilePath.setVerticalScrollBarEnabled(true);
+        mFilePath.setMovementMethod(new ScrollingMovementMethod());
+
         //Submit button
         mSubmit = (Button) findViewById(R.id.submitBtn);
         if(!mUser.getText().toString().trim().equalsIgnoreCase("")){
@@ -387,17 +483,17 @@ public class AddCase extends ActionBarActivity {
                     //Logic for adding case:
                     if (title.trim().equalsIgnoreCase("add Case")) {//ADD
                         if (internetCheck.connectionCheck(context)) {
-                            id_user = userControl.getID("users", "userId", mUser.getText().toString(), MainActivity.TAG_NAME, 0);
+                            id_user = userControl.getID("users", "userId", mUser.getText().toString(), MainActivity.TAG_NAME);
                             new addCase().execute();
                             if(AddPicture.listOfImages.size() != 0){
                                 Toast.makeText(getApplicationContext(), String.valueOf(Integer.parseInt(case_id)+1), Toast.LENGTH_LONG).show();
                                 temporaryList = AddPicture.tempList;
-                                new uploadImage(caseID).execute(temporaryList);
+                                new uploadImage(AddCase.this, case_id).execute(temporaryList);
                             }
                         } else if (!internetCheck.connectionCheck(context)) {
                             Intent intent = new Intent(context, MainActivity.class);
-                            addCaseSQLite("10");
-                            Toast.makeText(AddCase.this, "Adding Case For Sync ", Toast.LENGTH_LONG).show();
+                            addCaseSQLite("10", "connection failed");
+                            Toast.makeText(getApplicationContext(), "Adding Case For Sync ", Toast.LENGTH_LONG).show();
                             startActivity(intent);
                             finish();
                         }
@@ -409,21 +505,23 @@ public class AddCase extends ActionBarActivity {
                             if(AddPicture.listOfImages.size() != 0){
                                 Toast.makeText(getApplicationContext(), case_id, Toast.LENGTH_LONG).show();
                                 temporaryList = AddPicture.tempList;
-                                new uploadImage(caseID).execute(temporaryList);
+                                new uploadImage(AddCase.this, caseID).execute(temporaryList);
                             }
                         } else if (!internetCheck.connectionCheck(context) && sync.equals("10")) {
                             updateCaseSQLite("10");
-                            Toast.makeText(AddCase.this, "Updating Case For Sync", Toast.LENGTH_LONG).show();
+                            Toast.makeText(getApplicationContext(), "Updating Case For Sync", Toast.LENGTH_LONG).show();
                             startActivity(intent);
                             finish();
                         } else if (!internetCheck.connectionCheck(context) && (sync.equals("") || sync.equals("20"))) {
                             updateCaseSQLite("20");
-                            Toast.makeText(AddCase.this, "Updating Case For Sync", Toast.LENGTH_LONG).show();
+                            Toast.makeText(getApplicationContext(), "Updating Case For Sync", Toast.LENGTH_LONG).show();
                             startActivity(intent);
                             finish();
                         }
                     }
                     AddPicture.listOfImages = new ArrayList<>();
+                    AddPicture.tempList = new ArrayList<String>();
+                    hook = false;
                     removeSharedPreferences();
                 } else {
                     mSubmit.setTextColor(Color.parseColor("#CC0000"));
@@ -436,23 +534,23 @@ public class AddCase extends ActionBarActivity {
 
     @Override
     public void onBackPressed(){
-        clearOnExit();
-        this.finish();
+        clearOnExit(null);
         overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
     }
 
     /*----------------------------------SQLITE EDITS-------------------------------*/
     //Adds Case to SQLite:
-    public void addCaseSQLite(String num){
-        if(!internetCheck.isNetworkConnected(this)){
+    public void addCaseSQLite(String num, String cc){
+        if(!internetCheck.isNetworkConnected(this) || cc != null){
             sync = num;
         }
         if(!internetCheck.isNetworkConnected(this) && (case_id.equals("0") || case_id.equals("1"))) {
             case_id = userControl.getMaxId("cases");
         }
         String identification = String.valueOf(Integer.parseInt(case_id)+1);
-        if(AddPicture.listOfImages.size() == 0){
-            AddPicture.filePathsAdd = null; }
+        if(AddPicture.tempList.size() == 0){
+            AddPicture.filePathsAdd = null;
+        }
 
         userControl.insertOneCase(identification,
                 mStatus.getSelectedItem().toString(),
@@ -469,7 +567,7 @@ public class AddCase extends ActionBarActivity {
         if(!internetCheck.isNetworkConnected(this)){
             sync = num;
         }
-        if(AddPicture.listOfImages.size() == 0){
+        if(AddPicture.tempList.size() == 0){
             AddPicture.filePathsAdd = null;}
 
         userControl.updateOneCase(caseID,
@@ -512,7 +610,6 @@ public class AddCase extends ActionBarActivity {
         statusID = bund.getString(MainActivity.TAG_STATUS_ID);
         assigneeID = bund.getString(MainActivity.TAG_LOGIN_ID);
         sync = bund.getString(MainActivity.TAG_SYNC);
-        imageFilePath = bund.getString(MainActivity.TAG_IMAGE);
 
         //This just sets the static values according to the user
         //SET TEXT
@@ -523,23 +620,24 @@ public class AddCase extends ActionBarActivity {
         mStatus.setSelection(Integer.parseInt(statusID) - 1);
         mIDCase.setText(case_id);
 
-        id_user = userControl.getID("users", "userId", mUser.getText().toString(), MainActivity.TAG_NAME, 0);
+        id_user = userControl.getID("users", "userId", mUser.getText().toString(), MainActivity.TAG_NAME);
 
         if(MainActivity.checkLog.equalsIgnoreCase("admin")){
             mAssigneeLabel = (TextView) findViewById(R.id.assigneeLabel);
             mAssigneeLabel.setText("Assignee: "+assignee);
         }
 
-        mBitmapImage = (ImageView)findViewById(R.id.bitmapImage);
-        mFilePath = (TextView) findViewById(R.id.filePath);
-
         if(AddPicture.filePathTemp != null) {
             ArrayList<String> files = AddPicture.getFilePaths(AddPicture.filePathTemp, "imageArrayAdd");
             String filepath = files.get(0);
             //Reduces the size of the image to be contained in the bitmap
             AddPicture.options.inSampleSize = 7;
-            Bitmap img = BitmapFactory.decodeFile(filepath, AddPicture.options);
-            mBitmapImage.setImageBitmap(AddPicture.getOrientation(img, filepath));
+            try {
+                Bitmap img = BitmapFactory.decodeFile(filepath, AddPicture.options);
+                mBitmapImage.setImageBitmap(AddPicture.getOrientation(img, filepath));
+            }catch(Exception ex){
+                Toast.makeText(getApplicationContext(), ex+" There was an error loading the image", Toast.LENGTH_SHORT).show();
+            }
             mFilePath.setText(filepath);
         }
         if(internetCheck.isNetworkConnected(this)){
@@ -559,6 +657,10 @@ public class AddCase extends ActionBarActivity {
     public void retrieveUserList(Intent data){
         Bundle b = data.getExtras();
         name = b.getString(MainActivity.TAG_NAME);
+        if(b.getString("nameChange") != null) {
+            if (b.getString("nameChange").equalsIgnoreCase("true"))
+                hook = true;
+        }
         //SET TEXT
         mUser.setText(name);
         mUser.setTextAppearance(this, R.style.bigFont);
@@ -589,47 +691,59 @@ public class AddCase extends ActionBarActivity {
             return true;
         }
         if(id == R.id.add_picture){
-            Intent intent = new Intent(AddCase.this, AddPicture.class);
-            intent.putExtra("caseIdKey", case_id);
-            intent.putExtra("call", caller);
-            fps = sharedPreference.getString(AddCase.this, "filePaths");
-            intent.putExtra("filez", fps);
-            //attempt to save case_id
-            if(title.trim().equalsIgnoreCase("addcase")){
-                if(internetCheck.isNetworkConnected(context))
-                sharedPreference.setString(AddCase.this, MainActivity.TAG_ID, String.valueOf(Integer.parseInt(case_id)+1));
-            }else{
-                sharedPreference.setString(AddCase.this, MainActivity.TAG_ID, case_id);
-            }
-
-            imgExists = sharedPreference.getString(this, "imgExists");
-            if(imgExists.equals("true")){
-                intent.putExtra("imgExists", imgExists);
-            }else{
-                intent.putExtra("imgExists", "false");
-            }
-
-            startActivity(intent);
-            overridePendingTransition(R.anim.abc_slide_in_bottom, R.anim.abc_slide_out_top);
+            addPic();
             return true;
         }
         if(id==R.id.mainMenu){
             Intent intent = new Intent(context, MainActivity.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-            startActivity(intent);
-            finish();
+            clearOnExit(intent);
             //Animation that slides to next activity
             overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
             return true;
         }
         if (id == android.R.id.home) {
-            clearOnExit();
-            this.finish();
+            clearOnExit(null);
             //Animation that slides to next activity
             overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    //method for going to add picture
+    public void addPic(){
+
+        Intent intent = new Intent(AddCase.this, AddPicture.class);
+        intent.putExtra("caseIdKey", case_id);
+        intent.putExtra("call", caller);
+        fps = sharedPreference.getString(AddCase.this, "filePaths");
+        intent.putExtra("filez", fps);
+        //attempt to save case_id
+        if(title.trim().equalsIgnoreCase("addcase")){
+            if(internetCheck.isNetworkConnected(this))
+                sharedPreference.setString(AddCase.this, MainActivity.TAG_ID, String.valueOf(Integer.parseInt(case_id)+1));
+        }else{
+            sharedPreference.setString(AddCase.this, MainActivity.TAG_ID, case_id);
+        }
+
+        imgExists = sharedPreference.getString(this, "imgExists");
+        if(imgExists.equals("true")){
+            intent.putExtra("imgExists", imgExists);
+        }else{
+            intent.putExtra("imgExists", "false");
+        }
+
+        //progress dialog for loading images
+        if(imgExists.equals("true") || AddPicture.listOfImages.size() > 0) {
+            pDialog = new ProgressDialog(AddCase.this);
+            pDialog.setMessage("Loading Images \nPlease Wait...");
+            pDialog.setCancelable(false);
+            pDialog.show();
+        }
+
+        startActivity(intent);
+        overridePendingTransition(R.anim.abc_slide_in_bottom, R.anim.abc_slide_out_top);
     }
 
     /*---------------ON ACTIVITY RESULT--------------------------------------------*/
@@ -641,6 +755,9 @@ public class AddCase extends ActionBarActivity {
                 if (resultCode == Activity.RESULT_OK) {
                     String newText = data.getStringExtra("result");
                     mDesc.setText(newText);
+                    if(data.getStringExtra("textChanged") != null)
+                        if(data.getStringExtra("textChanged").equals("true"))
+                            hook = true;
                     checkLabel();
                 }
                 break;
@@ -648,6 +765,9 @@ public class AddCase extends ActionBarActivity {
                 if (resultCode == Activity.RESULT_OK) {
                     String newText = data.getStringExtra("result");
                     mActionTaken.setText(newText);
+                    if(data.getStringExtra("textChanged") != null)
+                        if(data.getStringExtra("textChanged").equals("true"))
+                            hook = true;
                     checkLabel();
                 }
                 break;
@@ -714,7 +834,9 @@ public class AddCase extends ActionBarActivity {
                     Log.d("Successfully Added Case: ", json.toString());
 
                     Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-                    addCaseSQLite("10");
+                    AddPicture.listOfImages = new ArrayList<>();
+                    AddPicture.tempList = new ArrayList<String>();
+                    addCaseSQLite("10", null);
                     startActivity(intent);
 
                     finish();
@@ -735,6 +857,10 @@ public class AddCase extends ActionBarActivity {
             pDialog.dismiss();
             if (message != null) {
                 Toast.makeText(AddCase.this, message, Toast.LENGTH_LONG).show();
+            }
+            if(AddPicture.listOfImages.size() != 0){
+                //to reset the SQLite file paths:
+                userControl.updateImage(caseID, null);
             }
         }
     }
@@ -758,7 +884,7 @@ public class AddCase extends ActionBarActivity {
 
             //getID parameters: (tablename, idname, compare to string, columnName, columnNumber)
             //everything can be found in the DBController.java
-            String user_id = userControl.getID("users", "userId", mUser.getText().toString(), MainActivity.TAG_NAME, 0);
+            String user_id = userControl.getID("users", "userId", mUser.getText().toString(), MainActivity.TAG_NAME);
             String description = mDesc.getText().toString();
             String actionTaken = mActionTaken.getText().toString();
             String status = String.valueOf(mStatus.getSelectedItemPosition() + 1);
@@ -787,6 +913,8 @@ public class AddCase extends ActionBarActivity {
                     Log.d("Successfully Updated Case: ", json.toString());
 
                     Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                    AddPicture.listOfImages = new ArrayList<>();
+                    AddPicture.tempList = new ArrayList<String>();
                     updateCaseSQLite("20");
                     startActivity(intent);
 
@@ -811,6 +939,10 @@ public class AddCase extends ActionBarActivity {
             if (message != null) {
                 Toast.makeText(AddCase.this, message, Toast.LENGTH_LONG).show();
             }
+            if(AddPicture.listOfImages.size() != 0){
+                //to reset the SQLite file paths:
+                userControl.updateImage(caseID, null);
+            }
         }
     }
 
@@ -819,7 +951,6 @@ public class AddCase extends ActionBarActivity {
     static class uploadImage extends AsyncTask<ArrayList<String>, Void, Integer>{
         HttpURLConnection connection = null;
         DataOutputStream outputStream = null;
-        DataInputStream inputStream = null;
         String urlServer = INSERT_IMAGE_URL;
         String lineEnd = "\r\n";
         String twoHyphens = "--";
@@ -831,9 +962,23 @@ public class AddCase extends ActionBarActivity {
         int serverResponseCode;
         String serverResponseMessage;
 
+        Context context;
         String id_case;
-        public uploadImage(String id_case){
+        public uploadImage(Context context, String id_case){
+            this.context = context;
             this.id_case = id_case;
+        }
+
+        @Override
+        protected void onPreExecute() {
+            if(context != null) {
+                super.onPreExecute();
+                pDialog.dismiss();
+                pDialog = new ProgressDialog(context);
+                pDialog.setMessage("Uploading Images \nPlease Wait...");
+                pDialog.setCancelable(false);
+                pDialog.show();
+            }
         }
 
         public Integer doInBackground(ArrayList<String>... params){
@@ -911,6 +1056,9 @@ public class AddCase extends ActionBarActivity {
 
         @Override
         protected void onPostExecute(Integer result){
+            if(context != null) {
+                pDialog.dismiss();
+            }
             AddPicture.listOfImages = new ArrayList<>();
         }
     }
@@ -945,22 +1093,8 @@ public class AddCase extends ActionBarActivity {
                             String fixedPath = fixStringPath(paths.getString(i), AddCase.this);
                             arrList.add(fixedPath);
                         }
-
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                Toast.makeText(AddCase.this, "images exists", Toast.LENGTH_SHORT).show();
-                            }
-                        });
-
                         return arrList;
                     } else {
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                Toast.makeText(AddCase.this, "images don't exist", Toast.LENGTH_SHORT).show();
-                            }
-                        });
                         return null;
                     }
                 } catch (JSONException e1) {
@@ -972,16 +1106,14 @@ public class AddCase extends ActionBarActivity {
                     public void run() {
                         new AlertDialog.Builder(AddCase.this)
                                 .setIcon(R.drawable.nowifi)
-                                .setTitle("Something is wrong with the connection")
-                                .setMessage("Please check your internet connection to retrieve images \n " +
-                                        "or turn off the wifi to use in offline mode")
+                                .setTitle("Something went wrong with the connection")
+                                .setMessage("Please check your internet connection to retrieve images\n" +
+                                        "Or turn off the wifi to use in offline mode")
                                 .setCancelable(false)
                                 .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                                     @Override
                                     public void onClick(DialogInterface dialog, int which) {
                                         //code for exit
-                                        //android.os.Process.killProcess(android.os.Process.myPid());
-                                        //System.exit(1);
                                         finish();
                                     }
                                 })
@@ -998,7 +1130,7 @@ public class AddCase extends ActionBarActivity {
         protected void onPostExecute(ArrayList<String> result) {
             if(result != null && result.size() != 0 && context != null) {
                 path = fixStringPath(result.get(0), AddCase.this);
-                new AsyncMethods.DownloadImageTask(mBitmapImage)
+                new AsyncMethods.DownloadImageTask(mBitmapImage, null)
                         .execute(path);
                 mFilePath.setText(path);
                 runOnUiThread(new Runnable() {
@@ -1022,21 +1154,10 @@ public class AddCase extends ActionBarActivity {
                     }
                 });
             }
-            /*if(result != null && context != null){
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        //AddPicture ap = (AddPicture) context;
-                        AddPicture.listOfImages = result;
-                        Toast.makeText(context, "wooooork", Toast.LENGTH_LONG).show();
-                        Toast.makeText(context, String.valueOf(result.size())+" work please", Toast.LENGTH_LONG).show();
-                        Toast.makeText(context, String.valueOf(AddPicture.listOfImages.size())+" worksadads please", Toast.LENGTH_LONG).show();
-                    }
-                });
-            }*/
         }
     }
-    //Fixes the path to make it a valid URL
+    //Fixes the path to make it a valid URL,
+    // so it gets rid of ". , [ ] + ^" and replaces "../../" with the correct url
     public static String fixStringPath(String path, Context c){
         path = path.replaceAll("[+^,\\\\\"\\]\\[]", "").replace("../../", "http://"+ MainActivity.TAG_IP +"/chd/");
         return path;

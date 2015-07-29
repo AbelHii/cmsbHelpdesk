@@ -34,6 +34,7 @@ import android.widget.Toast;
 import com.mycompany.CMSBHelpdesk.helpers.DBController;
 import com.mycompany.CMSBHelpdesk.helpers.JSONParser;
 import com.mycompany.CMSBHelpdesk.helpers.internetCheck;
+import com.mycompany.CMSBHelpdesk.helpers.sharedPreference;
 import com.mycompany.CMSBHelpdesk.objects.User;
 
 import org.apache.http.NameValuePair;
@@ -48,14 +49,15 @@ import java.util.List;
 
 public class userList extends ActionBarActivity implements SwipeRefreshLayout.OnRefreshListener {
 
-    private ListView userLv;
+    public ListView userLv;
     EditText inputSearch;
-    UserListAdapter userAdapter;
+    static UserListAdapter userAdapter;
+    String textValue;
 
-    private SwipeRefreshLayout swipeLayout;
+    public SwipeRefreshLayout swipeLayout;
 
     // ArrayList for Listview
-    ArrayList<HashMap<String, String>> listUser;
+    static ArrayList<HashMap<String, String>> listUser;
     ArrayList<User> filteredData = new ArrayList<>();
 
     //DB variables:
@@ -106,7 +108,7 @@ public class userList extends ActionBarActivity implements SwipeRefreshLayout.On
             getSQLiteUsers();
             //Toast.makeText(userList.this, "6", Toast.LENGTH_SHORT).show();
         }
-
+        onListItemClick();
     }
 
 
@@ -140,7 +142,6 @@ public class userList extends ActionBarActivity implements SwipeRefreshLayout.On
                 refreshList();
                 new getUsers().execute();
                 getSQLiteUsers();
-                refreshAtTop();
 
                 //To update the userList:
                 check = 0;
@@ -148,7 +149,7 @@ public class userList extends ActionBarActivity implements SwipeRefreshLayout.On
             }
         }, 5000);
     }
-    public void refreshAtTop() {
+    private void refreshAtTop() {
        userLv.setOnScrollListener(new AbsListView.OnScrollListener() {
             @Override
             public void onScrollStateChanged(AbsListView view, int scrollState) {
@@ -183,12 +184,34 @@ public class userList extends ActionBarActivity implements SwipeRefreshLayout.On
             @Override
             public void onItemClick(AdapterView<?> p, View v, int position, long id) {
                 Intent intent = new Intent(userList.this, AddCase.class);
-                intent.putExtra("caller", "userList");
 
                 Bundle bundle = new Bundle();
                 bundle.putString(MainActivity.TAG_USERID, filteredData.get(position).getUserID());
                 bundle.putString(MainActivity.TAG_NAME, filteredData.get(position).getName());
+                if(textValue != null) {
+                    if (!textValue.equals(listUser.get(position).get(MainActivity.TAG_NAME).toString()))
+                        bundle.putString("nameChange", "true");
+                }
                 intent.putExtras(bundle);
+
+                //Check to see if has to retrieve data or not (goes to Add Case)
+                AddCase.caller = getIntent().getStringExtra("caller");
+                if(AddCase.caller != null) {
+                    //To set the case id for adding case if cases are empty
+                    if(controlUser.getTableValues("cases", 0).isEmpty())
+                        sharedPreference.setString(userList.this, MainActivity.TAG_ID, "0");
+                    else if(controlUser.getTableValues("cases", 0) != null) {
+                        if(sharedPreference.getString(userList.this, MainActivity.TAG_ID).equals("") && internetCheck.isNetworkConnected(userList.this)) {
+                            MainActivity.caseid = controlUser.getMaxId("cases");
+                            sharedPreference.setString(userList.this, MainActivity.TAG_ID, MainActivity.caseid);
+                        }else if(!internetCheck.isNetworkConnected(userList.this)){
+                            MainActivity.caseid = sharedPreference.getString(userList.this, MainActivity.TAG_ID);
+                            sharedPreference.setString(userList.this, MainActivity.TAG_ID, MainActivity.caseid);
+                        }
+                    }
+                    intent.putExtra("caller", "addcase");
+                    startActivityForResult(intent, Activity.RESULT_OK, bundle);
+                }
 
                 //Closes keyboard when finished:
                 setResult(Activity.RESULT_OK, intent);
@@ -250,7 +273,7 @@ public class userList extends ActionBarActivity implements SwipeRefreshLayout.On
     public void doFilter(){
         //Does the searching/filtering
         inputSearch = (EditText) findViewById(R.id.inputSearch);
-        String textValue = getIntent().getStringExtra("user");
+        textValue = getIntent().getStringExtra("user");
         inputSearch.setText(textValue);
         inputSearch.addTextChangedListener(new TextWatcher() {
             @Override
@@ -427,6 +450,7 @@ public class userList extends ActionBarActivity implements SwipeRefreshLayout.On
                         String company = u.getString(MainActivity.TAG_COMPANY);
                         String email = u.getString(MainActivity.TAG_EMAIL);
                         String telephone = u.getString(MainActivity.TAG_TELEPHONE);
+                        String division_id = u.getString(MainActivity.TAG_DIVISION_ID);
 
                         //create a new HashMap
                         HashMap<String, String> maps = new HashMap<String, String>();
@@ -436,6 +460,7 @@ public class userList extends ActionBarActivity implements SwipeRefreshLayout.On
                         maps.put(MainActivity.TAG_COMPANY, company);
                         maps.put(MainActivity.TAG_EMAIL, email);
                         maps.put(MainActivity.TAG_TELEPHONE, telephone);
+                        maps.put(MainActivity.TAG_DIVISION_ID, division_id);
 
                         listUser.add(maps);
 
@@ -513,6 +538,19 @@ public class userList extends ActionBarActivity implements SwipeRefreshLayout.On
             if(imm != null)
             imm.hideSoftInputFromWindow(inputSearch.getWindowToken(), 0);
             this.finish();
+            return true;
+        }
+        if(id==R.id.addNewUser){
+            if(internetCheck.isNetworkConnected(this)) {
+                Intent intent = new Intent(context, AddNewUser.class);
+                startActivity(intent);
+                InputMethodManager imm = (InputMethodManager) getSystemService(
+                        Context.INPUT_METHOD_SERVICE);
+                if (imm != null)
+                    imm.hideSoftInputFromWindow(inputSearch.getWindowToken(), 0);
+            }else{
+                Toast.makeText(getApplicationContext(), "No Internet Connection", Toast.LENGTH_SHORT).show();
+            }
             return true;
         }
         if(id==R.id.mainMenu){

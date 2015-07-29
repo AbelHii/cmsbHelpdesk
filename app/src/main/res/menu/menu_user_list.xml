@@ -16,4 +16,9 @@
         android:orderInCategory="2"
         app:showAsAction="ifRoom"
         android:icon="@drawable/home_white"/>
+    <item android:id="@+id/addNewUser"
+        android:title="@string/addUser"
+        android:orderInCategory="1"
+        app:showAsAction="ifRoom"
+        android:icon="@drawable/add_user"/>
 </menu>

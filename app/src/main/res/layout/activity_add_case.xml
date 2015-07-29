@@ -30,7 +30,7 @@
             android:layout_height="wrap_content"
             android:layout_below="@+id/IDCase"
             android:text="@string/name"
-            android:textSize="20sp"
+            android:textSize="19sp"
             android:textColor="#333"
             android:layout_marginBottom="10dp"
             android:paddingStart="0dp"
@@ -47,7 +47,7 @@
             android:textColorHint="#999999"
             android:gravity="start|center_vertical"
             android:singleLine="true"
-            android:textSize="20sp"
+            android:textSize="18sp"
             android:background="#ddd"
             android:layout_marginStart="8dp"
             android:layout_marginBottom="10dp"
@@ -86,7 +86,7 @@
             android:layout_below="@+id/divider"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="20sp"
+            android:textSize="19sp"
             android:textColor="#333"
             android:paddingStart="0dp"
             android:paddingTop="10dp"
@@ -101,7 +101,7 @@
             android:layout_height="wrap_content"
             android:entries="@array/status"
             android:singleLine="true"
-            android:textSize="20sp"
+            android:textSize="18sp"
             android:layout_marginTop="10dp"
             android:layout_marginStart="13dp"
             android:spinnerMode="dialog"
@@ -130,7 +130,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/case_desc"
-            android:textSize="20sp"
+            android:textSize="18sp"
             android:layout_marginTop="30dp"
             android:textColor="#333"/>
         <TextView
@@ -153,7 +153,7 @@
             android:maxLength="400"
             android:background="#edee"
             android:textColor="#aa00"
-            android:textSize="20sp"/>
+            android:textSize="18sp"/>
 
         <TextView
             android:layout_width="fill_parent"
@@ -169,7 +169,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/action_taken"
-            android:textSize="20sp"
+            android:textSize="18sp"
             android:textColor="#333"
             android:id="@+id/actionTakenLabel"
             android:layout_below="@+id/caseDivider"/>
@@ -187,7 +187,7 @@
             android:maxLength="400"
             android:background="#edee"
             android:textColor="#aa00"
-            android:textSize="20sp"/>
+            android:textSize="18sp"/>
 
         <TextView
             android:layout_width="fill_parent"
@@ -199,10 +199,11 @@
             android:id="@+id/actionTakenDivider"/>
 
         <ImageView
-            android:layout_width="70dp"
+            android:layout_width="75dp"
             android:layout_height="match_parent"
             android:layout_below="@+id/actionTakenDivider"
             android:layout_above="@+id/submitBtn"
+            android:padding="5dp"
             android:scaleType="centerInside"
             android:layout_alignParentLeft="true"
             android:id="@+id/bitmapImage"
@@ -211,9 +212,10 @@
         <TextView
             android:layout_width="fill_parent"
             android:layout_height="match_parent"
-            android:layout_marginTop="10dp"
-            android:layout_marginBottom="10dp"
-            android:layout_marginLeft="10dp"
+            android:layout_marginTop="5dp"
+            android:layout_marginBottom="5dp"
+            android:layout_marginLeft="5dp"
+            android:padding="5dp"
             android:layout_below="@+id/actionTakenDivider"
             android:layout_above="@+id/submitBtn"
             android:layout_toRightOf="@+id/bitmapImage"
