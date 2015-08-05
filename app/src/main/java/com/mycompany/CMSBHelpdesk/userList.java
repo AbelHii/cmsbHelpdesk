@@ -394,17 +394,6 @@ public class userList extends ActionBarActivity implements SwipeRefreshLayout.On
     /*---------IMPORTANT CODE!----------------------------------------------------------------*/
     //gets Users from MySQL DB
     class getUsers extends AsyncTask<String, String, String> {
-        //Before starting background thread Show Progress Dialog
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            pDialog = new ProgressDialog(userList.this);
-            pDialog.setProgressStyle(android.R.style.Widget_ProgressBar_Small);
-            pDialog.setMessage("Updating Users List \nPlease Wait...");
-            pDialog.setCancelable(false);
-            pDialog.show();
-        }
-
         @Override
         protected String doInBackground(String... params) {
             int success = 0;
@@ -504,7 +493,6 @@ public class userList extends ActionBarActivity implements SwipeRefreshLayout.On
                 Toast.makeText(getBaseContext(), result, Toast.LENGTH_LONG)
                         .show();
             }
-            pDialog.dismiss();
         }
     }
 

@@ -6,9 +6,12 @@ package com.mycompany.CMSBHelpdesk;
  * SQLite Tutorial from: http://programmerguru.com/android-tutorial/how-to-sync-remote-mysql-db-to-sqlite-on-android/
  *
  * Note: Everything from AsyncMethods class and anything using AsyncTask
- *       runs on a seperate thread from the main (runs in the background, while main continues)
+ *       runs on a seperate thread from the main (runs in the background, while the main thread continues in the foreground)
  *       So if you want to get a return value or something from one of those methods you need to wait for the task to complete
  *       and get it in the "onPostExecute" method.
+ *       OR
+ *       you can get the return value directly from the execute (if its small) by doing something like:
+ *       AsyncMethod.example().execute().get();
  *
  */
 

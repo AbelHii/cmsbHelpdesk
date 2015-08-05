@@ -22,7 +22,7 @@
                 android:padding="16dp"
                 android:textSize="25sp"
                 android:textColor="#333"
-                android:maxLength="400"
+                android:maxLength="1024"
                 android:hint="....."
                 android:textColorHint="#aaa"/>
     </ScrollView>

@@ -28,7 +28,7 @@ public class DBController extends SQLiteOpenHelper{
     //Creates Table
     @Override
     public void onCreate(SQLiteDatabase database) {
-        String cases, users, images;
+        String cases, users;
 
         //Cases
         cases = "CREATE TABLE cases (id INTEGER PRIMARY KEY AUTOINCREMENT, assignee TEXT, " +

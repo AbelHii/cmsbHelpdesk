@@ -25,6 +25,13 @@ import java.util.List;
 
 /**
  * Created by Abel on 08/07/2015.
+ * The three types used by an asynchronous task are the following:
+ *  Params, the type of the parameters sent to the task upon execution.
+ *  Progress, the type of the progress units published during the background computation.
+ *  Result, the type of the result of the background computation.
+ *
+ * extends AsyncTask<Params, Progress, Result>
+ *
  */
 public class AsyncMethods {
     private static final String GET_MAX_ID = "http://"+ MainActivity.TAG_IP +"/chd/public/app/getMaxId.php";
@@ -83,7 +90,7 @@ public class AsyncMethods {
         protected Bitmap doInBackground(String... urls) {
             String urldisplay = urls[0];
             BitmapFactory.Options options = new BitmapFactory.Options();
-            Bitmap image = null;
+            Bitmap image = null, imageOld = null;
             int inSampleSize = 2;
             try {
                 InputStream in = new java.net.URL(urldisplay).openStream();
@@ -94,9 +101,8 @@ public class AsyncMethods {
                     return image;
                 }else{
                     options.inJustDecodeBounds = true;
-                    BitmapFactory.decodeStream(in, null, AddPicture.options);
+                    imageOld = BitmapFactory.decodeStream(in, null, AddPicture.options);
                     in.close();
-                    in = null;
 
                     int height = options.outHeight;
                     int width = options.outWidth;
@@ -104,14 +110,17 @@ public class AsyncMethods {
                     in = new java.net.URL(urldisplay).openStream();
                     options = new BitmapFactory.Options();
 
-                    if(height > 200 || width > 400){
+                    if(imageOld != null)
+                        imageOld.recycle();
+
+                    if(height > 100 || width > 300){
                         final int halfHeight = height / 2;
                         final int halfWidth = width / 2;
 
                         // Calculate the largest inSampleSize value that is a power of 2 and keeps both
                         // height and width larger than the requested height and width.
-                        while ((halfHeight / inSampleSize) > 200
-                                && (halfWidth / inSampleSize) > 400) {
+                        while ((halfHeight / inSampleSize) > 100
+                                && (halfWidth / inSampleSize) > 300) {
                             inSampleSize *= 2;
                         }
                     }
@@ -177,26 +186,27 @@ public class AsyncMethods {
 
         //to dynamically resize image
         public static Bitmap getSize(String filePath, BitmapFactory.Options options){
-            Bitmap image = null;
+            Bitmap image = null, imageOld = null;
             int inSampleSize = 2;
             int height, width;
             options.inJustDecodeBounds = true;
 
-            BitmapFactory.decodeFile(filePath, options);
+            imageOld = BitmapFactory.decodeFile(filePath, options);
 
             height = options.outHeight;
             width = options.outWidth;
 
             options = new BitmapFactory.Options();
-
-            if (height > 150 || width > 350) {
+            if(imageOld != null)
+                imageOld.recycle();
+            if (height > 100 || width > 300) {
                 final int halfHeight = height / 2;
                 final int halfWidth = width / 2;
 
                 // Calculate the largest inSampleSize value that is a power of 2 and keeps both
                 // height and width larger than the requested height and width.
-                while ((halfHeight / inSampleSize) > 150
-                        && (halfWidth / inSampleSize) > 350) {
+                while ((halfHeight / inSampleSize) > 100
+                        && (halfWidth / inSampleSize) > 300) {
                     inSampleSize *= 2;
                 }
             }

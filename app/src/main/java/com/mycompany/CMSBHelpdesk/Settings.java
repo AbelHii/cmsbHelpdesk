@@ -173,11 +173,18 @@ public class Settings extends ActionBarActivity {
         final Context context = this;
 
         mSettingsBtn = (Button) findViewById(R.id.settingsBtn);
+        mSettingsBtn.setBackgroundResource(R.drawable.on_btn_click);
         mSettingsBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View arg0) {
-                if (ip.getText().equals(null) || ip.getText().toString().trim().equals("")) {
-                    Toast.makeText(Settings.this, "Server Field is empty", Toast.LENGTH_SHORT).show();
+                if(user.getText().toString().trim().equals("")){
+                    Toast.makeText(getApplicationContext(), "Username: is empty", Toast.LENGTH_SHORT).show();
+                    error();
+                }else if(pass.getText().toString().trim().equals("")){
+                    Toast.makeText(getApplicationContext(), "Password: is empty", Toast.LENGTH_SHORT).show();
+                    error();
+                }else if (ip.getText().equals(null) || ip.getText().toString().trim().equals("")) {
+                    Toast.makeText(getApplicationContext(), "Server: is empty", Toast.LENGTH_SHORT).show();
                     error();
                 }else {
                     LOGIN_URL = "http://" + ip.getText().toString().toLowerCase().trim() + "/chd/public/app/login.php";

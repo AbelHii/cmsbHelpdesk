@@ -1,5 +1,6 @@
 package com.mycompany.CMSBHelpdesk;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -37,7 +38,6 @@ import android.widget.Toast;
 
 import com.mycompany.CMSBHelpdesk.helpers.AsyncMethods;
 import com.mycompany.CMSBHelpdesk.helpers.internetCheck;
-import com.mycompany.CMSBHelpdesk.helpers.sharedPreference;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -88,6 +88,7 @@ public class AddPicture extends AddCase {
 
         //Retrieve and display the images from the server
         if(imgExists.equalsIgnoreCase("true") && internetCheck.isNetworkConnected(this)){
+            Toast.makeText(AddPicture.this, "ONE", Toast.LENGTH_LONG).show();
             //add the images from the server to the list of images:
             listOfImages.addAll(imageList);
             //clear image list to prevent duplicates:
@@ -112,9 +113,9 @@ public class AddPicture extends AddCase {
                         } catch (ExecutionException e) {
                             e.printStackTrace();
                         }
-                    }else{ //if its from SQLite then load this way:
+                    }else if(!path.contains("http")){ //if its from SQLite then load this way:
                         try {
-                            photo = new AsyncMethods.getSampleSize(filePath, options, pDialog).execute().get();//BitmapFactory.decodeFile(filePath, options);
+                            photo = new AsyncMethods.getSampleSize(path, options, pDialog).execute().get();//BitmapFactory.decodeFile(filePath, options);
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         } catch (ExecutionException e) {
@@ -130,6 +131,7 @@ public class AddPicture extends AddCase {
                 }
             }
         }else if(listOfImages.size() != 0){
+            Toast.makeText(AddPicture.this, "TWO", Toast.LENGTH_LONG).show();
             //this is for when the app is offline or for the temporary list (user haven't clicked submit yet)
             //Gets the local images from sq lite paths:
             options.inSampleSize = 2;
@@ -148,6 +150,7 @@ public class AddPicture extends AddCase {
             }
             Toast.makeText(getApplicationContext(), listOfImages.size()+" image(s) from sq lite", Toast.LENGTH_SHORT).show();
         }else{//If both don't exist
+            Toast.makeText(AddPicture.this, "THREE", Toast.LENGTH_LONG).show();
             if(pDialog != null)
                 pDialog.dismiss();
             listOfImages = new ArrayList<>();
@@ -172,7 +175,7 @@ public class AddPicture extends AddCase {
             getFilePaths(filePathTemp, "imageArrayAdd");
             if(oPaths != null && !oPaths.equals("")){getFilePaths(oPaths, "imageArray");}
         }
-        else if(oPaths != null && oPaths.length() != 0){
+        else if(oPaths != null){
             getFilePaths(oPaths, "imageArray");
         }
         else{
@@ -184,21 +187,22 @@ public class AddPicture extends AddCase {
     //this reads the json object and stores the file paths in the listOfImages ArrayList.
     public static ArrayList getFilePaths(String paths, String jsonArr){
         //Empty list of images to avoid duplicates
-        listOfImages.clear();
+        if(!listOfImages.contains("http"))
+            listOfImages.clear();
         JSONArray arr;
-        ArrayList files;
+        ArrayList files = new ArrayList();
         try {
             JSONObject jj = new JSONObject(paths);
             arr = jj.optJSONArray(jsonArr);
             if(arr != null){
                 for(int i = 0; i<arr.length(); i++){
-                    listOfImages.add(arr.get(i).toString());
+                    files.add(arr.get(i).toString());
                 }
             }
         } catch (final JSONException e) {
             e.printStackTrace();
         }
-        files = listOfImages;
+        listOfImages = files;
         return files;
     }
 
@@ -419,18 +423,18 @@ public class AddPicture extends AddCase {
                     //Reduces the size of the image to be contained in the bitmap
                     options.inSampleSize = 4;
                     //sets the image to the bitmap
-                    try {
-                        is = new getCR(AddPicture.this).execute(selectedImage).get();
-                        photo = BitmapFactory.decodeStream(is, null, options);
-                        is.close(); //can't reuse input streams!
-                        photo = getOrientation(photo, filePath);
-                    }catch(Exception ex){
-                        Toast.makeText(getApplicationContext(), ex+" There was an error loading the image please try again", Toast.LENGTH_LONG).show();
-                        photo = BitmapFactory.decodeResource(this.getResources(), R.drawable.cms_logo, options);
-                        addImage(photo);
-                    }
 
+                    try {
+                        is = this.getContentResolver().openInputStream(selectedImage);
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                        Toast.makeText(getApplicationContext(), e+" There was an error loading the image please " +
+                                "press back and try again", Toast.LENGTH_LONG).show();
+                    }
+                    photo = BitmapFactory.decodeStream(is, null, options);
+                    photo = getOrientation(photo, filePath);
                     addImage(photo);
+
                     //add the filePaths to an ArrayList:
                     listOfImages.add(filePath);
                     break;
@@ -465,30 +469,18 @@ public class AddPicture extends AddCase {
 
     //method for choosing an existing picture from your gallery
     private void choosePicture(){
+        //Intent.ACTION_GET_CONTENT
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
         intent.setType("image/*");
-        startActivityForResult(Intent.createChooser(intent, "Select Picture"), REQUEST_IMAGE);
+        intent.setAction(Intent.ACTION_PICK);
+
+        // Chooser of filesystem options.
+        //final Intent chooserIntent = Intent.createChooser(intent, "Select Source");
+        startActivityForResult(intent, REQUEST_IMAGE);
+        //startActivityForResult(Intent.createChooser(intent, "Select Picture"), REQUEST_IMAGE);
         /*Intent galleryIntent = new Intent(Intent.ACTION_PICK,
                 MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
         startActivityForResult(galleryIntent, REQUEST_IMAGE);*/
-    }
-
-    //getContentResolver on a background thread
-    public class getCR extends AsyncTask<Uri, Void, InputStream>{
-        Context c;
-        public getCR(Context c){
-            this.c = c;
-        }
-        @Override
-        protected InputStream doInBackground(Uri... uris) {
-            InputStream is = null;
-            try {
-                is = c.getContentResolver().openInputStream(uris[0]);
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            }
-            return is;
-        }
     }
 
     //This creates a new file for the image to go in
@@ -632,13 +624,18 @@ public class AddPicture extends AddCase {
             e.printStackTrace();
         }
 
-        //This sets the filePaths to send back to AddPicture class and stores the images temporarily if the user wants to edit them before they submit
-        if ((filePathTemp != null || filePathTemp != "{\"imageArray\":[]}") && listOfImages != null && call != "addcase") {
-            sharedPreference.setString(AddPicture.this, "filePaths", filePaths);
-        }
 
+        //set the hook to say image was added
         if(tempList.size() > 0)
             hook = true;
+
+        //Returning the values to AddCase
+        Intent returnIntent = new Intent();
+        String [] arr = listOfImages.toArray(new String[listOfImages.size()]);
+        returnIntent.putStringArrayListExtra("files", listOfImages);
+        returnIntent.putExtra("filePaths", filePaths);
+        setResult(Activity.RESULT_OK, returnIntent);
+
 
         //Photo.recycle() is just to make sure the app doesn't go out of memory
         if(photo != null)

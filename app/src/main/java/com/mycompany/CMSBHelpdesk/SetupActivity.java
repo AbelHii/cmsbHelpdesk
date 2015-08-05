@@ -40,6 +40,7 @@ public class SetupActivity extends Activity {
                 Intent intent = new Intent(SetupActivity.this, Settings.class);
                 sharedPreference.setString(SetupActivity.this, "oneTS", "true");
                 startActivity(intent);
+                SetupActivity.this.finish();
                 overridePendingTransition(R.anim.abc_slide_in_top, R.anim.abc_slide_out_bottom);
             }
         });

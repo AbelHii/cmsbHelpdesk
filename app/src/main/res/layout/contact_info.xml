@@ -73,9 +73,8 @@
         android:textSize = "14sp"
         android:textAllCaps="true"
         android:textStyle="bold"
-        android:padding="0dp"
         android:layout_marginTop="10dp"
-        android:background="@drawable/mycolors3"
+        android:background="@drawable/on_btn_click"
         android:layout_below="@+id/tel"/>
 
 </RelativeLayout>

@@ -1,5 +1,6 @@
 package com.mycompany.CMSBHelpdesk;
 
+import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
@@ -19,6 +20,7 @@ import android.widget.Toast;
 
 import com.mycompany.CMSBHelpdesk.helpers.JSONParser;
 import com.mycompany.CMSBHelpdesk.helpers.internetCheck;
+import com.mycompany.CMSBHelpdesk.helpers.sharedPreference;
 
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
@@ -60,7 +62,6 @@ public class AddNewUser extends AddCase{
         initialise();
 
         populateSpinner(mNewCompany, companyList);
-        mNewCompany.setSelection(1);
 
         onClickListener();
     }
@@ -112,6 +113,8 @@ public class AddNewUser extends AddCase{
     }
 
     private void onClickListener(){
+        mcancel.setBackgroundResource(R.drawable.on_btn_click);
+        addUser.setBackgroundResource(R.drawable.on_btn_click);
         mcancel.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -124,15 +127,10 @@ public class AddNewUser extends AddCase{
             public void onClick(View v) {
                 //checks if inputted name already exists
                 //if not carry on:
-                if(!nameExists(mNewName.getText().toString(), usernamesList) && internetCheck.isNetworkConnected(AddNewUser.this)){
+                if(!nameExists(mNewName.getText().toString(), usernamesList) && internetCheck.isNetworkConnected(AddNewUser.this))
+                {
                     new newUserAdd().execute();
-                }/*else {
-                    userControl.insertValue("users", "name", mNewName.getText().toString());
-                    Intent intent = new Intent(getApplicationContext(), AddCase.class);
-                    intent.putExtra("caller", "addCase");
-                    AddNewUser.this.finish();
-                    startActivity(intent);
-                }*/
+                }
             }
         });
     }
@@ -190,12 +188,29 @@ public class AddNewUser extends AddCase{
 
                     userList.check = 0;
 
-                    Intent intent = new Intent(getApplicationContext(), AddCase.class);
-                    intent.putExtra("caller", "addCase");
+                    Intent intent = new Intent(AddNewUser.this, AddCase.class);
+                    Bundle bundle = new Bundle();
+                    bundle.putString(MainActivity.TAG_NAME, mNewName.getText().toString());
+                    intent.putExtras(bundle);
+
+                    //To set the case id for adding case if cases are empty
+                    if(userControl.getTableValues("cases", 0).isEmpty())
+                        sharedPreference.setString(AddNewUser.this, MainActivity.TAG_ID, "0");
+                    else if(userControl.getTableValues("cases", 0) != null) {
+                        if(sharedPreference.getString(AddNewUser.this, MainActivity.TAG_ID).equals("") && internetCheck.isNetworkConnected(AddNewUser.this)) {
+                            MainActivity.caseid = userControl.getMaxId("cases");
+                            sharedPreference.setString(AddNewUser.this, MainActivity.TAG_ID, MainActivity.caseid);
+                        }else if(!internetCheck.isNetworkConnected(AddNewUser.this)){
+                            MainActivity.caseid = sharedPreference.getString(AddNewUser.this, MainActivity.TAG_ID);
+                            sharedPreference.setString(AddNewUser.this, MainActivity.TAG_ID, MainActivity.caseid);
+                        }
+                    }
+                    intent.putExtra("caller", "addcase");
+
                     userControl.openDB();
                     userControl.insertUser(maps);
                     userControl.close();
-                    startActivity(intent);
+                    startActivityForResult(intent, Activity.RESULT_OK, bundle);
                     AddNewUser.this.finish();
                     return json.getString(MainActivity.TAG_MESSAGE);
                 } else {
@@ -212,7 +227,7 @@ public class AddNewUser extends AddCase{
             // dismiss the dialog after getting all products
             pDialog.dismiss();
             if (message != null){
-                Toast.makeText(AddNewUser.this, message, Toast.LENGTH_LONG).show();
+                Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show();
                 userControl.refreshCases("users");
                 userList.check = 0;
             }
