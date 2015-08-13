@@ -7,20 +7,21 @@ import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.util.Log;
 import android.widget.ImageView;
-import android.widget.ProgressBar;
 
 import com.mycompany.CMSBHelpdesk.AddCase;
 import com.mycompany.CMSBHelpdesk.AddPicture;
 import com.mycompany.CMSBHelpdesk.MainActivity;
+import com.mycompany.CMSBHelpdesk.R;
+import com.mycompany.CMSBHelpdesk.userList;
 
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -34,48 +35,7 @@ import java.util.List;
  *
  */
 public class AsyncMethods {
-    private static final String GET_MAX_ID = "http://"+ MainActivity.TAG_IP +"/chd/public/app/getMaxId.php";
-    private static final String DELETE_IMAGE = "http://"+ MainActivity.TAG_IP +"/chd/public/app/deleteImage.php";
-
-
-    /*-----------------------GET THE MAX CASE ID TO AVOID CONFLICTS--------------------------------*/
-    public static class getMaxId extends AsyncTask<String, Void, String>{
-        Context context;
-        public getMaxId(Context context){
-            this.context = context;
-        }
-
-        protected String doInBackground(String... params) {
-            int success = 0;
-
-            //Building Parameters
-            List<NameValuePair> parameters = new ArrayList<NameValuePair>();
-            JSONObject json = new JSONParser().makeHttpRequest(GET_MAX_ID, "POST", parameters);
-
-            try {
-                success = json.getInt("success");
-                if(success == 1) {
-                    int max = json.getInt("max_id");
-                    return String.valueOf(max);
-                }
-
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(String result){
-            if(result != null) {
-                AddCase caseAdd = (AddCase) context;
-                caseAdd.case_id = result;
-                caseAdd.mIDCase.setText(String.valueOf(Integer.parseInt(caseAdd.case_id)+1));
-                super.onPostExecute(result);
-            }
-        }
-    }
-
+    private static final String DELETE_IMAGE = "http://"+ MainActivity.TAG_IP +"/public/app/deleteImage.php";
 
     /*----------------------------LOAD IMAGE FROM URL------------------------------------*/
     public static class DownloadImageTask extends AsyncTask<String, Void, Bitmap> {
@@ -113,14 +73,14 @@ public class AsyncMethods {
                     if(imageOld != null)
                         imageOld.recycle();
 
-                    if(height > 100 || width > 300){
+                    if(height > 150 || width > 350){
                         final int halfHeight = height / 2;
                         final int halfWidth = width / 2;
 
                         // Calculate the largest inSampleSize value that is a power of 2 and keeps both
                         // height and width larger than the requested height and width.
-                        while ((halfHeight / inSampleSize) > 100
-                                && (halfWidth / inSampleSize) > 300) {
+                        while ((halfHeight / inSampleSize) > 150
+                                && (halfWidth / inSampleSize) > 350) {
                             inSampleSize *= 2;
                         }
                     }
@@ -199,14 +159,14 @@ public class AsyncMethods {
             options = new BitmapFactory.Options();
             if(imageOld != null)
                 imageOld.recycle();
-            if (height > 100 || width > 300) {
+            if (height > 150 || width > 350) {
                 final int halfHeight = height / 2;
                 final int halfWidth = width / 2;
 
                 // Calculate the largest inSampleSize value that is a power of 2 and keeps both
                 // height and width larger than the requested height and width.
-                while ((halfHeight / inSampleSize) > 100
-                        && (halfWidth / inSampleSize) > 300) {
+                while ((halfHeight / inSampleSize) > 150
+                        && (halfWidth / inSampleSize) > 350) {
                     inSampleSize *= 2;
                 }
             }
@@ -224,5 +184,121 @@ public class AsyncMethods {
             }
         }
     }
+
+    /*---------IMPORTANT CODE!----------------------------------------------------------------*/
+    //gets Users from MySQL DB
+    public static class getUsers extends AsyncTask<String, String, String> {
+        Context c;
+        JSONParser jsonP;
+        ProgressDialog pDialog;
+        DBController dbc;
+        public getUsers(Context c, JSONParser jsonP, ProgressDialog pDialog, DBController dbc){
+            this.c = c;
+            this.jsonP = jsonP;
+            this.pDialog = pDialog;
+            this.dbc = dbc;
+        }
+
+        //Before starting background thread Show Progress Dialog
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            if(pDialog != null) {
+                pDialog = new ProgressDialog(c, R.style.MyTheme);
+                pDialog.setProgressStyle(android.R.style.Widget_ProgressBar_Small);
+                pDialog.setCancelable(false);
+                pDialog.show();
+            }
+            //MainActivity.this.setProgressBarIndeterminateVisibility(true);
+        }
+
+        @Override
+        protected String doInBackground(String... params) {
+            int success = 0;
+
+            //Building Parameters
+            List<NameValuePair> parameters = new ArrayList<NameValuePair>();
+            try{
+                JSONParser jsonParser1;
+                //get JSON string from URL
+                JSONObject jsonUse = jsonP.makeHttpRequest(MainActivity.USER_URL, "GET", parameters);
+                if(internetCheck.isNetworkConnected(c)) {
+
+                    //check log cat for JSON response
+                    Log.d("Users: ", jsonUse.toString());
+                    //Check for SUCCESS TAG
+                    success = jsonUse.getInt(MainActivity.TAG_SUCCESS);
+                }
+                if(success == 1) {
+                    //users found, get array of users
+                    userList.users = jsonUse.getJSONArray(MainActivity.TAG_USERS);
+                    userList.companies = jsonUse.getJSONArray(MainActivity.TAG_DIVISIONS);
+
+                    //Loop through all the users
+                    for(int i =0; i < userList.users.length(); i++){
+                        JSONObject u = userList.users.getJSONObject(i);
+
+                        String id = u.getString(MainActivity.TAG_USERID);
+                        String name = u.getString(MainActivity.TAG_NAME);
+                        String company = u.getString(MainActivity.TAG_COMPANY);
+                        String email = u.getString(MainActivity.TAG_EMAIL);
+                        String telephone = u.getString(MainActivity.TAG_TELEPHONE);
+                        String division_id = u.getString(MainActivity.TAG_DIVISION_ID);
+
+                        //create a new HashMap
+                        HashMap<String, String> maps = new HashMap<String, String>();
+
+                        maps.put(MainActivity.TAG_USERID, id);
+                        maps.put(MainActivity.TAG_NAME, name);
+                        maps.put(MainActivity.TAG_COMPANY, company);
+                        maps.put(MainActivity.TAG_EMAIL, email);
+                        maps.put(MainActivity.TAG_TELEPHONE, telephone);
+                        maps.put(MainActivity.TAG_DIVISION_ID, division_id);
+
+                        //add this map to SQLite too
+                        dbc.insertUser(maps);
+                    }
+
+                    //Loop through all the companies
+                    for(int j =0; j < userList.companies.length(); j++){
+                        JSONObject u = userList.companies.getJSONObject(j);
+
+                        String id = u.getString(MainActivity.TAG_COMPANY_ID);
+                        String name = u.getString(MainActivity.TAG_COMPANY_NAME);
+                        String enabled = u.getString(MainActivity.TAG_ENABLED);
+
+                        //create a new HashMap
+                        HashMap<String, String> maps = new HashMap<String, String>();
+
+                        maps.put(MainActivity.TAG_COMPANY_ID, id);
+                        maps.put(MainActivity.TAG_COMPANY_NAME, name);
+                        maps.put(MainActivity.TAG_ENABLED, enabled);
+
+                        //add this map to Company SQLite too
+                        if(enabled.equals("1")) {
+                            dbc.insertCompany(maps);
+                        }
+                    }
+
+                    return jsonUse.getString(MainActivity.TAG_MESSAGE);
+                }
+                else {
+                    return jsonUse.getString(MainActivity.TAG_MESSAGE);
+                }
+            }
+            catch(JSONException e){
+                e.printStackTrace();
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(String result){
+            // dismiss the dialog after getting all users
+            if(pDialog != null)
+                pDialog.dismiss();
+        }
+    }
+
 
 }

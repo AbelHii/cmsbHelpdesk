@@ -47,7 +47,7 @@
                 android:layout_below="@+id/divider"
                 android:layout_toEndOf="@+id/usernameLabel"
                 android:hint="@string/enter_username"
-                android:inputType="textPersonName"
+                android:inputType="textPersonName|textCapWords"
                 android:textSize="15sp"
                 android:maxLength="32"
                 android:id="@+id/newName"

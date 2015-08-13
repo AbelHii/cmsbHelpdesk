@@ -38,6 +38,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.mycompany.CMSBHelpdesk.helpers.AsyncMethods;
 import com.mycompany.CMSBHelpdesk.helpers.DBController;
 import com.mycompany.CMSBHelpdesk.helpers.JSONParser;
 import com.mycompany.CMSBHelpdesk.helpers.internetCheck;
@@ -83,10 +84,17 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
     public static String TAG_IP = "";
     private static String CASE_URL = "";
     private static String SYNC_URL = "";
+    public static String ADD_CASE_URL = "";
+    public static String UPDATE_CASE_URL = "";
+    public static String INSERT_IMAGE_URL = "";
+    public static String CHECK_IMAGE_URL = "";
+    public static String USER_URL = "";
+    public static String ADD_NEW_USER_URL = "";
     public static final String TAG_SUCCESS = "success";
     public static final String TAG_MESSAGE = "message";
     public static final String TAG_CASES = "caseslist";
     public static final String TAG_USERS = "userslist";
+    public static final String TAG_DIVISIONS = "divisionList";
 
     //case stuff
     public static final String TAG_USERNAME = "user";
@@ -107,6 +115,11 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
     public static final String TAG_EMAIL = "email";
     public static final String TAG_TELEPHONE = "telephone";
     public static final String TAG_DIVISION_ID = "division_id";
+
+    //Company stuff
+    public static final String TAG_COMPANY_ID = "companyId";
+    public static final String TAG_COMPANY_NAME = "companyName";
+    public static final String TAG_ENABLED = "enabled";
 
     public static String colorAB = "#FEA000";
 
@@ -138,9 +151,9 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
             startActivity(intent);
             this.finish();
         } else {
-            CASE_URL = "http://" + TAG_IP + "/chd/public/app/getCases.php";
+            CASE_URL = "http://" + TAG_IP + "/public/app/getCases.php";
             if(checkLog.equalsIgnoreCase("admin")){
-                CASE_URL = "http://" + TAG_IP + "/chd/public/app/getCasesAdmin.php";
+                CASE_URL = "http://" + TAG_IP + "/public/app/getCasesAdmin.php";
                 setTitle("Welcome Admin");
             }else{
                 //This just sets the title for MainActivity and for people who's names ends with 's'
@@ -162,11 +175,9 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
                     pDialog.dismiss();
                     onListItemClick();
                     refreshAtTop();
-                    //Toast.makeText(this, "1", Toast.LENGTH_SHORT).show();
                     userList.check = controller.checkNumRows("users");
                     if (userList.check == 0) {
-                        //Toast.makeText(this, "1.5", Toast.LENGTH_SHORT).show();
-                        new getUsers().execute();
+                        new AsyncMethods.getUsers(MainActivity.this, jsonParser, pDialog, controller).execute();
                     }
                     sharedPreference.setInt(this, "log", 0);
                 }else {
@@ -179,11 +190,9 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
             } else if (internetCheck.isNetworkConnected(this) && checker > 0) {
                 getSQLiteList();
                 refreshAtTop();
-                //Toast.makeText(this, "2", Toast.LENGTH_SHORT).show();
             } else if (!internetCheck.isNetworkConnected(this)) {
                 swipeLayout.setEnabled(false);
                 getSQLiteList();
-                //Toast.makeText(this, "3", Toast.LENGTH_SHORT).show();
             }
         }
     }
@@ -310,6 +319,14 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
     //SMALL BUT USEFUL METHODS:
     //initialises variables and such:
     private void initialise(){
+        //initialise the urls here because you need to get TAG_IP first:
+        ADD_CASE_URL = "http://"+ MainActivity.TAG_IP +"/public/app/AddCase.php";
+        UPDATE_CASE_URL = "http://"+ MainActivity.TAG_IP +"/public/app/UpdateCase.php";
+        INSERT_IMAGE_URL = "http://"+ MainActivity.TAG_IP +"/public/app/insertImage.php";
+        CHECK_IMAGE_URL = "http://"+ MainActivity.TAG_IP +"/public/app/checkImages.php";
+        USER_URL = "http://"+MainActivity.TAG_IP+"/public/app/getUsers.php";
+        ADD_NEW_USER_URL = "http://"+MainActivity.TAG_IP+"/public/app/addNewUser.php";
+
         ArrayList<Case> emptyC = new ArrayList<>();
         adapter = new CaseListAdapter(MainActivity.this, R.id.list_item, emptyC);
 
@@ -559,11 +576,15 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
                     assigneeID = casemap.get(counter).get(TAG_LOGIN_ID);
                     statusID = casemap.get(counter).get(TAG_STATUS_ID);
                     sync = String.valueOf(syncColumn.get(counter));
+                    JSONObject json;
 
+                    //tempCaseID is for getting the correct id for where the image is stored in SQLite
+                    //Because AddCase is going to change caseID to the max id and the image is stored in the old caseID
+                    String tempCaseID = caseID;
                     nameId = controller.getID("users", "userId", username, TAG_NAME);
 
                     if(sync.equals("10")){
-                        SYNC_URL = AddCase.ADD_CASE_URL;
+                        SYNC_URL = ADD_CASE_URL;
 
                         //Building Parameters
                         parameters.add(new BasicNameValuePair("name", nameId));
@@ -572,12 +593,20 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
                         parameters.add(new BasicNameValuePair("assignee", assigneeID));
                         parameters.add(new BasicNameValuePair("status", statusID));
 
-                        jsonParser.makeHttpRequest(
+                        json = jsonParser.makeHttpRequest(
                                 SYNC_URL, "POST", parameters);
-                        count++;
+                        try {
+                            success = json.getInt(TAG_SUCCESS);
+                            if(success == 1) {
+                                caseID = json.getString("newID");
+                            }
+                            count++;
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
                     }
                     else if(sync.equals("20")){
-                        SYNC_URL = AddCase.UPDATE_CASE_URL;
+                        SYNC_URL = UPDATE_CASE_URL;
 
                         //Building Parameters
                         parameters.add(new BasicNameValuePair("id", caseID));
@@ -594,7 +623,7 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
 
                     //To sync images if images exists:
                     String image = null;
-                    image = controller.getValue("cases", "image", caseID);
+                    image = controller.getValue("cases", "image", tempCaseID);
                     if(image != null){
                         ArrayList<String> paths = AddPicture.getFilePaths(image, "imageArrayAdd");
                         AddCase.uploadImage ui = new AddCase.uploadImage(null, caseID);
@@ -683,97 +712,4 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
         return super.onOptionsItemSelected(item);
     }
 
-    /*---------IMPORTANT CODE!----------------------------------------------------------------*/
-    //gets Users from MySQL DB
-    class getUsers extends AsyncTask<String, String, String> {
-        //Before starting background thread Show Progress Dialog
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            pDialog = new ProgressDialog(MainActivity.this, R.style.MyTheme);
-            pDialog.setProgressStyle(android.R.style.Widget_ProgressBar_Small);
-            pDialog.setCancelable(false);
-            pDialog.show();
-            //MainActivity.this.setProgressBarIndeterminateVisibility(true);
-        }
-
-        @Override
-        protected String doInBackground(String... params) {
-            int success = 0;
-
-            //Building Parameters
-            List<NameValuePair> parameters = new ArrayList<NameValuePair>();
-            try{
-                //get JSON string from URL
-                JSONObject jsonUse = jsonParser.makeHttpRequest(userList.USER_URL, "GET", parameters);
-                if(internetCheck.isNetworkConnected(MainActivity.this)) {
-                    while(jsonUse == null){
-                        try{
-                            Thread.sleep(20);
-                            jsonUse = jsonParser.makeHttpRequest(userList.USER_URL, "GET", parameters);
-                            if(jsonUse == null){
-                                runOnUiThread(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        Toast.makeText(getApplicationContext(),"Error connecting to the Database \n Check your internet connection", Toast.LENGTH_SHORT).show();
-                                        MainActivity.this.finish();
-                                    }
-                                });
-                            }else
-                                break;
-                        }catch(InterruptedException e){}
-                    }
-
-                    //check log cat for JSON response
-                    Log.d("Users: ", jsonUse.toString());
-                    //Check for SUCCESS TAG
-                    success = jsonUse.getInt(MainActivity.TAG_SUCCESS);
-                }
-                if(success == 1) {
-                    //users found, get array of users
-                    userList.users = jsonUse.getJSONArray(MainActivity.TAG_USERS);
-
-                    //Loop through all the users
-                    for(int i =0; i < userList.users.length(); i++){
-                        JSONObject u = userList.users.getJSONObject(i);
-
-                        String id = u.getString(MainActivity.TAG_USERID);
-                        String name = u.getString(MainActivity.TAG_NAME);
-                        String company = u.getString(MainActivity.TAG_COMPANY);
-                        String email = u.getString(MainActivity.TAG_EMAIL);
-                        String telephone = u.getString(MainActivity.TAG_TELEPHONE);
-                        String division_id = u.getString(MainActivity.TAG_DIVISION_ID);
-
-                        //create a new HashMap
-                        HashMap<String, String> maps = new HashMap<String, String>();
-
-                        maps.put(MainActivity.TAG_USERID, id);
-                        maps.put(MainActivity.TAG_NAME, name);
-                        maps.put(MainActivity.TAG_COMPANY, company);
-                        maps.put(MainActivity.TAG_EMAIL, email);
-                        maps.put(MainActivity.TAG_TELEPHONE, telephone);
-                        maps.put(MainActivity.TAG_DIVISION_ID, division_id);
-
-                        //add this map to SQLite too
-                        controller.insertUser(maps);
-                    }
-
-                    return jsonUse.getString(MainActivity.TAG_MESSAGE);
-                }
-                else {
-                    return jsonUse.getString(MainActivity.TAG_MESSAGE);
-                }
-            }
-            catch(JSONException e){
-                e.printStackTrace();
-            }
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(String result){
-            // dismiss the dialog after getting all users
-            pDialog.dismiss();
-        }
-    }
-}
+  }

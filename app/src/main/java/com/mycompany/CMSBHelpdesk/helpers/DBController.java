@@ -28,7 +28,7 @@ public class DBController extends SQLiteOpenHelper{
     //Creates Table
     @Override
     public void onCreate(SQLiteDatabase database) {
-        String cases, users;
+        String cases, users, companies;
 
         //Cases
         cases = "CREATE TABLE cases (id INTEGER PRIMARY KEY AUTOINCREMENT, assignee TEXT, " +
@@ -39,6 +39,10 @@ public class DBController extends SQLiteOpenHelper{
         users = "CREATE TABLE users (userId INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, company TEXT, " +
                 "email TEXT, telephone TEXT, division_id TEXT)";
         database.execSQL(users);
+
+        //Companies
+        companies = "CREATE TABLE companies (companyId INTEGER PRIMARY KEY AUTOINCREMENT, companyName TEXT, enabled TEXT)";
+        database.execSQL(companies);
     }
 
     @Override
@@ -88,7 +92,20 @@ public class DBController extends SQLiteOpenHelper{
         database.insert("users", null, values);
         database.close();
     }
-
+    /**
+     * Inserts Companies into SQLite DB
+     * @param queryValues
+     */
+    public void insertCompany(HashMap<String, String> queryValues){
+        SQLiteDatabase database = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        //user Spinner List
+        values.put(MainActivity.TAG_COMPANY_ID, queryValues.get(MainActivity.TAG_COMPANY_ID));
+        values.put(MainActivity.TAG_COMPANY_NAME, queryValues.get(MainActivity.TAG_COMPANY_NAME));
+        values.put(MainActivity.TAG_ENABLED, queryValues.get(MainActivity.TAG_ENABLED));
+        database.insert("companies", null, values);
+        database.close();
+    }
 
     /**
      * Get list of Cases from SQLite DB as Array List
@@ -326,6 +343,8 @@ public class DBController extends SQLiteOpenHelper{
         if(cursor.moveToFirst())
             id = cursor.getString(0);
 
+
+        database.close();
         return id;
     }
 
@@ -338,13 +357,14 @@ public class DBController extends SQLiteOpenHelper{
         if(cursor.moveToFirst())
             id = cursor.getString(0);
 
+        database.close();
         return id;
     }
 
 
     public void refreshCases(String table){
         SQLiteDatabase database = this.getWritableDatabase();
-        String dropQuery = "", refreshQuery= "";
+        String dropQuery = "", refreshQuery= "", dropQuery2 = "", refreshQuery2 = "";
 
         switch(table){
             case "cases":
@@ -356,6 +376,12 @@ public class DBController extends SQLiteOpenHelper{
                 dropQuery = "DROP TABLE IF EXISTS users";
                 refreshQuery = "CREATE TABLE users (userId INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, company TEXT, " +
                         "email TEXT, telephone TEXT, division_id TEXT)";
+
+                //refresh companies with users:
+                dropQuery2 = "DROP TABLE IF EXISTS companies";
+                refreshQuery2 = "CREATE TABLE companies (companyId INTEGER PRIMARY KEY AUTOINCREMENT, companyName TEXT, enabled TEXT)";
+                database.execSQL(dropQuery2);
+                database.execSQL(refreshQuery2);
                 break;
         }
         database.execSQL(dropQuery);

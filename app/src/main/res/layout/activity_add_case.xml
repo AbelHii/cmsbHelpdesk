@@ -217,20 +217,19 @@
                 android:layout_toEndOf="@+id/bitmapImage"
                 android:layout_below="@+id/actionTakenDivider"
                 android:id="@+id/abc">
-                <TextView
+                <!--<TextView
                     android:layout_width="fill_parent"
                     android:layout_height="match_parent"
                     android:layout_marginStart="5dp"
                     android:padding="5dp"
                     android:layout_weight="1"
-                    android:id="@+id/filePath"/>
+                    android:id="@+id/filePath"/>-->
                 <TextView
                     android:layout_width="fill_parent"
                     android:layout_height="match_parent"
                     android:layout_marginStart="5dp"
                     android:layout_marginEnd="5dp"
                     android:padding="10dp"
-                    android:layout_weight="1"
                     android:id="@+id/numberOfImgs"/>
             </LinearLayout>
         </RelativeLayout>

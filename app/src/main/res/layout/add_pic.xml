@@ -45,6 +45,7 @@
         android:layout_height="match_parent"
         android:layout_below="@+id/buttons"
         android:id="@android:id/list"/>
+
     <ImageView
         android:layout_height="match_parent"
         android:layout_width="match_parent"

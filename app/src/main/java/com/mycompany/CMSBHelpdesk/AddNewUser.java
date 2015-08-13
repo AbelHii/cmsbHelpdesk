@@ -18,6 +18,7 @@ import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import com.mycompany.CMSBHelpdesk.helpers.AsyncMethods;
 import com.mycompany.CMSBHelpdesk.helpers.JSONParser;
 import com.mycompany.CMSBHelpdesk.helpers.internetCheck;
 import com.mycompany.CMSBHelpdesk.helpers.sharedPreference;
@@ -45,12 +46,8 @@ public class AddNewUser extends AddCase{
 
     public static ArrayList<String> usernamesList, companyV;
 
-    Set<String> companyList;
-
     ProgressDialog pDialog;
     JSONParser jsonParser = new JSONParser();
-
-    private static String ADD_NEW_USER_URL = "http://"+MainActivity.TAG_IP+"/chd/public/app/addNewUser.php";//http://abelhii.comli.com/addNewUser.php";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,15 +58,16 @@ public class AddNewUser extends AddCase{
         //getSQLiteUsers();
         initialise();
 
-        populateSpinner(mNewCompany, companyList);
+        populateSpinner(mNewCompany, companyV);
 
         onClickListener();
     }
 
     public void initialise(){
         //converting companyV to Set because it gets rid of duplicates:
-        companyV = userControl.getColumn("users", MainActivity.TAG_COMPANY);
-        companyList = new HashSet<>(companyV);
+        companyV = userControl.getColumn("companies", MainActivity.TAG_COMPANY_NAME);
+        companyV = sortList(companyV);
+        usernamesList = userControl.getColumn("users", MainActivity.TAG_NAME);
 
         mcancel = (Button)findViewById(R.id.cancelBtn);
         addUser = (Button)findViewById(R.id.addNewUser);
@@ -79,24 +77,28 @@ public class AddNewUser extends AddCase{
         mNewTel = (EditText) findViewById(R.id.newTel);
         mNewCompany = (Spinner) findViewById(R.id.newCompany);
     }
-
-    //Sorts list
-    public List<String> sortList(List<String> list){
+    public ArrayList sortList(ArrayList list){
         Collections.sort(list, new Comparator<String>() {
             @Override
-            public int compare(String s, String s2) {
-                return s.compareToIgnoreCase(s2);
+            public int compare(String s1, String s2) {
+                return s1.compareToIgnoreCase(s2);
             }
         });
         return list;
     }
     //Check if a name already exists or if nothing is selected for company
     public boolean nameExists(String name, ArrayList nameList){
-        if(Arrays.asList(nameList).contains(name)) {
-            Toast.makeText(getApplicationContext(),
-                    name + " already exists", Toast.LENGTH_SHORT).show();
-            return true;
-        }else if(name.trim().equalsIgnoreCase("")){
+        for(int i = 0; i <= nameList.size()-1; i++) {
+            if(nameList.get(i).toString().trim().equalsIgnoreCase(name)) {
+                Toast.makeText(getApplicationContext(),
+                        name + " already exists", Toast.LENGTH_SHORT).show();
+                return true;
+            }
+        }
+        return false;
+    }
+    public boolean emptyFields(){
+        if(mNewName.getText().toString().trim().equalsIgnoreCase("")){
             Toast.makeText(getApplicationContext(),
                     "Name: is empty", Toast.LENGTH_SHORT).show();
             return true;
@@ -127,9 +129,13 @@ public class AddNewUser extends AddCase{
             public void onClick(View v) {
                 //checks if inputted name already exists
                 //if not carry on:
-                if(!nameExists(mNewName.getText().toString(), usernamesList) && internetCheck.isNetworkConnected(AddNewUser.this))
+                if(!nameExists(mNewName.getText().toString(), usernamesList) && !emptyFields())
                 {
-                    new newUserAdd().execute();
+                    if(internetCheck.isNetworkConnected(AddNewUser.this)) {
+                        new newUserAdd().execute();
+                    }else{
+                        Toast.makeText(getApplicationContext(), "No Internet Connection", Toast.LENGTH_SHORT).show();
+                    }
                 }
             }
         });
@@ -154,8 +160,7 @@ public class AddNewUser extends AddCase{
             int success = 0;
 
             String name = mNewName.getText().toString();
-            String company = userControl.getID("users", MainActivity.TAG_DIVISION_ID, mNewCompany.getSelectedItem().toString(), MainActivity.TAG_COMPANY);
-            //String.valueOf(mNewCompany.getSelectedItemPosition()+1);
+            String company = userControl.getID("companies", MainActivity.TAG_COMPANY_ID, mNewCompany.getSelectedItem().toString(), MainActivity.TAG_COMPANY_NAME);
             String email = mNewEmail.getText().toString();
             String telephone = mNewTel.getText().toString();
 
@@ -178,7 +183,7 @@ public class AddNewUser extends AddCase{
 
             //make HTTP request
             JSONObject json = jsonParser.makeHttpRequest(
-                    ADD_NEW_USER_URL, "POST", parameters);
+                    MainActivity.ADD_NEW_USER_URL, "POST", parameters);
             try {
                 //Check for SUCCESS TAG
                 success = json.getInt(MainActivity.TAG_SUCCESS);
@@ -229,14 +234,14 @@ public class AddNewUser extends AddCase{
             if (message != null){
                 Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show();
                 userControl.refreshCases("users");
-                userList.check = 0;
+                new AsyncMethods.getUsers(AddNewUser.this, jsonParser, null, userControl).execute();
             }
         }
     }
 
 
     //Populate Spinner
-    private void populateSpinner(Spinner spin, Set<String> spinnerItems) {
+    private void populateSpinner(Spinner spin, ArrayList<String> spinnerItems) {
         ArrayList<String> sValues = new ArrayList<String>(spinnerItems);
         // Creating adapter for spinner
         ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<String>(this,

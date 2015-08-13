@@ -62,11 +62,10 @@ public class userList extends ActionBarActivity implements SwipeRefreshLayout.On
 
     //DB variables:
     DBController controlUser = new DBController(this);
-    private ProgressDialog pDialog;
-    public static final String USER_URL = "http://"+MainActivity.TAG_IP+"/chd/public/app/getUsers.php";
     public static int check = 0;
     JSONParser jsonParser = new JSONParser();
     public static JSONArray users = null;
+    public static JSONArray companies = null;
 
 
     @Override
@@ -372,9 +371,11 @@ public class userList extends ActionBarActivity implements SwipeRefreshLayout.On
                         User dataNames = items.get(i);
                         String name = dataNames.getName();
                         String comp = dataNames.getCompany();
+                        String email = dataNames.getEmail();
                         String tel = dataNames.getTelephone();
 
-                        if (name.toLowerCase().contains(filterString) || comp.toLowerCase().contains(filterString) || tel.toLowerCase().contains(filterString)){
+                        if (name.toLowerCase().contains(filterString) || comp.toLowerCase().contains(filterString)
+                                || email.toLowerCase().contains(filterString) || tel.toLowerCase().contains(filterString)){
                             FilteredArrayNames.add(dataNames);
                         }
                     }
@@ -401,13 +402,15 @@ public class userList extends ActionBarActivity implements SwipeRefreshLayout.On
             //Building Parameters
             List<NameValuePair> parameters = new ArrayList<NameValuePair>();
             try{
+                JSONObject jsonUse = null;
                 //get JSON string from URL
-                JSONObject jsonUse = jsonParser.makeHttpRequest(USER_URL, "GET", parameters);
+                if(!MainActivity.USER_URL.equals(""))
+                jsonUse = jsonParser.makeHttpRequest(MainActivity.USER_URL, "GET", parameters);
                 if(internetCheck.isNetworkConnected(userList.this) == true) {
                     while(jsonUse == null){
                         try{
                             Thread.sleep(20);
-                            jsonUse = jsonParser.makeHttpRequest(USER_URL, "GET", parameters);
+                            jsonUse = jsonParser.makeHttpRequest(MainActivity.USER_URL, "GET", parameters);
                             if(jsonUse == null){
                                 runOnUiThread(new Runnable() {
                                     @Override
@@ -429,6 +432,7 @@ public class userList extends ActionBarActivity implements SwipeRefreshLayout.On
                 if(success == 1) {
                     //users found, get array of users
                     users = jsonUse.getJSONArray(MainActivity.TAG_USERS);
+                    companies = jsonUse.getJSONArray(MainActivity.TAG_DIVISIONS);
 
                     //Loop through all the users
                     for(int i =0; i < users.length(); i++){
@@ -456,6 +460,28 @@ public class userList extends ActionBarActivity implements SwipeRefreshLayout.On
                         //add this map to SQLite too
                         controlUser.insertUser(maps);
                     }
+
+                    //Loop through all the companies
+                    for(int j =0; j < companies.length(); j++){
+                        JSONObject u = companies.getJSONObject(j);
+
+                        String id = u.getString(MainActivity.TAG_COMPANY_ID);
+                        String name = u.getString(MainActivity.TAG_COMPANY_NAME);
+                        String enabled = u.getString(MainActivity.TAG_ENABLED);
+
+                        //create a new HashMap
+                        HashMap<String, String> maps = new HashMap<String, String>();
+
+                        maps.put(MainActivity.TAG_COMPANY_ID, id);
+                        maps.put(MainActivity.TAG_COMPANY_NAME, name);
+                        maps.put(MainActivity.TAG_ENABLED, enabled);
+
+                        //add this map to Company SQLite too
+                        if(enabled.equals("1")) {
+                            controlUser.insertCompany(maps);
+                        }
+                    }
+
 
                     return jsonUse.getString(MainActivity.TAG_MESSAGE);
                 }

@@ -88,7 +88,6 @@ public class AddPicture extends AddCase {
 
         //Retrieve and display the images from the server
         if(imgExists.equalsIgnoreCase("true") && internetCheck.isNetworkConnected(this)){
-            Toast.makeText(AddPicture.this, "ONE", Toast.LENGTH_LONG).show();
             //add the images from the server to the list of images:
             listOfImages.addAll(imageList);
             //clear image list to prevent duplicates:
@@ -131,7 +130,6 @@ public class AddPicture extends AddCase {
                 }
             }
         }else if(listOfImages.size() != 0){
-            Toast.makeText(AddPicture.this, "TWO", Toast.LENGTH_LONG).show();
             //this is for when the app is offline or for the temporary list (user haven't clicked submit yet)
             //Gets the local images from sq lite paths:
             options.inSampleSize = 2;
@@ -150,7 +148,6 @@ public class AddPicture extends AddCase {
             }
             Toast.makeText(getApplicationContext(), listOfImages.size()+" image(s) from sq lite", Toast.LENGTH_SHORT).show();
         }else{//If both don't exist
-            Toast.makeText(AddPicture.this, "THREE", Toast.LENGTH_LONG).show();
             if(pDialog != null)
                 pDialog.dismiss();
             listOfImages = new ArrayList<>();
@@ -413,7 +410,7 @@ public class AddPicture extends AddCase {
                     InputStream is = null;
                     Uri selectedImage = data.getData();
                     //Do this to get the file path
-                    //cursor selects only the file path because images store stuff like geo tag and stuff
+                    //cursor is used to select only to get the file path (because images store other stuff like geo tag and stuff)
                     String[] filePathColumn = {MediaStore.Images.Media.DATA};
                     Cursor cursor = this.getContentResolver().query(selectedImage, filePathColumn, null, null, null);
                     cursor.moveToFirst();
@@ -421,17 +418,26 @@ public class AddPicture extends AddCase {
                     filePath = cursor.getString(columnIndex);
                     cursor.close();
                     //Reduces the size of the image to be contained in the bitmap
-                    options.inSampleSize = 4;
-                    //sets the image to the bitmap
+                    options.inSampleSize = 3;
 
-                    try {
+                    //sets the image to the bitmap
+                    /*try {
+                        //This is getting the image from the input stream,
                         is = this.getContentResolver().openInputStream(selectedImage);
                     } catch (FileNotFoundException e) {
                         e.printStackTrace();
                         Toast.makeText(getApplicationContext(), e+" There was an error loading the image please " +
                                 "press back and try again", Toast.LENGTH_LONG).show();
+                    }*/
+
+                    try {
+                        photo = new AsyncMethods.getSampleSize(filePath, options, null).execute().get();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    } catch (ExecutionException e) {
+                        e.printStackTrace();
                     }
-                    photo = BitmapFactory.decodeStream(is, null, options);
+                    //photo = BitmapFactory.decodeStream(is, null, options);
                     photo = getOrientation(photo, filePath);
                     addImage(photo);
 
@@ -468,26 +474,20 @@ public class AddPicture extends AddCase {
     }
 
     //method for choosing an existing picture from your gallery
+    //I use ACTION_GET_CONTENT and ACTION_PICK to make it more universal as some phones use one or the other.
     private void choosePicture(){
-        //Intent.ACTION_GET_CONTENT
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
         intent.setType("image/*");
         intent.setAction(Intent.ACTION_PICK);
-
-        // Chooser of filesystem options.
-        //final Intent chooserIntent = Intent.createChooser(intent, "Select Source");
         startActivityForResult(intent, REQUEST_IMAGE);
-        //startActivityForResult(Intent.createChooser(intent, "Select Picture"), REQUEST_IMAGE);
-        /*Intent galleryIntent = new Intent(Intent.ACTION_PICK,
-                MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-        startActivityForResult(galleryIntent, REQUEST_IMAGE);*/
     }
 
     //This creates a new file for the image to go in
     private File createImageFile() throws IOException {
-        // Create an image file name
+        // Create an image file name with the timestamp
         String timeStamp = new SimpleDateFormat("dd-MM-yy_HH-mm-ss").format(new Date());
         String imageFileName = "CHD_" + timeStamp + "_";
+        //this is where the new folder will be created:
         final File newDir = new File(Environment.getExternalStorageDirectory() + "/CHDImages/");
         if(newDir.mkdir()){
            Toast.makeText(this, "created new directory /CHDImages/", Toast.LENGTH_SHORT).show();
@@ -503,7 +503,8 @@ public class AddPicture extends AddCase {
         filePath = image.getAbsolutePath();
         return image;
     }
-    //to save the image to the default photo gallery/media providers database (so other apps and androids gallery can view it)
+    //to save the image to the default photo gallery/media providers database
+    //(so other apps and androids gallery can view it)
     private void galleryAddPic() {
         Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
         File f = new File(filePath);
@@ -631,7 +632,6 @@ public class AddPicture extends AddCase {
 
         //Returning the values to AddCase
         Intent returnIntent = new Intent();
-        String [] arr = listOfImages.toArray(new String[listOfImages.size()]);
         returnIntent.putStringArrayListExtra("files", listOfImages);
         returnIntent.putExtra("filePaths", filePaths);
         setResult(Activity.RESULT_OK, returnIntent);

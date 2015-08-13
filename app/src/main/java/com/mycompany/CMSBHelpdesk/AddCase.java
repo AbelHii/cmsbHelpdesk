@@ -13,8 +13,7 @@ import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
-import android.os.AsyncTask;
-import android.os.Bundle;
+import android.os.*;
 import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBarActivity;
 import android.text.method.ScrollingMovementMethod;
@@ -31,7 +30,6 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.Scroller;
 import android.widget.Spinner;
@@ -59,7 +57,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
-
+/**
+ * @author Abel
+ *
+ * Notes:
+ * Anything with "userControl." or "controller" means that i'm accessing the SQLite using the methods in DBController
+ *
+ * and usually anything with new example().execute() means i'm using an AsyncTask and connecting to the server in someway
+ *
+ *
+ **/
 public class AddCase extends ActionBarActivity {
 
     public Button mUser, mCancel, mDelete;
@@ -70,15 +77,14 @@ public class AddCase extends ActionBarActivity {
     private String name, username = "", description, actionT, assigneeID, statusID, sync = "", id_user, path;
     private static String caseID;
     public Button mSubmit;
-    public TextView mIDCase, mFilePath, mNumberOfImgs;
-    public LinearLayout mABC;
+    public TextView mIDCase, mNumberOfImgs;
     private TextView mAssigneeLabel, mContactName, mCompany, mEmail, mTel, mActionTaken, mDesc, mActionTakenLabel, mDescLabel, mStatusDivider;
+    //sp is shared preference, e is editor
     private SharedPreferences sp;
     private SharedPreferences.Editor e;
 
-    private ArrayList<Bitmap> bitmapList = new ArrayList<>();
-
     //To check whether its in addcase or editcase
+    //fps stands for file path selected
     static String caller, fps;
     static String title = "Add Case";
 
@@ -86,6 +92,7 @@ public class AddCase extends ActionBarActivity {
     String oldDesc, oldAT;
     static Boolean hook = false;
 
+    //number of images in that case
     int noi;
 
     // DB Class to perform DB related operations
@@ -100,10 +107,6 @@ public class AddCase extends ActionBarActivity {
 
 
     public static ProgressDialog pDialog;
-    public static String ADD_CASE_URL = "http://"+ MainActivity.TAG_IP +"/chd/public/app/AddCase.php";
-    public static String UPDATE_CASE_URL = "http://"+ MainActivity.TAG_IP +"/chd/public/app/UpdateCase.php";
-    public static String INSERT_IMAGE_URL = "http://"+ MainActivity.TAG_IP +"/chd/public/app/insertImage.php";
-    public static final String CHECK_IMAGE_URL = "http://"+ MainActivity.TAG_IP +"/chd/public/app/checkImages.php";
     public static String imgExists;
     /*---------------------------------------------ON CREATE-----------------------------------------------------------------*/
     @Override
@@ -136,14 +139,12 @@ public class AddCase extends ActionBarActivity {
                     title = "Add Case";
                     setTitle(title);
                     //getting the most recent case case_id and assignee case_id
-                    if(internetCheck.isNetworkConnected(this)) {
-                        new AsyncMethods.getMaxId(this).execute();
+                    case_id = userControl.getMaxId("cases");
+                    if(case_id == null)
+                        case_id = "0";
+                    if(sharedPreference.getString(AddCase.this, MainActivity.TAG_ID) == null)
                         sharedPreference.setString(AddCase.this, MainActivity.TAG_ID, case_id);
-                    }else{
-                        case_id = userControl.getMaxId("cases");
-                        if(sharedPreference.getString(AddCase.this, MainActivity.TAG_ID) == null)
-                            sharedPreference.setString(AddCase.this, MainActivity.TAG_ID, case_id);
-                    }
+
                     mIDCase.setText(String.valueOf(Integer.parseInt(case_id) + 1));
                     checkLabel();
                     retrieveUserList(getIntent());
@@ -155,6 +156,7 @@ public class AddCase extends ActionBarActivity {
         addListenerOnButton();
     }
 
+    //checks the label of action taken and case description if its empty or not
     public void checkLabel(){
         if (mDesc.getText().toString().trim().equals("")) {
             mDescLabel.setVisibility(View.GONE);
@@ -177,8 +179,8 @@ public class AddCase extends ActionBarActivity {
     private void initialise(){
         MainActivity.checkLog = sharedPreference.getString(this, "login");
         MainActivity.TAG_IP = sharedPreference.getString(this, "ip");
-        ADD_CASE_URL = "http://"+ MainActivity.TAG_IP +"/chd/public/app/AddCase.php";
-        UPDATE_CASE_URL = "http://"+ MainActivity.TAG_IP +"/chd/public/app/UpdateCase.php";
+        MainActivity.ADD_CASE_URL = "http://"+ MainActivity.TAG_IP +"/public/app/AddCase.php";
+        MainActivity.UPDATE_CASE_URL = "http://"+ MainActivity.TAG_IP +"/public/app/UpdateCase.php";
 
         //SharedPreference initialisation to save things:
         sp = PreferenceManager.getDefaultSharedPreferences(this);
@@ -187,6 +189,7 @@ public class AddCase extends ActionBarActivity {
         mUser = (Button) findViewById(R.id.spinnerNames);
         mInfo = (ImageButton) findViewById(R.id.moreInfo);
         mStatus = (Spinner) findViewById(R.id.spinnerStatus);
+        //this status is to get the array status (ctrl and click 'R.array.status' to view it)
         ArrayList<String> status = new ArrayList<>();
         String[] s = this.getResources().getStringArray(R.array.status);
         for(int i = 0; i < s.length; i++)
@@ -207,9 +210,7 @@ public class AddCase extends ActionBarActivity {
         mActionTakenLabel = (TextView) findViewById (R.id.actionTakenLabel);
 
         mBitmapImage = (ImageView)findViewById(R.id.bitmapImage);
-        mFilePath = (TextView) findViewById(R.id.filePath);
         mNumberOfImgs = (TextView) findViewById(R.id.numberOfImgs);
-        mABC = (LinearLayout) findViewById(R.id.abc);
 
         case_id = sharedPreference.getString(AddCase.this, MainActivity.TAG_ID);
         assigneeID = sharedPreference.getString(AddCase.this, MainActivity.TAG_LOGIN_ID);
@@ -221,6 +222,7 @@ public class AddCase extends ActionBarActivity {
         oldAT = mActionTaken.getText().toString();
     }
 
+    //this is to clear the arrays and lists created to make sure that there aren't any duplicates
     public void backPressed(){
         e.remove("imgExists").commit();
         //remove the image from json and array;
@@ -297,6 +299,7 @@ public class AddCase extends ActionBarActivity {
             }
             TextView mSpin = (TextView) v.findViewById(R.id.spinner_item);
             chooseStatColour(itemList.get(position), mSpin);
+            //this is for the alternating colours in status dropdown
             if(position % 2 == 0){
                 v.setBackgroundResource(R.drawable.mycolors);
             }else {
@@ -378,6 +381,7 @@ public class AddCase extends ActionBarActivity {
                 startActivityForResult(intent, 2);
             }
         });
+        //this is to allow users to scroll through the text view
         mDesc.setScroller(new Scroller(this));
         mDesc.setVerticalScrollBarEnabled(true);
         mDesc.setMovementMethod(new ScrollingMovementMethod());
@@ -415,14 +419,11 @@ public class AddCase extends ActionBarActivity {
                 popupWindow.setBackgroundDrawable(new BitmapDrawable());
                 popupWindow.setOutsideTouchable(true);
                 popupWindow.showAtLocation(popupView, Gravity.CENTER, 0, -300);
-                //popupWindow.showAsDropDown(mInfo, 50, -100);
             }
             }
         });
 
         mBitmapImage.setBackgroundResource(R.drawable.on_btn_click3);
-        mABC.setBackgroundResource(R.drawable.on_btn_click3);
-        mFilePath.setBackgroundResource(R.drawable.on_btn_click3);
         mNumberOfImgs.setBackgroundResource(R.drawable.on_btn_click3);
         mBitmapImage.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -457,27 +458,12 @@ public class AddCase extends ActionBarActivity {
                 popupWindow.showAtLocation(popupView, Gravity.CENTER, 0, 0);
             }
         });
-        mABC.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                addPic();
-            }
-        });
-        mFilePath.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                addPic();
-            }
-        });
         mNumberOfImgs.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 addPic();
             }
         });
-        mFilePath.setScroller(new Scroller(this));
-        mFilePath.setVerticalScrollBarEnabled(true);
-        mFilePath.setMovementMethod(new ScrollingMovementMethod());
 
         //Submit button
         mSubmit = (Button) findViewById(R.id.submitBtn);
@@ -505,10 +491,11 @@ public class AddCase extends ActionBarActivity {
                             if(AddPicture.listOfImages.size() != 0){
                                 Toast.makeText(getApplicationContext(), String.valueOf(Integer.parseInt(case_id)+1), Toast.LENGTH_LONG).show();
                                 temporaryList = AddPicture.tempList;
-                                new uploadImage(AddCase.this, case_id).execute(temporaryList);
+                                new uploadImage(AddCase.this, String.valueOf(Integer.parseInt(case_id)+1)).execute(temporaryList);
                             }
                         } else if (!internetCheck.connectionCheck(context)) {
                             Intent intent = new Intent(context, MainActivity.class);
+                            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                             addCaseSQLite("10", "connection failed");
                             Toast.makeText(getApplicationContext(), "Adding Case For Sync ", Toast.LENGTH_LONG).show();
                             startActivity(intent);
@@ -517,6 +504,7 @@ public class AddCase extends ActionBarActivity {
                         //Logic for editing case:
                     } else if (title.trim().equalsIgnoreCase("edit Case")) { //EDIT
                         Intent intent = new Intent(context, MainActivity.class);
+                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                         if (internetCheck.isNetworkConnected(context)) {
                             new updateCase().execute();
                             if(AddPicture.listOfImages.size() != 0){
@@ -554,22 +542,22 @@ public class AddCase extends ActionBarActivity {
     }
 
     /*----------------------------------SQLITE EDITS-------------------------------*/
+    //number 10 for addCase and 20 for updateCase
     //Adds Case to SQLite:
     public void addCaseSQLite(String num, String cc){
+        //if network isn't connected then set a number for sync
         if(!internetCheck.isNetworkConnected(this) || cc != null){
             sync = num;
         }
-        if(!internetCheck.isNetworkConnected(this) && (case_id.equals("0") || case_id.equals("1"))) {
-            case_id = userControl.getMaxId("cases");
-        }
-        String identification = String.valueOf(Integer.parseInt(case_id)+1);
+
+        //checks to see if tempList is empty, if it is then leave the image column for this case in SQLite as null
         if(internetCheck.isNetworkConnected(this) && AddPicture.tempList.size() == 0){
             AddPicture.filePathsAdd = null;
         }else if(AddPicture.tempList.size() == 0 && userControl.getValue("cases","image", case_id) == null){
             AddPicture.filePathsAdd = null;
         }
 
-        userControl.insertOneCase(identification,
+        userControl.insertOneCase(case_id,
                 mStatus.getSelectedItem().toString(),
                 mUser.getText().toString(),
                 mDesc.getText().toString(),
@@ -603,6 +591,7 @@ public class AddCase extends ActionBarActivity {
 
 
  /*-----------------------RETRIEVE VALUES FROM MAINACTIVITY AND SET THEM IN ADDCASE------------------*/
+    //set text for the popview when user info is clicked
     public void setTexts(View popupView){
         mContactName = (TextView) popupView.findViewById(R.id.contactName);
         mCompany = (TextView) popupView.findViewById(R.id.company);
@@ -631,7 +620,7 @@ public class AddCase extends ActionBarActivity {
         assigneeID = bund.getString(MainActivity.TAG_LOGIN_ID);
         sync = bund.getString(MainActivity.TAG_SYNC);
 
-        //This just sets the static values according to the user
+        //This just sets the static values according to the case
         //SET TEXT
         mUser.setText(username);
         mUser.setTextAppearance(this, R.style.bigFont);
@@ -658,7 +647,6 @@ public class AddCase extends ActionBarActivity {
             }catch(Exception ex){
                 Toast.makeText(getApplicationContext(), ex+" There was an error loading the image", Toast.LENGTH_SHORT).show();
             }
-            mFilePath.setText(filepath);
             mNumberOfImgs.setTextAppearance(this, R.style.mTurquoise);
             if(files.size() > 1 || files.size() == 0)
                 mNumberOfImgs.setText(files.size() + " images exist in this case");
@@ -744,11 +732,8 @@ public class AddCase extends ActionBarActivity {
         intent.putExtra("call", caller);
         intent.putExtra("filez", fps);
         //attempt to save case_id
-        if(title.trim().equalsIgnoreCase("addcase")){
-            sharedPreference.setString(AddCase.this, MainActivity.TAG_ID, String.valueOf(Integer.parseInt(case_id)+1));
-        }else{
-            sharedPreference.setString(AddCase.this, MainActivity.TAG_ID, case_id);
-        }
+        sharedPreference.setString(AddCase.this, MainActivity.TAG_ID, case_id);
+
 
         imgExists = sharedPreference.getString(this, "imgExists");
         if(imgExists.equals("true")){
@@ -810,7 +795,7 @@ public class AddCase extends ActionBarActivity {
                     fps = data.getStringExtra("filePaths");
                     if(files.size() != 0) {
                         String filepath = files.get(0);
-                        if(mBitmapImage.getDrawable() == null || mFilePath.getText().equals("")) {
+                        if(mBitmapImage.getDrawable() == null) {
                             AddPicture.options.inSampleSize = 7;
                             try {
                                 Bitmap img = BitmapFactory.decodeFile(filepath, AddPicture.options);
@@ -818,7 +803,6 @@ public class AddCase extends ActionBarActivity {
                             } catch (Exception ex) {
                                 Toast.makeText(getApplicationContext(), ex + " There was an error loading the image", Toast.LENGTH_SHORT).show();
                             }
-                            mFilePath.setText(filepath);
                         }
                         mNumberOfImgs.setTextAppearance(this, R.style.mTurquoise);
                         if(noi != 0) {
@@ -878,7 +862,7 @@ public class AddCase extends ActionBarActivity {
             Log.d("request!", "starting");
 
             JSONObject json = jsonParser.makeHttpRequest(
-                    ADD_CASE_URL, "POST", parameters);
+                    MainActivity.ADD_CASE_URL, "POST", parameters);
 
             try {
 
@@ -888,10 +872,13 @@ public class AddCase extends ActionBarActivity {
                 //Check for SUCCESS TAG
                 success = json.getInt(MainActivity.TAG_SUCCESS);
                 if (success == 1) {
+                    case_id = json.getString("newID");
+
                     //check log cat for JSON response
                     Log.d("Successfully Added Case: ", json.toString());
 
                     Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                     AddPicture.listOfImages = new ArrayList<>();
                     AddPicture.tempList = new ArrayList<String>();
                     addCaseSQLite("10", null);
@@ -958,7 +945,7 @@ public class AddCase extends ActionBarActivity {
             Log.d("REQUEST!", "starting");
 
             JSONObject json = jsonParser.makeHttpRequest(
-                    UPDATE_CASE_URL, "POST", parameters);
+                    MainActivity.UPDATE_CASE_URL, "POST", parameters);
 
             try {
                 //check log cat for JSON response
@@ -971,6 +958,7 @@ public class AddCase extends ActionBarActivity {
                     Log.d("Successfully Updated Case: ", json.toString());
 
                     Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                     AddPicture.listOfImages = new ArrayList<>();
                     AddPicture.tempList = new ArrayList<String>();
                     updateCaseSQLite("20");
@@ -1006,10 +994,10 @@ public class AddCase extends ActionBarActivity {
 
     /*------------------------CODE TO UPLOAD IMAGES TO PHP SERVER------------------------------------*/
     //uploadImages from stunningco.de and stackoverflow
-    static class uploadImage extends AsyncTask<ArrayList<String>, Void, Integer>{
+    static class uploadImage extends AsyncTask<ArrayList<String>, Void, Integer> implements Runnable{
         HttpURLConnection connection = null;
         DataOutputStream outputStream = null;
-        String urlServer = INSERT_IMAGE_URL;
+        String urlServer = MainActivity.INSERT_IMAGE_URL;
         String lineEnd = "\r\n";
         String twoHyphens = "--";
         String boundary =  "*****";
@@ -1020,11 +1008,19 @@ public class AddCase extends ActionBarActivity {
         int serverResponseCode;
         String serverResponseMessage;
 
+
         Context context;
         String id_case;
         public uploadImage(Context context, String id_case){
             this.context = context;
             this.id_case = id_case;
+        }
+
+        //To make it run in the background thread:
+        @Override
+        public void run() {
+            android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
+            doInBackground();
         }
 
         @Override
@@ -1063,18 +1059,14 @@ public class AddCase extends ActionBarActivity {
 
                     outputStream = new DataOutputStream(connection.getOutputStream());
                     //text to create a folder for the image(s)
-                    outputStream.writeBytes("--" + boundary+lineEnd);
+                    outputStream.writeBytes(twoHyphens+boundary+lineEnd);
                     outputStream.writeBytes("Content-Disposition: form-data; name=\"id\"" + lineEnd);
                     outputStream.writeBytes("Content-Type: text/plain; charset=UTF-8" + lineEnd);
                     outputStream.writeBytes(lineEnd);
-                    if(title.equalsIgnoreCase("add case")) {
-                        outputStream.writeBytes(String.valueOf(Integer.parseInt(id_case) + 1) + lineEnd);
-                    }else if(title.equalsIgnoreCase("edit case")){
-                        outputStream.writeBytes(id_case + lineEnd);
-                    }
+                    outputStream.writeBytes(id_case + lineEnd);
                     //image
                     outputStream.writeBytes(twoHyphens + boundary + lineEnd);
-                    outputStream.writeBytes("Content-Disposition: form-data; name=\"uploadedfile\";filename=\"" + pathsToOurFile.get(i) + "\"" + lineEnd);
+                    outputStream.writeBytes("Content-Disposition: form-data; name=\"uploadedfile\"; filename=\"" + pathsToOurFile.get(i) + "\"" + lineEnd);
                     outputStream.writeBytes(lineEnd);
 
 
@@ -1122,11 +1114,18 @@ public class AddCase extends ActionBarActivity {
     }
 
     /*-----------------------CHECK IF IMAGES EXIST------------------------------------------------*/
-    class checkImages extends AsyncTask<String, Void, ArrayList<String>>{
+    class checkImages extends AsyncTask<String, Void, ArrayList<String>> implements Runnable{
         ArrayList<String> arrList;
         Context context;
         public checkImages(Context context){
             this.context = context;
+        }
+
+        //To make it run in the background thread:
+        @Override
+        public void run() {
+            android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
+            doInBackground();
         }
 
         @Override
@@ -1137,9 +1136,11 @@ public class AddCase extends ActionBarActivity {
             parameters.add(new BasicNameValuePair("id", case_id));
 
             Log.d("REQUEST!", "checking if images exists");
-
-            JSONObject json = jsonParser.makeHttpRequest(
-                    CHECK_IMAGE_URL, "POST", parameters);
+            JSONObject json = null;
+            if(!MainActivity.CHECK_IMAGE_URL.equals("")){
+                json = jsonParser.makeHttpRequest(
+                        MainActivity.CHECK_IMAGE_URL, "POST", parameters);
+            }
             if(json != null) {
                 try {
                     success = json.getInt(MainActivity.TAG_SUCCESS);
@@ -1164,9 +1165,9 @@ public class AddCase extends ActionBarActivity {
                     public void run() {
                         new AlertDialog.Builder(AddCase.this)
                                 .setIcon(R.drawable.nowifi)
-                                .setTitle("Something went wrong with the connection")
-                                .setMessage("Please check your internet connection to retrieve images\n" +
-                                        "Or turn off the wifi to use in offline mode")
+                                .setTitle("Something went wrong while retrieving the images")
+                                .setMessage("Please check your internet connection \n" +
+                                        "Or turn off the wifi to use in offline mode to retrieve images")
                                 .setCancelable(false)
                                 .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                                     @Override
@@ -1190,7 +1191,6 @@ public class AddCase extends ActionBarActivity {
                 path = fixStringPath(result.get(0), AddCase.this);
                 new AsyncMethods.DownloadImageTask(mBitmapImage, null)
                         .execute(path);
-                mFilePath.setText(path);
                 mNumberOfImgs.setTextAppearance(AddCase.this, R.style.mTurquoise);
                 if (result.size() > 1 || result.size() == 0)
                     mNumberOfImgs.setText(result.size() + " images exist in this case");
@@ -1223,7 +1223,7 @@ public class AddCase extends ActionBarActivity {
     //Fixes the path to make it a valid URL,
     // so it gets rid of ". , [ ] + ^" and replaces "../../" with the correct url
     public static String fixStringPath(String path, Context c){
-        path = path.replaceAll("[+^,\\\\\"\\]\\[]", "").replace("../../", "http://"+ MainActivity.TAG_IP +"/chd/");
+        path = path.replaceAll("[+^,\\\\\"\\]\\[]", "").replace("../../", "http://"+ MainActivity.TAG_IP +"/");
         return path;
     }
 
