@@ -46,6 +46,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+/**
+ * @author Abel Hii 2015
+ *
+ * Note: this works a bit like the MainActivity except it displays the list of users and has a search functionality
+ *       to search through the list of users
+ */
 
 public class userList extends ActionBarActivity implements SwipeRefreshLayout.OnRefreshListener {
 
@@ -95,7 +101,7 @@ public class userList extends ActionBarActivity implements SwipeRefreshLayout.On
             } else {
                 //Retrieve previously saved data
                 Toast.makeText(userList.this, "User List Empty and No Internet Connection!" +
-                                " \n Please Connect to the internet and refresh the app",
+                                " \n Please Connect to the internet and refresh the list",
                         Toast.LENGTH_LONG).show();
             }
         } else if (internetCheck.isNetworkConnected(userList.this) && check > 0) {
@@ -129,7 +135,7 @@ public class userList extends ActionBarActivity implements SwipeRefreshLayout.On
     }
 
     /*----------------------------------------REFRESH USERS------------------------------------------------------------------*/
-    //Functionality for swipe to refresh
+    //Functionality for swipe to refresh (works the same as in MainActivity)
     @Override
     public void onRefresh() {
         new Handler().postDelayed(new Runnable() {
@@ -139,6 +145,7 @@ public class userList extends ActionBarActivity implements SwipeRefreshLayout.On
                 inputSearch.setText("");
                 controlUser.refreshCases("users");
                 refreshList();
+                //get new table
                 new getUsers().execute();
                 getSQLiteUsers();
 
@@ -288,8 +295,8 @@ public class userList extends ActionBarActivity implements SwipeRefreshLayout.On
     }
 
     /*-------------------------IMPORTANT CODE!---------------------------------------------------------------------------*/
-    // THIS IS THE USERLIST ADAPTER FOR THE LISTVIEW
-    // IT DOES THE FILTERING FOR THE SEARCH BAR AS WELL AS STLYE THE LISTVIEW
+    // THIS IS THE USER LIST ADAPTER FOR THE LIST VIEW
+    // IT DOES THE FILTERING FOR THE SEARCH BAR AS WELL AS STYLE THE LIST VIEW
     private class UserListAdapter extends ArrayAdapter<User> implements Filterable {
         private Filter filter;
         private ArrayList<User> items = new ArrayList<>();
@@ -367,7 +374,7 @@ public class userList extends ActionBarActivity implements SwipeRefreshLayout.On
                     // perform your search here using the searchConstraint String.
                     for (int i = 0; i < items.size(); i++) {
 
-                        //Allow users to search data:
+                        //Allow users to search specific data:
                         User dataNames = items.get(i);
                         String name = dataNames.getName();
                         String comp = dataNames.getCompany();

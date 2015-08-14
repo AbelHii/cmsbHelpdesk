@@ -13,6 +13,19 @@ package com.mycompany.CMSBHelpdesk;
  *       you can get the return value directly from the execute (if its small) by doing something like:
  *       AsyncMethod.example().execute().get();
  *
+ *       AsyncTask is mainly used for when the app needs to connect to the internet
+ *
+ *       the tags (TAG_IP etc..) have the same name as the columns in the SQLite as well as the
+ *       PHP i'm passing through JSON from the server, to make it easier to navigate
+ *       and use throughout the application without having to worry about them being constant
+ *       which is why you'll see alot of things like: "casemap.get(counter).get(TAG_STATUS_ID);"
+ *       [counter is the position and the tag is the column you want to get at that position]
+ *       **N.B. TAGS don't change they're final
+ *
+ *       Anything with "userControl." or "controller" means that i'm accessing the SQLite using the methods in DBController
+ *
+ *       to view a method or variable's initialisation you can hold ctrl and click on the method/variable that interests you
+ *
  */
 
 import android.app.ProgressDialog;
@@ -80,7 +93,7 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
     // cases JSONArray
     JSONArray cases = null;
 
-    private ProgressDialog pDialog;
+    private ProgressDialog pDialog; //this is like the spinner and popups to indicate that somethins is loading
     public static String TAG_IP = "";
     private static String CASE_URL = "";
     private static String SYNC_URL = "";
@@ -96,7 +109,7 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
     public static final String TAG_USERS = "userslist";
     public static final String TAG_DIVISIONS = "divisionList";
 
-    //case stuff
+    //case tags
     public static final String TAG_USERNAME = "user";
     public static final String TAG_DESCRIPTION = "description";
     public static final String TAG_ACTION_TAKEN = "actiontaken";
@@ -108,7 +121,7 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
     public static final String TAG_SYNC = "sync";
     public static final String TAG_IMAGE = "image";
 
-    //user stuff
+    //user tags
     public static final String TAG_USERID = "userId";
     public static final String TAG_NAME = "name";
     public static final String TAG_COMPANY = "company";
@@ -116,7 +129,7 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
     public static final String TAG_TELEPHONE = "telephone";
     public static final String TAG_DIVISION_ID = "division_id";
 
-    //Company stuff
+    //Company tags
     public static final String TAG_COMPANY_ID = "companyId";
     public static final String TAG_COMPANY_NAME = "companyName";
     public static final String TAG_ENABLED = "enabled";
@@ -138,10 +151,10 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
 
 
         //check if user was logged in before:
-        //if not go to login page, else continue.
+        //if not go to login/settings page, else continue.
         String checkPass = sharedPreference.getString(this, "pass");
         String oneTimeSetup = sharedPreference.getString(this, "oneTS");
-        if (oneTimeSetup.equals("")) {
+        if (oneTimeSetup.equals("")) { //check if user has seen the splash page yet or not
             Intent intentOneTime = new Intent(MainActivity.this, SetupActivity.class);
             startActivity(intentOneTime);
             this.finish();
@@ -156,7 +169,7 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
                 CASE_URL = "http://" + TAG_IP + "/public/app/getCasesAdmin.php";
                 setTitle("Welcome Admin");
             }else{
-                //This just sets the title for MainActivity and for people who's names ends with 's'
+                //This just sets the title (in the actionbar) for MainActivity and for people who's names ends with 's'
                 if (checkLog.substring(checkLog.length() - 1).equals("s")) {
                     ending = "' Cases";
                 }
@@ -165,14 +178,14 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
             initialise();
             getListView();
 
-            //this is how it chooses which list to load
+            //this is how it chooses which and who's list to load
             Settings.newLogin = sharedPreference.getInt(MainActivity.this, "log");
             checker = controller.checkNumRows("cases");
             if (checker == 0 || checker < 0 || Settings.newLogin == 100) {
                 //check if connected to internet or not
                 if (internetCheck.connectionCheck(MainActivity.this)) {
                     new getCases().execute();
-                    pDialog.dismiss();
+                    pDialog.dismiss(); //needs to make sure that the pDialog from getCases is dismissed or an error will occur
                     onListItemClick();
                     refreshAtTop();
                     userList.check = controller.checkNumRows("users");
@@ -181,7 +194,7 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
                     }
                     sharedPreference.setInt(this, "log", 0);
                 }else {
-                    swipeLayout.setEnabled(false);
+                    swipeLayout.setEnabled(false); //to prevent the user from refreshing the list when offline
                     Toast.makeText(this, "No Internet Connection!" +
                                     "\nPlease Connect to the internet and restart the app",
                             Toast.LENGTH_LONG).show();
@@ -230,8 +243,8 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
                 casemap = controller.getAllCases();
                 syncColumn = returnColumn(casemap);
                 if(internetCheck.isNetworkConnected(MainActivity.this) && (syncColumn.contains("10") || syncColumn.contains("20"))) {
+                    //this is to prevent users from deleting their syncs accidentally:
                     Toast.makeText(getApplicationContext(), "There are cases that need to be synced", Toast.LENGTH_LONG).show();
-
                     swipeLayout.setRefreshing(false);
                 }else {
                     //Drop old table:
@@ -248,7 +261,7 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
             }
         }, 4500);
     }
-    //Swipe to reload only when you're at the top of the list functionality:
+    //Swipe to reload only when you're at the top of the list:
     public void refreshAtTop() {
         mCasesLV.setOnScrollListener(new AbsListView.OnScrollListener() {
             @Override
@@ -265,7 +278,8 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
         });
     }
 
-    //This is to make sure that the list updates properly instead of stacking ontop of the old one
+    //This is to make sure that the list updates properly instead of stacking on top of the old one
+    //by clearing the old list
     public void refreshList(){
         if(adapter!=null && casesList!=null) {
             casesList.clear();
@@ -319,7 +333,7 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
     //SMALL BUT USEFUL METHODS:
     //initialises variables and such:
     private void initialise(){
-        //initialise the urls here because you need to get TAG_IP first:
+        //initialise the urls here because you need to get TAG_IP server address from settings Activity first:
         ADD_CASE_URL = "http://"+ MainActivity.TAG_IP +"/public/app/AddCase.php";
         UPDATE_CASE_URL = "http://"+ MainActivity.TAG_IP +"/public/app/UpdateCase.php";
         INSERT_IMAGE_URL = "http://"+ MainActivity.TAG_IP +"/public/app/insertImage.php";
@@ -332,6 +346,7 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
 
         casesList = new ArrayList<HashMap<String, String>>();
 
+        //this is to initialise the spinner and choose its colours when you swipe down to load:
         swipeLayout = (SwipeRefreshLayout) findViewById(R.id.swipe_container);
         swipeLayout.setOnRefreshListener(this);
         swipeLayout.setColorScheme(android.R.color.holo_orange_light,
@@ -349,7 +364,7 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
 
 
     /*-------------------------------------ADAPTER FOR LISTVIEW--------------------------------------------------------------*/
-    //CASE LIST ADAPTER
+    //CASE LIST ADAPTER for creating the list with more personalised options such as alternating row colours
     private class CaseListAdapter extends ArrayAdapter<Case>{
         private Context context;
         private ArrayList<Case> items;
@@ -404,7 +419,7 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
                 if(mSync != null){mSync.setText(c.getSync());}
             }
 
-
+            //alternate row colours
             if(position % 2 == 0){
                 view.setBackgroundResource(R.drawable.mycolors);
             }else {
@@ -414,6 +429,7 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
         }
     }
 
+    //gets the current list view or if null initialises it
     public ListView getListView() {
         if(mCasesLV == null){
             mCasesLV = (ListView)findViewById(android.R.id.list);
@@ -421,6 +437,7 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
         }
         return mCasesLV;
     }
+    //sets the listadapter to the current listview
     public void setListAdapter(CaseListAdapter listAdapter) {
         getListView().setAdapter(listAdapter);
         listAdapter.notifyDataSetChanged();
@@ -429,6 +446,7 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
 
 
     //--------------IMPORTANT CODE!-----------------------------------------------------------------------------
+    //gets the list of cases:
     //To retrieve JSON and connect to MYSQL database
     class getCases extends AsyncTask<String, String, String> {
         //Before starting background thread Show Progress Dialog
@@ -452,11 +470,13 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
             try{
                 //get JSON string from URL
                 JSONObject json = jsonParser.makeHttpRequest(CASE_URL, "GET", parameters);
+                //this is to give it time to make the request and get the list of cases if the internet is slow:
                 while(json == null && internetCheck.connectionCheck(MainActivity.this)){
                     try{
                         Thread.sleep(20);
                         json = jsonParser.makeHttpRequest(CASE_URL, "GET", parameters);
                         if(json == null){
+                            //has to run on the ui thread because you cant toast in the background thread:
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
@@ -496,6 +516,8 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
                         HashMap<String, String> map = new HashMap<String, String>();
 
                         //add each child node to HashMap Key => value
+                        //Key are the tags and the tags have the same name as the columns in the SQLite as well as the
+                        //PHP i'm passing through JSON from the server
                         map.put(TAG_ID, id);
                         map.put(TAG_USERNAME, user);
                         map.put(TAG_DESCRIPTION, desc);
@@ -556,7 +578,8 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
     }
 
     /*-------------------------------------#SYNC--------------------------------------------*/
-
+    //Functionality for syncing the cases:
+    //note: "10" is for add case and "20" is for update case
     int count = 0;
     public static int counter;
     class syncDB extends AsyncTask<String,String,String>{
@@ -586,7 +609,7 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
                     if(sync.equals("10")){
                         SYNC_URL = ADD_CASE_URL;
 
-                        //Building Parameters
+                        //Building Parameters to send to the server
                         parameters.add(new BasicNameValuePair("name", nameId));
                         parameters.add(new BasicNameValuePair("description", mDescription));
                         parameters.add(new BasicNameValuePair("actiontaken", actionT));
@@ -598,9 +621,11 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
                         try {
                             success = json.getInt(TAG_SUCCESS);
                             if(success == 1) {
+                                //this is getting the new case's id straight from the server
+                                //in order to create the images folder accurately
                                 caseID = json.getString("newID");
                             }
-                            count++;
+                            count++; //this count is just for the Toast in onPostExecute()
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
@@ -608,7 +633,7 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
                     else if(sync.equals("20")){
                         SYNC_URL = UPDATE_CASE_URL;
 
-                        //Building Parameters
+                        //Building Parameters to send to the server
                         parameters.add(new BasicNameValuePair("id", caseID));
                         parameters.add(new BasicNameValuePair("user_id", nameId));
                         parameters.add(new BasicNameValuePair("description", mDescription));
@@ -617,7 +642,7 @@ public class MainActivity extends ActionBarActivity implements SwipeRefreshLayou
 
                         jsonParser.makeHttpRequest(
                                 SYNC_URL, "POST", parameters);
-                        count++;
+                        count++; //this count is just for the Toast in onPostExecute()
                     }
 
 

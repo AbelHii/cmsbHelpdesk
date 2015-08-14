@@ -73,14 +73,14 @@ public class AsyncMethods {
                     if(imageOld != null)
                         imageOld.recycle();
 
-                    if(height > 150 || width > 350){
+                    if(height > 100 || width > 300){
                         final int halfHeight = height / 2;
                         final int halfWidth = width / 2;
 
                         // Calculate the largest inSampleSize value that is a power of 2 and keeps both
                         // height and width larger than the requested height and width.
-                        while ((halfHeight / inSampleSize) > 150
-                                && (halfWidth / inSampleSize) > 350) {
+                        while ((halfHeight / inSampleSize) > 100
+                                && (halfWidth / inSampleSize) > 300) {
                             inSampleSize *= 2;
                         }
                     }
@@ -159,14 +159,14 @@ public class AsyncMethods {
             options = new BitmapFactory.Options();
             if(imageOld != null)
                 imageOld.recycle();
-            if (height > 150 || width > 350) {
+            if (height > 100 || width > 300) {
                 final int halfHeight = height / 2;
                 final int halfWidth = width / 2;
 
                 // Calculate the largest inSampleSize value that is a power of 2 and keeps both
                 // height and width larger than the requested height and width.
-                while ((halfHeight / inSampleSize) > 150
-                        && (halfWidth / inSampleSize) > 350) {
+                while ((halfHeight / inSampleSize) > 100
+                        && (halfWidth / inSampleSize) > 300) {
                     inSampleSize *= 2;
                 }
             }

@@ -75,6 +75,7 @@ public class Settings extends ActionBarActivity {
         ip = (EditText) findViewById(R.id.server);
         mSettingsBtn = (Button)findViewById(R.id.settingsBtn);
 
+        //gets the data from sharedPreference if it exists and then assigns them to the fields:
         username = sharedPreference.getString(this, "username");
         password = sharedPreference.getString(this,"password");
         server = sharedPreference.getString(this,"server");
@@ -177,6 +178,7 @@ public class Settings extends ActionBarActivity {
         mSettingsBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View arg0) {
+                //To make sure that none of the fields are empty:
                 if(user.getText().toString().trim().equals("")){
                     Toast.makeText(getApplicationContext(), "Username: is empty", Toast.LENGTH_SHORT).show();
                     error();
@@ -236,6 +238,7 @@ public class Settings extends ActionBarActivity {
         overridePendingTransition(R.anim.abc_slide_in_bottom, R.anim.abc_slide_out_top);
     }
 
+    //onOptionsItemSelected and onCreateOptionsMenu are for controlling the action bar (orange menu bar on top of activity)
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.

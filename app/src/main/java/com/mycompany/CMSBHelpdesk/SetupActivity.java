@@ -1,5 +1,9 @@
 package com.mycompany.CMSBHelpdesk;
 
+/**
+ * This is just the splash page which only opens once when user first opens the app
+ * or clears the app data
+ */
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;

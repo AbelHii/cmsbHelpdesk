@@ -37,6 +37,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * @author Abel Hii 2015
+ *
+ * Note: This activity works the same as AddCase except it cerates a new user instead of a case
+ *       And it needs to update the userlist too
+ *       I only allow technicians to add users when the app is connected to the internet to avoid re-designing
+ *       the whole syncing method
+ */
 
 public class AddNewUser extends AddCase{
 

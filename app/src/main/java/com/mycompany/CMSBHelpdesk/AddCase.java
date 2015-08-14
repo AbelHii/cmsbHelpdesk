@@ -58,13 +58,19 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 /**
- * @author Abel
+ * @author Abel Hii 2015
  *
  * Notes:
+ * I am using this activity for both adding and editing cases,
+ * The way i differentiate them is by sending callers from MainActivity,
+ * So when a user clicks on a list item in MainActivity I send a caller called "editcase"
+ * and when a user clicks on the plus in MainActivity I send a caller called "addcase"
+ *
  * Anything with "userControl." or "controller" means that i'm accessing the SQLite using the methods in DBController
  *
  * and usually anything with new example().execute() means i'm using an AsyncTask and connecting to the server in someway
  *
+ * to view a method or variable's initialisation you can hold ctrl and click on the method/variable that interests you
  *
  **/
 public class AddCase extends ActionBarActivity {
@@ -89,7 +95,7 @@ public class AddCase extends ActionBarActivity {
     static String title = "Add Case";
 
     //used to check if any changes were made while editing or adding
-    String oldDesc, oldAT;
+    String oldDesc, oldAT; //oldDescription and oldActionTaken
     static Boolean hook = false;
 
     //number of images in that case
@@ -156,7 +162,8 @@ public class AddCase extends ActionBarActivity {
         addListenerOnButton();
     }
 
-    //checks the label of action taken and case description if its empty or not
+    //checks the label of action taken and case description if its empty or not and if it is show the title
+    //if it isnt take away the title and show a new one
     public void checkLabel(){
         if (mDesc.getText().toString().trim().equals("")) {
             mDescLabel.setVisibility(View.GONE);
@@ -177,6 +184,7 @@ public class AddCase extends ActionBarActivity {
 
     //----------------------------------------INITIALISE-------------------------------------------------------------------
     private void initialise(){
+        //to make sure user is logged in properly and has the right server address
         MainActivity.checkLog = sharedPreference.getString(this, "login");
         MainActivity.TAG_IP = sharedPreference.getString(this, "ip");
         MainActivity.ADD_CASE_URL = "http://"+ MainActivity.TAG_IP +"/public/app/AddCase.php";
@@ -189,7 +197,8 @@ public class AddCase extends ActionBarActivity {
         mUser = (Button) findViewById(R.id.spinnerNames);
         mInfo = (ImageButton) findViewById(R.id.moreInfo);
         mStatus = (Spinner) findViewById(R.id.spinnerStatus);
-        //this status is to get the array status (ctrl and click 'R.array.status' to view it)
+        //this status is to get the hardcoded array status and input it into the spinner
+        // (ctrl and click 'R.array.status' to view the array values)
         ArrayList<String> status = new ArrayList<>();
         String[] s = this.getResources().getStringArray(R.array.status);
         for(int i = 0; i < s.length; i++)
@@ -211,7 +220,7 @@ public class AddCase extends ActionBarActivity {
 
         mBitmapImage = (ImageView)findViewById(R.id.bitmapImage);
         mNumberOfImgs = (TextView) findViewById(R.id.numberOfImgs);
-
+        //makes sure to get teh correct case_id and assigneeID
         case_id = sharedPreference.getString(AddCase.this, MainActivity.TAG_ID);
         assigneeID = sharedPreference.getString(AddCase.this, MainActivity.TAG_LOGIN_ID);
 
@@ -282,6 +291,7 @@ public class AddCase extends ActionBarActivity {
                 break;
         }
     }
+    //similar idea with the caseListAdapter in MainActivity, for more pesonalisation options and such
     private class statusAdapter extends ArrayAdapter<String> {
         private Context context;
         private ArrayList<String> itemList;
@@ -330,6 +340,8 @@ public class AddCase extends ActionBarActivity {
 
 
     /*-------------------------------------ADD LISTENER TO BUTTON -------------------------------------------------------------------*/
+    //startActivityForResult is important here because it is used to get the values back from the activities
+    //that you're going to, for example you need it to get the inputted text from the CaseDescription
     public void addListenerOnButton() {
         final Context context = this;
 
@@ -390,7 +402,7 @@ public class AddCase extends ActionBarActivity {
         mActionTaken.setVerticalScrollBarEnabled(true);
         mActionTaken.setMovementMethod(new ScrollingMovementMethod());
 
-        //popup
+        //creates a popup with info about the user selected
         mInfo.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -423,6 +435,7 @@ public class AddCase extends ActionBarActivity {
             }
         });
 
+        //setBackgroundResource is to style the button when its clicked (ctrl and click on_btn_click3 to view)
         mBitmapImage.setBackgroundResource(R.drawable.on_btn_click3);
         mNumberOfImgs.setBackgroundResource(R.drawable.on_btn_click3);
         mBitmapImage.setOnClickListener(new View.OnClickListener() {
@@ -435,7 +448,7 @@ public class AddCase extends ActionBarActivity {
                 final PopupWindow popupWindow = new PopupWindow(
                         popupView, AbsoluteLayout.LayoutParams.FILL_PARENT, AbsoluteLayout.LayoutParams.FILL_PARENT, true);
 
-
+                //for the popup its important to initialise the layout items as part of the popup [popupView.findViewById]
                 ImageView mFullImage = (ImageView) popupView.findViewById(R.id.fullImage);
                 Drawable draw = mBitmapImage.getDrawable();
                 if (draw == null) {
@@ -466,6 +479,7 @@ public class AddCase extends ActionBarActivity {
         });
 
         //Submit button
+        //This part is very very important:
         mSubmit = (Button) findViewById(R.id.submitBtn);
         mSubmit.setBackgroundResource(R.drawable.on_btn_click);
         if(!mUser.getText().toString().trim().equalsIgnoreCase("")){
@@ -485,7 +499,7 @@ public class AddCase extends ActionBarActivity {
 
                     //Logic for adding case:
                     if (title.trim().equalsIgnoreCase("add Case")) {//ADD
-                        if (internetCheck.connectionCheck(context)) {
+                        if (internetCheck.connectionCheck(context)) { //ONLINE
                             id_user = userControl.getID("users", "userId", mUser.getText().toString(), MainActivity.TAG_NAME);
                             new addCase().execute();
                             if(AddPicture.listOfImages.size() != 0){
@@ -493,7 +507,7 @@ public class AddCase extends ActionBarActivity {
                                 temporaryList = AddPicture.tempList;
                                 new uploadImage(AddCase.this, String.valueOf(Integer.parseInt(case_id)+1)).execute(temporaryList);
                             }
-                        } else if (!internetCheck.connectionCheck(context)) {
+                        } else if (!internetCheck.connectionCheck(context)) { //OFFLINE SYNC
                             Intent intent = new Intent(context, MainActivity.class);
                             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                             addCaseSQLite("10", "connection failed");
@@ -505,19 +519,19 @@ public class AddCase extends ActionBarActivity {
                     } else if (title.trim().equalsIgnoreCase("edit Case")) { //EDIT
                         Intent intent = new Intent(context, MainActivity.class);
                         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                        if (internetCheck.isNetworkConnected(context)) {
+                        if (internetCheck.isNetworkConnected(context)) { //ONLINE
                             new updateCase().execute();
                             if(AddPicture.listOfImages.size() != 0){
                                 Toast.makeText(getApplicationContext(), case_id, Toast.LENGTH_LONG).show();
                                 temporaryList = AddPicture.tempList;
                                 new uploadImage(AddCase.this, caseID).execute(temporaryList);
                             }
-                        } else if (!internetCheck.connectionCheck(context) && sync.equals("10")) {
+                        } else if (!internetCheck.connectionCheck(context) && sync.equals("10")) { //OFFLINE SYNC IF EDITING AN ADDED CASE
                             updateCaseSQLite("10");
                             Toast.makeText(getApplicationContext(), "Updating Case For Sync", Toast.LENGTH_LONG).show();
                             startActivity(intent);
                             finish();
-                        } else if (!internetCheck.connectionCheck(context) && (sync.equals("") || sync.equals("20"))) {
+                        } else if (!internetCheck.connectionCheck(context) && (sync.equals("") || sync.equals("20"))) { //OFFLINE SYNC
                             updateCaseSQLite("20");
                             Toast.makeText(getApplicationContext(), "Updating Case For Sync", Toast.LENGTH_LONG).show();
                             startActivity(intent);
@@ -526,7 +540,8 @@ public class AddCase extends ActionBarActivity {
                     }
                     hook = false;
                     backPressed();
-                } else {
+                } else { //This will never happen because of the new flow but, it just changes the colour of the button
+                        // to red to alert the user that name is missing
                     mSubmit.setTextColor(Color.parseColor("#CC0000"));
                     Toast.makeText(getApplicationContext(), "Name is Empty", Toast.LENGTH_SHORT).show();
                 }
@@ -538,7 +553,7 @@ public class AddCase extends ActionBarActivity {
     @Override
     public void onBackPressed(){
         clearOnExit(null);
-        overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
+        overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right); //animation for sliding transition effect
     }
 
     /*----------------------------------SQLITE EDITS-------------------------------*/
@@ -556,7 +571,8 @@ public class AddCase extends ActionBarActivity {
         }else if(AddPicture.tempList.size() == 0 && userControl.getValue("cases","image", case_id) == null){
             AddPicture.filePathsAdd = null;
         }
-
+        //this is a method i created in the DBController Activity under helpers to insert a case into the SQLite
+        // (ctrl and click insertOneCase to view)
         userControl.insertOneCase(case_id,
                 mStatus.getSelectedItem().toString(),
                 mUser.getText().toString(),
@@ -636,6 +652,7 @@ public class AddCase extends ActionBarActivity {
             mAssigneeLabel.setText("Assignee: "+assignee);
         }
 
+        //this is for getting the imageBitmap if there are images for this case:
         if(AddPicture.filePathTemp != null) {
             ArrayList<String> files = AddPicture.getFilePaths(AddPicture.filePathTemp, "imageArrayAdd");
             String filepath = files.get(0);
@@ -755,6 +772,7 @@ public class AddCase extends ActionBarActivity {
     }
 
     /*---------------ON ACTIVITY RESULT--------------------------------------------*/
+    //this is how you get the values from startActivityForResult()
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -798,8 +816,8 @@ public class AddCase extends ActionBarActivity {
                         if(mBitmapImage.getDrawable() == null) {
                             AddPicture.options.inSampleSize = 7;
                             try {
-                                Bitmap img = BitmapFactory.decodeFile(filepath, AddPicture.options);
-                                mBitmapImage.setImageBitmap(AddPicture.getOrientation(img, filepath));
+                                Bitmap img = BitmapFactory.decodeFile(filepath, AddPicture.options); //creates the image
+                                mBitmapImage.setImageBitmap(AddPicture.getOrientation(img, filepath)); //sets the image
                             } catch (Exception ex) {
                                 Toast.makeText(getApplicationContext(), ex + " There was an error loading the image", Toast.LENGTH_SHORT).show();
                             }
@@ -1122,6 +1140,7 @@ public class AddCase extends ActionBarActivity {
         }
 
         //To make it run in the background thread:
+        // (found out that asyncTask only mimics a thread and doesn't actually run in the background)
         @Override
         public void run() {
             android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
@@ -1187,6 +1206,7 @@ public class AddCase extends ActionBarActivity {
 
         @Override
         protected void onPostExecute(ArrayList<String> result) {
+            //to set the bitmap and number of images in the case:
             if(result != null && result.size() != 0 && context != null) {
                 path = fixStringPath(result.get(0), AddCase.this);
                 new AsyncMethods.DownloadImageTask(mBitmapImage, null)

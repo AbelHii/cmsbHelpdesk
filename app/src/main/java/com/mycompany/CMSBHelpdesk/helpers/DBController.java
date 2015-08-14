@@ -218,6 +218,7 @@ public class DBController extends SQLiteOpenHelper{
         return s;
     }
 
+    //get a column
     public ArrayList<String> getColumn(String table, String column){
         SQLiteDatabase database = this.getWritableDatabase();
         ArrayList<String> list = new ArrayList();

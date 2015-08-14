@@ -21,6 +21,13 @@ import com.mycompany.CMSBHelpdesk.helpers.DBController;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+/**
+ * @author Abel Hii 2015
+ *
+ * Note: This activity is quite simple as it is basically just an edit text, it passes and displays information back to
+ *       Case Description and Action Taken
+ *
+ */
 
 public class TextEditor extends ActionBarActivity {
 

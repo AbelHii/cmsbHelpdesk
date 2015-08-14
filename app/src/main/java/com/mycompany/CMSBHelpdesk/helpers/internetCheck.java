@@ -17,7 +17,8 @@ import java.util.concurrent.ExecutionException;
 
 /**
  * Created by Abel on 22/06/2015.
- * checks connectivity by pinging to google.com
+ * checks connectivity by pinging to www.google.com
+ *
  */
 public class internetCheck {
     public static final String LOG_TAG = "Requesting";

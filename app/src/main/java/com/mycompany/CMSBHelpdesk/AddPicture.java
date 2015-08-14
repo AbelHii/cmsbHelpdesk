@@ -52,6 +52,13 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.concurrent.ExecutionException;
 
+/**
+ * @author Abel Hii 2015
+ *
+ * Note: in this activity it is important to note that the images take up a lot of memory when displaying and downloading
+ *       which causes memory leaks. But there are many ways to prevent this, I mainly used options.inSampleSize,
+ *       which resizes the image.
+ */
 
 public class AddPicture extends AddCase {
 
@@ -234,7 +241,7 @@ public class AddPicture extends AddCase {
                 }
             }
         });
-
+        //popup for fullscreen imageView
         mImageLV.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
@@ -248,7 +255,8 @@ public class AddPicture extends AddCase {
 
                 mFullImage = (WebView) popupView.findViewById(R.id.fullImage);
                 mFullImageView = (ImageView) popupView.findViewById(R.id.fullImageView);
-                //This is to allow zoom by loading in a webview:
+                //This is to allow zoom by loading the image in a web view:
+                //(however i couldn't figure out how to load the local images in the web view)
                 mFullImage.setInitialScale(1);
                 mFullImage.getSettings().setLoadWithOverviewMode(true);
                 mFullImage.getSettings().setUseWideViewPort(true);
@@ -312,6 +320,7 @@ public class AddPicture extends AddCase {
     //To delete an image:
     public void deleteImage(int position){
         String filename = listOfImages.get(position).toString();
+        //pass the filename and caseId in an array
         String delImg [] = new String[2];
         delImg[0] = filename;
         delImg[1] = caseId;
@@ -325,6 +334,7 @@ public class AddPicture extends AddCase {
     }
 
     /*--------------------------IMAGE ADAPTER-------------------------------------------------------*/
+    //this is used to allow the listview to display bitmaps
     public ListView getListView() {
         if(mImageLV == null){
             mImageLV = (ListView)findViewById(android.R.id.list);
@@ -612,7 +622,7 @@ public class AddPicture extends AddCase {
             filePaths = json.toString();
 
             //tempList is for seperating the http URL paths from the local paths
-            //because you don't can't upload the URL paths to the server
+            //because you can't upload the URL paths to the server
             tempList.clear();
             tempList = listOfImages;
             for(int i = tempList.size()-1; i >= 0; i--){
